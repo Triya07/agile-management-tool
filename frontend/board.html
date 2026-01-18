@@ -6,23 +6,29 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <input type="text" id="taskInput" placeholder="Enter task">
+<button id="addBtn" type="button">Add Task</button>
+
+
 
   <div class="board">
-    <div class="column">
-      <h3>To Do</h3>
-      <div class="task">Task 1</div>
-    </div>
+    <div class="column" id="todo">
+  <h3>To Do</h3>
+    <div class="task">Task 1</div>
+</div>
 
-    <div class="column">
+
+    <div class="column" id="inprogress">
       <h3>In Progress</h3>
       <div class="task">Task 2</div>
     </div>
 
-    <div class="column">
+    <div class="column" id="done">
       <h3>Done</h3>
       <div class="task">Task 3</div>
     </div>
   </div>
+<script src="script.js"></script>
 
 </body>
 </html>
