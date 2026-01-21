@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sign Up | Agile Management Tool</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      background: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+    }
+    .signup-container {
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 8px 32px rgba(80,130,255,0.13);
+      padding: 40px 36px 32px 36px;
+      min-width: 340px;
+      max-width: 380px;
+      text-align: center;
+    }
+    .signup-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 18px;
+    }
+    .signup-logo img {
+      height: 38px;
+      width: auto;
+      margin-right: 10px;
+    }
+    .signup-title {
+      font-size: 1.7rem;
+      font-weight: 700;
+      color: #7c4dff;
+      margin-bottom: 18px;
+      letter-spacing: 1px;
+    }
+    .signup-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+    .signup-form input {
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1.5px solid #e0d7ff;
+      font-size: 1rem;
+      outline: none;
+      background: #f8fafc;
+      transition: border 0.2s;
+    }
+    .signup-form input:focus {
+      border: 1.5px solid #7c4dff;
+    }
+    .role-select {
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+      margin-bottom: 10px;
+    }
+    .role-btn {
+      padding: 10px 24px;
+      border-radius: 24px;
+      border: none;
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: #e7f7ff;
+      color: #4f8cff;
+      transition: background 0.2s, color 0.2s;
+    }
+    .role-btn.active, .role-btn:focus {
+      background: #7c4dff;
+      color: #fff;
+    }
+    .signup-btn {
+      background: linear-gradient(90deg, #4f8cff 0%, #fc5c7d 100%);
+      color: #fff;
+      border: none;
+      padding: 12px 0;
+      border-radius: 24px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-top: 8px;
+      box-shadow: 0 2px 8px rgba(80,130,255,0.10);
+      cursor: pointer;
+      transition: background 0.3s, box-shadow 0.3s, transform 0.2s;
+    }
+    .signup-btn:hover {
+      background: linear-gradient(90deg, #fc5c7d 0%, #4f8cff 100%);
+      box-shadow: 0 4px 16px rgba(252, 92, 125, 0.18);
+      transform: scale(1.04);
+    }
+    .login-link {
+      margin-top: 18px;
+      font-size: 1rem;
+      color: #4f8cff;
+      text-decoration: underline;
+      cursor: pointer;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="signup-container fade-in">
+    <div class="signup-logo">
+      <img src="img/logo.png" alt="FlowBoard Logo">
+      <span class="signup-title">Agile Project Management</span>
+    </div>
+    <form class="signup-form">
+      <input type="text" placeholder="Username" required>
+      <input type="email" placeholder="Email" required>
+      <input type="password" placeholder="Password" required>
+      <div class="role-select">
+        <button type="button" class="role-btn active" id="role-manager">Manager</button>
+        <button type="button" class="role-btn" id="role-worker">Worker</button>
+      </div>
+      <button type="submit" class="signup-btn">Sign Up</button>
+    </form>
+    <span class="login-link" onclick="window.location.href='login.html'">Already have an account? Login</span>
+  </div>
+  <script>
+    // Role selection toggle
+    const managerBtn = document.getElementById('role-manager');
+    const workerBtn = document.getElementById('role-worker');
+    let selectedRole = 'manager';
+    managerBtn.onclick = function() {
+      managerBtn.classList.add('active');
+      workerBtn.classList.remove('active');
+      selectedRole = 'manager';
+    };
+    workerBtn.onclick = function() {
+      workerBtn.classList.add('active');
+      managerBtn.classList.remove('active');
+      selectedRole = 'worker';
+    };
+    // Handle signup (demo only)
+    document.querySelector('.signup-form').onsubmit = function(e) {
+      e.preventDefault();
+      // Save role to localStorage for demo
+      localStorage.setItem('userRole', selectedRole);
+      window.location.href = 'projects.html';
+    };
+  </script>
+</body>
+</html>
