@@ -7,27 +7,38 @@
 </head>
 <body>
 
-  <!-- Top Bar -->
-  <header class="topbar">
-    <h2>Agile Management Tool</h2>
-    <button class="create-btn" id="openCreate">Create Project</button>
-  </header>
 
-  <!-- App Layout -->
-  <div class="app">
-
-    <!-- Sidebar -->
+  <div class="main-container">
+    <!-- Sidebar Navigation (copied from board.html) -->
     <aside class="sidebar">
-      <ul>
-        <li class="active">Projects</li>
-        <li>Board</li>
-        <li>Dashboard</li>
-        <li>Settings</li>
-      </ul>
+      <div class="sidebar-logo">
+        <img src="img/logo.png" alt="FlowBoard Logo">
+      </div>
+      <nav class="sidebar-nav">
+        <button class="sidebar-btn" id="nav-board">Kanban Board</button>
+        <button class="sidebar-btn active" id="nav-projects">Projects</button>
+        <button class="sidebar-btn" id="nav-dashboard">Dashboard</button>
+        <button class="sidebar-btn" id="nav-settings">Settings</button>
+      </nav>
     </aside>
 
-    <!-- Main Content -->
-    <main class="content">
+    <!-- Main Content Area -->
+    <main id="main-content">
+      <div class="topbar-ui">
+        <h2 class="kanban-title">Projects</h2>
+        <div class="topbar-actions-vertical">
+          <button class="user-avatar-btn" title="User Profile">
+            <img src="img/user.png" alt="User" class="user-avatar">
+          </button>
+          <div class="search-and-task">
+            <div class="search-bar">
+              <input type="text" id="searchInput" placeholder="Search projects...">
+              <span class="search-icon">🔍</span>
+            </div>
+            <button class="create-btn" id="openCreate">Create Project</button>
+          </div>
+        </div>
+      </div>
 
       <!-- Tabs -->
       <div class="tabs">
@@ -38,15 +49,12 @@
 
       <!-- Projects Grid -->
       <div class="projects-grid" id="projectsGrid">
-
         <!-- Empty state -->
         <div class="empty-state" id="emptyState">
           <p>Up for a new project?</p>
           <button class="create-btn">Create Project</button>
         </div>
-
       </div>
-
     </main>
   </div>
 
