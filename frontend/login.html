@@ -144,7 +144,11 @@
       e.preventDefault();
       // Save role to localStorage for demo
       localStorage.setItem('userRole', selectedRole);
-      window.location.href = 'projects.html';
+      if (selectedRole === 'manager') {
+        window.location.href = 'dashboard.html';
+      } else {
+        window.location.href = 'dashboard-team.html';
+      }
     };
   </script>
 </body>

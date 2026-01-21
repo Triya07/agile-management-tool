@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Scrum Board | Agile Management Tool</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      background: #f7f8fa;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      color: #222;
+      font-size: 16px;
+      margin: 0;
+      padding: 0;
+    }
+    .main-container {
+      display: flex;
+      min-height: 100vh;
+      background: #f7f8fa;
+    }
+    .sidebar {
+      /* ...existing code... */
+    }
+    #main-content {
+      flex: 1;
+      padding: 32px 40px 32px 40px;
+      background: #f7f8fa;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+    .topbar-ui {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 32px;
+    }
+    .kanban-title {
+      font-size: 2rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: #1a202c;
+      margin: 0;
+    }
+    .board {
+      display: flex;
+      gap: 28px;
+      margin-bottom: 36px;
+    }
+    .column {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 260px;
+      padding: 0 0 18px 0;
+    }
+    .column-title {
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: #2d3748;
+      padding: 18px 18px 10px 18px;
+      border-bottom: 1px solid #f0f0f0;
+      margin-bottom: 8px;
+      letter-spacing: 0.2px;
+    }
+    .column-tasks {
+      flex: 1;
+      padding: 0 18px;
+      min-height: 60px;
+    }
+    .task-card {
+      background: #f1f5f9;
+      border-radius: 7px;
+      margin-bottom: 12px;
+      padding: 12px 14px;
+      font-size: 1rem;
+      color: #222;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+      cursor: grab;
+      transition: box-shadow 0.2s;
+    }
+    .task-card:active {
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .btn {
+      background: #3182ce;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: 10px 22px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn:hover {
+      background: #2563eb;
+    }
+    /* ...existing code for sidebar, nav, etc... */
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <!-- Sidebar (reuse your existing sidebar) -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <img src="img/logo.png" alt="FlowBoard Logo">
+      </div>
+      <nav class="sidebar-nav">
+        <button class="sidebar-btn" id="nav-board">Kanban Board</button>
+        <button class="sidebar-btn" id="nav-projects">Projects</button>
+        <button class="sidebar-btn" id="nav-dashboard">Dashboard</button>
+        <button class="sidebar-btn" id="nav-sprints">Sprints</button>
+        <button class="sidebar-btn" id="nav-settings">Settings</button>
+      </nav>
+    </aside>
+
+    <main id="main-content">
+      <div class="topbar-ui">
+        <h2 class="kanban-title">Scrum Board</h2>
+        <div class="topbar-actions-vertical">
+          <button class="user-avatar-btn" title="User Profile">
+            <img src="img/user.png" alt="User" class="user-avatar">
+          </button>
+        </div>
+      </div>
+
+      <!-- Sprint Selection Notice -->
+      <div id="sprintNotice" style="display:none;background:#fff3cd;color:#856404;padding:16px 20px;border-radius:8px;margin-bottom:20px;font-size:1.05rem;">
+        No active sprint selected for this project. Please select or create a sprint first.
+      </div>
+
+      <!-- Add Task Button -->
+      <div id="addTaskBtnRow" style="display:flex;justify-content:flex-end;margin-bottom:18px;">
+        <button class="btn" id="openAddTaskModal" style="min-width:120px;">+ Add Task</button>
+      </div>
+
+      <!-- Add Task Modal -->
+      <div id="addTaskModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.18);z-index:1000;align-items:center;justify-content:center;">
+        <div style="background:#fff;padding:32px 28px 24px 28px;border-radius:10px;box-shadow:0 2px 16px rgba(0,0,0,0.12);width:340px;max-width:90vw;position:relative;">
+          <h3 style="margin-top:0;margin-bottom:18px;font-size:1.15rem;font-weight:600;color:#1a202c;">Add Task</h3>
+          <form id="addTaskForm">
+            <label style="font-size:1rem;">Title</label>
+            <input id="taskTitleInput" type="text" required style="width:100%;margin-bottom:14px;padding:9px 10px;border-radius:7px;border:1px solid #e2e8f0;font-size:1rem;background:#f7fafc;">
+            <label style="font-size:1rem;">Status</label>
+            <select id="taskStatusInput" style="width:100%;margin-bottom:18px;padding:9px 10px;border-radius:7px;border:1px solid #e2e8f0;font-size:1rem;background:#f7fafc;">
+              <option value="todo">To Do</option>
+              <option value="inprogress">In Progress</option>
+              <option value="done">Done</option>
+            </select>
+            <div style="display:flex;justify-content:flex-end;gap:10px;">
+              <button type="button" class="btn" id="cancelAddTask" style="background:#e2e8f0;color:#222;">Cancel</button>
+              <button type="submit" class="btn">Add</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Scrum Board -->
+      <div class="board fade-in" id="scrumBoard">
+        <div class="column">
+          <div class="column-title">To Do</div>
+          <div id="todo" class="column-tasks"></div>
+        </div>
+        <div class="column">
+          <div class="column-title">In Progress</div>
+          <div id="inprogress" class="column-tasks"></div>
+        </div>
+        <div class="column">
+          <div class="column-title">Done</div>
+          <div id="done" class="column-tasks"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="scrum-board.js"></script>
+</body>
+</html>
