@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Projects</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <header class="topbar">
+    <h2>Agile Management Tool</h2>
+    <button class="create-btn" id="openCreate">Create Project</button>
+  </header>
+
+  <!-- App Layout -->
+  <div class="app">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <ul>
+        <li class="active">Projects</li>
+        <li>Board</li>
+        <li>Dashboard</li>
+        <li>Settings</li>
+      </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="content">
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab active" data-filter="all">All</button>
+        <button class="tab" data-filter="scrum">Scrum</button>
+        <button class="tab" data-filter="kanban">Kanban</button>
+      </div>
+
+      <!-- Projects Grid -->
+      <div class="projects-grid" id="projectsGrid">
+
+        <!-- Empty state -->
+        <div class="empty-state" id="emptyState">
+          <p>Up for a new project?</p>
+          <button class="create-btn">Create Project</button>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+
+  <script src="projects.js"></script>
+</body>
+</html>
