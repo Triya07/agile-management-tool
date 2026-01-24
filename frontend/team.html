@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Team Management | Agile Management Tool</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { 
+      background: linear-gradient(135deg, #f0fdfa 0%, #e6fffa 50%, #ccfdf7 100%); 
+      font-family: 'Segoe UI', Arial, sans-serif; 
+      color: #083344; 
+    }
+    .main-container { 
+      display: flex; 
+      min-height: 100vh; 
+      background: linear-gradient(135deg, #f0fdfa 0%, #e6fffa 100%);
+    }
+    .team-section { 
+      background: rgba(255, 255, 255, 0.8); 
+      border-radius: 15px; 
+      box-shadow: 0 4px 20px rgba(8, 51, 68, 0.08); 
+      padding: 28px; 
+      margin-bottom: 24px; 
+      border: 1px solid rgba(6, 182, 212, 0.1);
+    }
+    .btn { 
+      background: linear-gradient(135deg, #0891b2, #22c55e); 
+      color: #fff; 
+      border: none; 
+      border-radius: 10px; 
+      padding: 12px 24px; 
+      cursor: pointer; 
+      font-weight: 600;
+    }
+    .btn:hover { 
+      background: linear-gradient(135deg, #22c55e, #059669); 
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(34, 197, 94, 0.25);
+    }
+    .overview-card { 
+      background: linear-gradient(135deg, #0891b2 0%, #22c55e 100%); 
+      color: white; 
+      padding: 20px; 
+      border-radius: 12px; 
+    }
+    .overview-card.secondary { 
+      background: linear-gradient(135deg, #22c55e 0%, #10b981 100%); 
+    }
+    .overview-card.success { 
+      background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); 
+    }
+    .card-number { font-size: 2rem; font-weight: 700; margin-bottom: 4px; }
+    .card-label { font-size: 0.9rem; opacity: 0.9; }
+    .team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .member-card { background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); padding: 20px; transition: all 0.3s; border-left: 4px solid #3182ce; }
+    .member-card:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
+    .member-header { display: flex; align-items: center; margin-bottom: 12px; }
+    .member-avatar-large { width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 1.2rem; margin-right: 16px; }
+    .member-status { padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; margin-left: auto; }
+    .status-online { background: #d1fae5; color: #065f46; }
+    .status-offline { background: #fef2f2; color: #991b1b; }
+    .member-stats { display: flex; justify-content: space-between; margin: 12px 0; }
+    .stat { text-align: center; }
+    .stat-number { font-size: 1.4rem; font-weight: 600; color: #3182ce; }
+    .stat-label { font-size: 0.8rem; color: #666; }
+    .task-timeline { margin-top: 12px; }
+    .timeline-item { display: flex; align-items: center; padding: 4px 0; }
+    .timeline-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; }
+    .timeline-dot.todo { background: #fbbf24; }
+    .timeline-dot.progress { background: #3b82f6; }
+    .timeline-dot.done { background: #10b981; }
+    .calendar-widget { background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); padding: 20px; }
+    .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .calendar-nav { background: #f3f4f6; border: none; border-radius: 6px; padding: 4px 8px; cursor: pointer; }
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+    .calendar-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 4px; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }
+    .calendar-day:hover { background: #e5e7eb; }
+    .calendar-day.today { background: #3b82f6; color: white; }
+    .calendar-day.has-task { background: #fef3c7; color: #d97706; font-weight: 600; }
+    .activity-feed { background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); padding: 20px; max-height: 400px; overflow-y: auto; }
+    .activity-item { display: flex; align-items: start; padding: 8px 0; border-bottom: 1px solid #f3f4f6; }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 0.8rem; }
+    .activity-assigned { background: #dbeafe; color: #1d4ed8; }
+    .activity-completed { background: #d1fae5; color: #065f46; }
+    .activity-updated { background: #fef3c7; color: #d97706; }
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <span style="font-size:1.8rem;font-weight:900;background:linear-gradient(135deg,#0891b2,#22c55e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">FlowBoard</span>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="sidebar-btn" onclick="window.location.href='dashboard.html'">Dashboard</button>
+        <button class="sidebar-btn" onclick="window.location.href='projects.html'">Projects</button>
+        <button class="sidebar-btn" onclick="window.location.href='board.html'">Kanban Board</button>
+        <button class="sidebar-btn" onclick="window.location.href='sprints.html'">Sprint Management</button>
+        <button class="sidebar-btn" onclick="window.location.href='scrum-updates.html'">Scrum Updates</button>
+        <button class="sidebar-btn active">Team</button>
+        <button class="sidebar-btn" onclick="window.location.href='reports.html'">Reports</button>
+        <button class="sidebar-btn" onclick="logout()">Logout</button>
+      </nav>
+    </aside>
+    <main id="main-content">
+      <!-- Overview Cards -->
+      <div class="overview-cards">
+        <div class="overview-card">
+          <div class="card-number" id="totalMembers">0</div>
+          <div class="card-label">Team Members</div>
+        </div>
+        <div class="overview-card secondary">
+          <div class="card-number" id="activeTasks">0</div>
+          <div class="card-label">Active Tasks</div>
+        </div>
+        <div class="overview-card success">
+          <div class="card-number" id="completedToday">0</div>
+          <div class="card-label">Completed Today</div>
+        </div>
+      </div>
+
+      <div class="team-dashboard">
+        <div class="main-panel">
+          <div class="team-section">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+              <h2 style="margin:0;">Team Management</h2>
+              <div>
+                <button class="btn" id="addMemberBtn" style="margin-right:12px;">+ Add Member</button>
+                <button class="btn" onclick="openBulkAssignModal()" style="background:#6366f1;">Bulk Assign</button>
+              </div>
+            </div>
+            <div class="team-grid" id="teamGrid"></div>
+          </div>
+        </div>
+
+        <div class="side-panel">
+          <!-- Calendar Widget -->
+          <div class="calendar-widget">
+            <div class="calendar-header">
+              <h3 style="margin:0;">Task Calendar</h3>
+              <div>
+                <button class="calendar-nav" id="prevMonth">‹</button>
+                <span id="currentMonth"></span>
+                <button class="calendar-nav" id="nextMonth">›</button>
+              </div>
+            </div>
+            <div class="calendar-grid" id="calendarGrid"></div>
+          </div>
+
+          <!-- Activity Feed -->
+          <div class="activity-feed">
+            <h3 style="margin-top:0;">Recent Activity</h3>
+            <div id="activityList"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Enhanced Assign Task Modal -->
+  <div id="assignModal" class="assign-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 style="margin:0;">Assign Task</h3>
+      </div>
+      <div class="modal-body">
+        <form id="assignTaskForm">
+          <div class="form-group">
+            <label class="form-label">Select Task:</label>
+            <select id="taskSelect" class="form-input"></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Assign to:</label>
+            <select id="memberSelect" class="form-input"></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Priority:</label>
+            <div class="priority-selector">
+              <div class="priority-btn" data-priority="low">Low</div>
+              <div class="priority-btn active" data-priority="medium">Medium</div>
+              <div class="priority-btn" data-priority="high">High</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Due Date:</label>
+            <div class="date-picker">
+              <input type="date" id="startDate" class="form-input">
+              <input type="date" id="dueDate" class="form-input">
+            </div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:24px;">
+            <button type="button" class="btn btn-secondary" onclick="closeAssignModal()">Cancel</button>
+            <button type="submit" class="btn">Assign Task</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Authentication check - only managers allowed
+    function checkManagerAuth() {
+      const isLoggedIn = localStorage.getItem('isLoggedIn');
+      const userRole = localStorage.getItem('userRole');
+      
+      if (!isLoggedIn || userRole !== 'manager') {
+        alert('Access denied. Manager login required.');
+        window.location.href = 'login.html';
+        return false;
+      }
+      return true;
+    }
+    
+    // Check auth on page load
+    if (!checkManagerAuth()) return;
+
+    // Demo team members
+    let teamMembers = JSON.parse(localStorage.getItem("teamMembers")) || [
+      { id: "user1", name: "John Doe", email: "john@example.com", role: "Developer" },
+      { id: "user2", name: "Jane Smith", email: "jane@example.com", role: "Designer" },
+      { id: "user3", name: "Mike Wilson", email: "mike@example.com", role: "Tester" }
+    ];
+
+    function renderTeam() {
+      const teamGrid = document.getElementById("teamGrid");
+      teamGrid.innerHTML = "";
+      
+      teamMembers.forEach(member => {
+        const memberTasks = getUserTasks(member.id);
+        const completedTasks = memberTasks.filter(t => t.status === 'done').length;
+        const inProgressTasks = memberTasks.filter(t => t.status === 'inprogress').length;
+        
+        const div = document.createElement("div");
+        div.className = "member-card";
+        div.innerHTML = `
+          <div class="member-header">
+            <div class="member-avatar-large">${member.name.charAt(0)}</div>
+            <div>
+              <h4 style="margin:0;">${member.name}</h4>
+              <p style="margin:2px 0;color:#666;">${member.role}</p>
+            </div>
+            <div class="member-status status-online">Online</div>
+          </div>
+          
+          <div class="member-stats">
+            <div class="stat">
+              <div class="stat-number">${memberTasks.length}</div>
+              <div class="stat-label">Total</div>
+            </div>
+            <div class="stat">
+              <div class="stat-number">${inProgressTasks}</div>
+              <div class="stat-label">Active</div>
+            </div>
+            <div class="stat">
+              <div class="stat-number">${completedTasks}</div>
+              <div class="stat-label">Done</div>
+            </div>
+          </div>
+          
+          <div class="task-timeline">
+            ${memberTasks.slice(0,3).map(task => `
+              <div class="timeline-item">
+                <div class="timeline-dot ${task.status}"></div>
+                <span style="font-size:0.85rem;">${task.title}</span>
+              </div>
+            `).join('')}
+          </div>
+          
+          <div style="display:flex;gap:8px;margin-top:16px;">
+            <button class="btn" onclick="assignTask('${member.id}')" style="flex:1;font-size:0.9rem;">Assign Task</button>
+            <button class="btn btn-secondary" onclick="viewMemberTasks('${member.id}')" style="flex:1;font-size:0.9rem;">View All</button>
+          </div>
+        `;
+        teamGrid.appendChild(div);
+      });
+      
+      updateOverviewCards();
+    }
+    
+    function getUserTasks(userId) {
+      return (JSON.parse(localStorage.getItem("tasks")) || []).filter(t => t.assignee === userId);
+    }
+    
+    function updateOverviewCards() {
+      const allTasks = JSON.parse(localStorage.getItem("tasks")) || [];
+      const today = new Date().toISOString().split('T')[0];
+      
+      document.getElementById("totalMembers").textContent = teamMembers.length;
+      document.getElementById("activeTasks").textContent = allTasks.filter(t => t.status !== 'done').length;
+      document.getElementById("completedToday").textContent = allTasks.filter(t => t.status === 'done' && t.completedDate === today).length;
+    }
+    
+    // Calendar functionality
+    let currentDate = new Date();
+    
+    function renderCalendar() {
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      const daysInMonth = lastDay.getDate();
+      const startingDay = firstDay.getDay();
+      
+      document.getElementById("currentMonth").textContent = 
+        new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(currentDate);
+      
+      const calendarGrid = document.getElementById("calendarGrid");
+      calendarGrid.innerHTML = "";
+      
+      // Day headers
+      ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach(day => {
+        const dayHeader = document.createElement("div");
+        dayHeader.textContent = day;
+        dayHeader.style.fontWeight = "600";
+        dayHeader.style.color = "#6b7280";
+        dayHeader.style.fontSize = "0.75rem";
+        dayHeader.style.textAlign = "center";
+        dayHeader.style.padding = "8px 0";
+        calendarGrid.appendChild(dayHeader);
+      });
+      
+      // Empty cells for days before month starts
+      for (let i = 0; i < startingDay; i++) {
+        calendarGrid.appendChild(document.createElement("div"));
+      }
+      
+      // Days of the month
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dayElement = document.createElement("div");
+        dayElement.className = "calendar-day";
+        dayElement.textContent = day;
+        
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const today = new Date().toISOString().split('T')[0];
+        
+        if (dateStr === today) {
+          dayElement.classList.add("today");
+        }
+        
+        // Check if there are tasks due on this date
+        const tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+        if (tasks.some(t => t.dueDate === dateStr)) {
+          dayElement.classList.add("has-task");
+        }
+        
+        calendarGrid.appendChild(dayElement);
+      }
+    }
+    
+    document.getElementById("prevMonth").onclick = () => {
+      currentDate.setMonth(currentDate.getMonth() - 1);
+      renderCalendar();
+    };
+    
+    document.getElementById("nextMonth").onclick = () => {
+      currentDate.setMonth(currentDate.getMonth() + 1);
+      renderCalendar();
+    };
+    
+    // Activity feed
+    function updateActivityFeed() {
+      const activities = JSON.parse(localStorage.getItem("activities")) || [];
+      const activityList = document.getElementById("activityList");
+      activityList.innerHTML = "";
+      
+      activities.slice(0, 10).forEach(activity => {
+        const div = document.createElement("div");
+        div.className = "activity-item";
+        div.innerHTML = `
+          <div class="activity-icon activity-${activity.type}">
+            ${activity.type === 'assigned' ? '📋' : activity.type === 'completed' ? '✅' : '🔄'}
+          </div>
+          <div>
+            <div style="font-size:0.9rem;">${activity.message}</div>
+            <div style="font-size:0.8rem;color:#6b7280;">${activity.time}</div>
+          </div>
+        `;
+        activityList.appendChild(div);
+      });
+    }
+    
+    // Enhanced assign task functionality
+    document.getElementById("assignTaskForm").onsubmit = function(e) {
+      e.preventDefault();
+      const taskId = document.getElementById("taskSelect").value;
+      const memberId = document.getElementById("memberSelect").value;
+      const priority = document.querySelector(".priority-btn.active").dataset.priority;
+      const startDate = document.getElementById("startDate").value;
+      const dueDate = document.getElementById("dueDate").value;
+      
+      // Update task with enhanced data
+      let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+      const taskIndex = tasks.findIndex(t => t.id === taskId);
+      if (taskIndex !== -1) {
+        tasks[taskIndex] = {
+          ...tasks[taskIndex],
+          assignee: memberId,
+          priority: priority,
+          startDate: startDate,
+          dueDate: dueDate,
+          assignedDate: new Date().toISOString().split('T')[0]
+        };
+        localStorage.setItem("tasks", JSON.stringify(tasks));
+        
+        // Add activity
+        const activities = JSON.parse(localStorage.getItem("activities")) || [];
+        const member = teamMembers.find(m => m.id === memberId);
+        activities.unshift({
+          type: 'assigned',
+          message: `Task "${tasks[taskIndex].title}" assigned to ${member.name}`,
+          time: new Date().toLocaleString(),
+          timestamp: Date.now()
+        });
+        localStorage.setItem("activities", JSON.stringify(activities));
+        
+        alert("Task assigned successfully!");
+        closeAssignModal();
+        renderTeam();
+        renderCalendar();
+        updateActivityFeed();
+      }
+    };
+    
+    // Priority selector
+    document.querySelectorAll('.priority-btn').forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll('.priority-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      };
+    });
+    
+    // Initialize
+    renderTeam();
+    renderCalendar();
+    updateActivityFeed();
+  </script>
+</body>
+</html>

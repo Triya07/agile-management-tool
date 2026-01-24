@@ -5,139 +5,225 @@
   <title>Manager Dashboard | Agile Management Tool</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    body { background: #f7f8fa; font-family: 'Segoe UI', Arial, sans-serif; color: #222; }
-    .main-container { display: flex; min-height: 100vh; }
-    #main-content { flex: 1; padding: 32px 40px; }
-    .dashboard-section { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); padding: 24px; margin-bottom: 28px; }
-    .dashboard-title { font-size: 2rem; font-weight: 600; margin-bottom: 18px; }
-    .project-list { margin-bottom: 18px; }
-    .project-card { display: inline-block; background: #f7fafc; border-radius: 8px; padding: 14px 22px; margin-right: 16px; margin-bottom: 10px; cursor: pointer; border: 1px solid #e2e8f0; }
-    .project-card.active { background: #e0e7ff; border-color: #6366f1; }
-    .btn { background: #3182ce; color: #fff; border: none; border-radius: 7px; padding: 10px 22px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: background 0.2s; }
-    .btn:hover { background: #2563eb; }
-    .task-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    .task-table th, .task-table td { padding: 8px 10px; border-bottom: 1px solid #f0f0f0; text-align: left; }
-    .task-table th { background: #f7f8fa; }
-    .status-badge { border-radius: 6px; padding: 2px 10px; font-size: 0.95rem; }
-    .status-todo { background: #fef9c3; color: #b45309; }
-    .status-inprogress { background: #dbeafe; color: #2563eb; }
-    .status-done { background: #bbf7d0; color: #15803d; }
-    .progress-bar-bg { background: #e5e7eb; border-radius: 8px; height: 18px; width: 100%; margin-top: 8px; }
-    .progress-bar-fill { background: #3182ce; height: 100%; border-radius: 8px; }
+    :root {
+      --sidebar-width: 300px;
+    }
+    
+    body { 
+      background: linear-gradient(135deg, #F7FCEB 0%, #ECFDF0 25%, #D1FAE5 50%, #A7F3D0 75%, #6EE7B7 100%); 
+      font-family: 'Segoe UI', Arial, sans-serif; 
+      color: #083344; 
+    }
+    
+    .main-container { 
+      display: flex; 
+      min-height: 100vh; 
+      margin-left: var(--sidebar-width);
+      width: calc(100% - var(--sidebar-width));
+      transition: margin-left 0.3s ease, width 0.3s ease;
+    }
+    
+    #main-content { 
+      flex: 1; 
+      padding: 32px 40px; 
+      background: transparent;
+    }
+    
+    .dashboard-title {
+      background: linear-gradient(135deg, #76C893, #52B69A);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 32px;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+    
+    .stat-card {
+      background: linear-gradient(135deg, rgba(118, 200, 147, 0.1), rgba(82, 182, 154, 0.05));
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+      border: 1px solid rgba(118, 200, 147, 0.2);
+      box-shadow: 0 4px 20px rgba(8, 51, 68, 0.08);
+      cursor: pointer;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 25px rgba(8, 51, 68, 0.12);
+    }
+    
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #76C893, #52B69A);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .stat-label {
+      color: #34A0A4;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+    
+    .dashboard-section {
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 15px;
+      padding: 28px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(118, 200, 147, 0.2);
+      box-shadow: 0 4px 20px rgba(8, 51, 68, 0.08);
+    }
+    
+    .section-title {
+      color: #34A0A4;
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+    
+    .btn {
+      background: linear-gradient(135deg, #76C893, #52B69A);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 24px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-right: 12px;
+      margin-bottom: 8px;
+    }
+    
+    .btn:hover {
+      background: linear-gradient(135deg, #52B69A, #34A0A4);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(82, 182, 154, 0.25);
+    }
   </style>
 </head>
 <body>
   <div class="main-container">
-    <aside class="sidebar">
-      <!-- ...existing code... -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <span style="font-size:1.8rem;font-weight:900;color:#D9ED92;">FlowBoard</span>
+        <button class="sidebar-resize-btn" id="sidebarResizeBtn" title="Toggle sidebar size">⟷</button>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="sidebar-btn" onclick="navigateTo('kanban-board.html')">Kanban Board</button>
+        <button class="sidebar-btn" onclick="navigateTo('projects.html')">Projects</button>
+        <button class="sidebar-btn active">Dashboard</button>
+        <button class="sidebar-btn" onclick="navigateTo('sprints.html')">Sprints</button>
+        <button class="sidebar-btn" onclick="navigateTo('settings.html')">Settings</button>
+      </nav>
     </aside>
+    
     <main id="main-content">
-      <div class="dashboard-section">
-        <div class="dashboard-title">Manager Dashboard</div>
-        <div>
-          <strong>Projects:</strong>
-          <span id="projectList" class="project-list"></span>
-          <button class="btn" id="addProjectBtn">+ Add Project</button>
+      <h1 class="dashboard-title">Manager Dashboard</h1>
+      
+      <div class="stats-grid">
+        <div class="stat-card" onclick="navigateTo('projects.html')">
+          <div class="stat-number" id="totalProjects">3</div>
+          <div class="stat-label">Active Projects</div>
         </div>
-        <div style="margin-top:18px;">
-          <button class="btn" id="openBoardBtn" style="margin-right:10px;">Open Board</button>
-          <button class="btn" id="openSprintsBtn">Open Sprints</button>
+        <div class="stat-card" onclick="navigateTo('sprints.html')">
+          <div class="stat-number" id="totalSprints">2</div>
+          <div class="stat-label">Active Sprints</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="totalTasks">15</div>
+          <div class="stat-label">Total Tasks</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="teamMembers">8</div>
+          <div class="stat-label">Team Members</div>
         </div>
       </div>
+      
       <div class="dashboard-section">
-        <div style="font-size:1.2rem;font-weight:500;margin-bottom:10px;">Team Progress</div>
-        <div id="progressBar" class="progress-bar-bg"><div id="progressFill" class="progress-bar-fill" style="width:0%"></div></div>
-        <div id="progressText" style="margin-top:6px;font-size:1rem;"></div>
+        <h3 class="section-title">Quick Actions</h3>
+        <button class="btn" onclick="navigateTo('projects.html')">Create New Project</button>
+        <button class="btn" onclick="navigateTo('sprints.html')">Start New Sprint</button>
+        <button class="btn" onclick="navigateTo('kanban-board.html')">View Kanban Board</button>
+        <button class="btn" onclick="navigateTo('scrum-updates.html')">View Team Updates</button>
       </div>
+      
       <div class="dashboard-section">
-        <div style="font-size:1.2rem;font-weight:500;margin-bottom:10px;">All Tasks</div>
-        <table class="task-table">
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Status</th>
-              <th>Assignee</th>
-            </tr>
-          </thead>
-          <tbody id="taskTableBody"></tbody>
-        </table>
+        <h3 class="section-title">Recent Activity</h3>
+        <div id="recentActivity">
+          <div style="padding: 12px 0; border-bottom: 1px solid rgba(118, 200, 147, 0.2);">
+            <strong>Project "Mobile App"</strong> was created 2 hours ago
+          </div>
+          <div style="padding: 12px 0; border-bottom: 1px solid rgba(118, 200, 147, 0.2);">
+            <strong>Sprint 2</strong> completed successfully yesterday
+          </div>
+          <div style="padding: 12px 0;">
+            <strong>5 new tasks</strong> added to backlog today
+          </div>
+        </div>
       </div>
     </main>
   </div>
+
   <script>
-    // --- Project selection ---
-    let projects = JSON.parse(localStorage.getItem("projects")) || [];
-    let activeProjectId = localStorage.getItem("activeProject");
-    function renderProjects() {
-      const list = document.getElementById("projectList");
-      list.innerHTML = "";
-      projects.forEach(p => {
-        const btn = document.createElement("span");
-        btn.className = "project-card" + (p.id === activeProjectId ? " active" : "");
-        btn.textContent = p.name + " (" + p.type + ")";
-        btn.onclick = () => {
-          activeProjectId = p.id;
-          localStorage.setItem("activeProject", p.id);
-          renderProjects();
-          renderTasks();
-          renderProgress();
-        };
-        list.appendChild(btn);
+    // Navigation function
+    function navigateTo(page) {
+      window.location.href = page;
+    }
+    
+    // Sidebar functionality
+    const root = document.documentElement;
+    const sidebar = document.getElementById('sidebar');
+    const resizeBtn = document.getElementById('sidebarResizeBtn');
+    
+    let sidebarState = 'normal';
+    
+    function setSidebarWidth(width) {
+      root.style.setProperty('--sidebar-width', width + 'px');
+      localStorage.setItem('sidebarWidth', width);
+      
+      if (sidebar) {
+        sidebar.classList.remove('compact', 'wide');
+        if (width <= 250) {
+          sidebar.classList.add('compact');
+          sidebarState = 'compact';
+        } else if (width >= 380) {
+          sidebar.classList.add('wide');
+          sidebarState = 'wide';
+        } else {
+          sidebarState = 'normal';
+        }
+      }
+    }
+    
+    const savedWidth = localStorage.getItem('sidebarWidth');
+    if (savedWidth) {
+      setSidebarWidth(parseInt(savedWidth));
+    }
+    
+    if (resizeBtn) {
+      resizeBtn.addEventListener('click', () => {
+        if (sidebarState === 'compact') {
+          setSidebarWidth(300);
+        } else if (sidebarState === 'normal') {
+          setSidebarWidth(400);
+        } else {
+          setSidebarWidth(220);
+        }
       });
     }
-    document.getElementById("addProjectBtn").onclick = function() {
-      const name = prompt("Project name:");
-      if (!name) return;
-      const type = prompt("Type (scrum/kanban):", "scrum");
-      if (!type) return;
-      const newProj = { id: Date.now().toString(), name, type };
-      projects.push(newProj);
-      localStorage.setItem("projects", JSON.stringify(projects));
-      renderProjects();
-    };
-
-    // --- Board navigation ---
-    document.getElementById("openBoardBtn").onclick = function() {
-      if (!activeProjectId) return alert("Select a project first!");
-      const proj = projects.find(p => p.id === activeProjectId);
-      if (proj.type === "scrum") window.location.href = "scrum-board.html";
-      else window.location.href = "board.html";
-    };
-    document.getElementById("openSprintsBtn").onclick = function() {
-      if (!activeProjectId) return alert("Select a project first!");
-      window.location.href = "sprints.html";
-    };
-
-    // --- Tasks and progress ---
-    function renderTasks() {
-      const tasks = (JSON.parse(localStorage.getItem("tasks")) || []).filter(t => t.projectId === activeProjectId);
-      const tbody = document.getElementById("taskTableBody");
-      tbody.innerHTML = "";
-      tasks.forEach(task => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${task.title}</td>
-          <td>
-            <span class="status-badge status-${task.status}">${task.status.replace("inprogress", "In Progress").replace("todo", "To Do").replace("done", "Done")}</span>
-          </td>
-          <td>${task.assignee || "<em>Unassigned</em>"}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-    function renderProgress() {
-      const tasks = (JSON.parse(localStorage.getItem("tasks")) || []).filter(t => t.projectId === activeProjectId);
-      const done = tasks.filter(t => t.status === "done").length;
-      const total = tasks.length;
-      const percent = total ? Math.round((done / total) * 100) : 0;
-      document.getElementById("progressFill").style.width = percent + "%";
-      document.getElementById("progressText").textContent = total ? `${done} of ${total} tasks done (${percent}%)` : "No tasks yet";
-    }
-
-    // --- Initial render ---
-    renderProjects();
-    renderTasks();
-    renderProgress();
   </script>
 </body>
 </html>

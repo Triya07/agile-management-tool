@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Profile | FlowBoard</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { 
+      background: linear-gradient(135deg, #f0fdfa 0%, #e6fffa 50%, #ccfdf7 100%); 
+      font-family: 'Segoe UI', Arial, sans-serif; 
+      color: #083344; 
+    }
+    .main-container { 
+      display: flex; 
+      min-height: 100vh; 
+      background: linear-gradient(135deg, #f0fdfa 0%, #e6fffa 100%);
+    }
+    #main-content { 
+      flex: 1; 
+      padding: 32px 40px; 
+      background: transparent;
+    }
+    .profile-section { 
+      background: rgba(255, 255, 255, 0.8); 
+      border-radius: 15px; 
+      box-shadow: 0 4px 20px rgba(8, 51, 68, 0.08); 
+      padding: 28px; 
+      margin-bottom: 24px; 
+      border: 1px solid rgba(118, 200, 147, 0.1);
+    }
+    .profile-header {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 2px solid rgba(118, 200, 147, 0.2);
+    }
+    .profile-avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #76C893, #52B69A);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 3rem;
+      font-weight: 900;
+      border: 4px solid rgba(118, 200, 147, 0.3);
+      position: relative;
+      cursor: pointer;
+    }
+    .profile-avatar:hover {
+      transform: scale(1.05);
+      transition: all 0.3s;
+    }
+    .profile-info h1 {
+      background: linear-gradient(135deg, #76C893, #52B69A);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 0 0 8px 0;
+      font-size: 2.2rem;
+      font-weight: 700;
+    }
+    .profile-info .role {
+      color: #34A0A4;
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .profile-info .department {
+      color: #168AAD;
+      font-size: 1rem;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+    .form-group.full-width {
+      grid-column: 1 / -1;
+    }
+    .form-label {
+      font-weight: 600;
+      color: #34A0A4;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+    }
+    .form-input {
+      padding: 12px 16px;
+      border: 2px solid rgba(118, 200, 147, 0.3);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.8);
+      font-size: 1rem;
+      transition: all 0.3s;
+      color: #083344;
+    }
+    .form-input:focus {
+      outline: none;
+      border-color: #76C893;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(118, 200, 147, 0.1);
+    }
+    .form-textarea {
+      min-height: 100px;
+      resize: vertical;
+      font-family: inherit;
+    }
+    .btn {
+      background: linear-gradient(135deg, #76C893, #52B69A);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 32px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .btn:hover {
+      background: linear-gradient(135deg, #52B69A, #34A0A4);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(118, 200, 147, 0.3);
+    }
+    .btn-secondary {
+      background: linear-gradient(135deg, #34A0A4, #168AAD);
+    }
+    .btn-secondary:hover {
+      background: linear-gradient(135deg, #168AAD, #1A759F);
+    }
+    .skills-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .skill-tag {
+      background: linear-gradient(135deg, rgba(118, 200, 147, 0.2), rgba(82, 182, 154, 0.1));
+      color: #34A0A4;
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      border: 1px solid rgba(118, 200, 147, 0.3);
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-top: 24px;
+    }
+    .stat-card {
+      background: linear-gradient(135deg, rgba(118, 200, 147, 0.1), rgba(82, 182, 154, 0.05));
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      border: 1px solid rgba(118, 200, 147, 0.2);
+    }
+    .stat-number {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #76C893, #52B69A);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .stat-label {
+      color: #34A0A4;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <span style="font-size:1.8rem;font-weight:900;background:linear-gradient(135deg,#76C893,#52B69A);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">FlowBoard</span>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="sidebar-btn" onclick="goToDashboard()">Dashboard</button>
+        <button class="sidebar-btn" onclick="window.location.href='my-tasks.html'">My Tasks</button>
+        <button class="sidebar-btn" onclick="window.location.href='projects.html'">Projects</button>
+        <button class="sidebar-btn active">Profile</button>
+        <button class="sidebar-btn" onclick="logout()">Logout</button>
+      </nav>
+    </aside>
+
+    <main id="main-content">
+      <div class="profile-section">
+        <div class="profile-header">
+          <div class="profile-avatar" id="profileAvatar" title="Click to change avatar">
+            <span id="avatarInitials">JD</span>
+          </div>
+          <div class="profile-info">
+            <h1 id="profileName">John Doe</h1>
+            <div class="role" id="profileRole">Senior Developer</div>
+            <div class="department" id="profileDepartment">Engineering Department</div>
+          </div>
+        </div>
+
+        <form id="profileForm">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">First Name</label>
+              <input type="text" class="form-input" id="firstName" value="John">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Last Name</label>
+              <input type="text" class="form-input" id="lastName" value="Doe">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-input" id="email" value="john.doe@company.com">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Phone</label>
+              <input type="tel" class="form-input" id="phone" value="+1 (555) 123-4567">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Job Title</label>
+              <input type="text" class="form-input" id="jobTitle" value="Senior Software Developer">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Department</label>
+              <select class="form-input" id="department">
+                <option value="engineering">Engineering</option>
+                <option value="design">Design</option>
+                <option value="marketing">Marketing</option>
+                <option value="sales">Sales</option>
+                <option value="hr">Human Resources</option>
+                <option value="finance">Finance</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Employee ID</label>
+              <input type="text" class="form-input" id="employeeId" value="EMP-2024-001" readonly>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Start Date</label>
+              <input type="date" class="form-input" id="startDate" value="2024-01-15">
+            </div>
+            <div class="form-group full-width">
+              <label class="form-label">Bio</label>
+              <textarea class="form-input form-textarea" id="bio" placeholder="Tell us about yourself...">Experienced software developer with 5+ years in full-stack development. Passionate about creating efficient solutions and mentoring junior developers.</textarea>
+            </div>
+            <div class="form-group full-width">
+              <label class="form-label">Skills</label>
+              <input type="text" class="form-input" id="skillsInput" placeholder="Add skills (press Enter to add)">
+              <div class="skills-container" id="skillsContainer">
+                <span class="skill-tag">JavaScript</span>
+                <span class="skill-tag">React</span>
+                <span class="skill-tag">Node.js</span>
+                <span class="skill-tag">Project Management</span>
+                <span class="skill-tag">Team Leadership</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 16px; margin-top: 32px;">
+            <button type="submit" class="btn">Save Changes</button>
+            <button type="button" class="btn btn-secondary" onclick="resetForm()">Reset</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Performance Stats -->
+      <div class="profile-section">
+        <h3 style="margin-top:0;color:#34A0A4;">Performance Overview</h3>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-number" id="completedTasks">42</div>
+            <div class="stat-label">Tasks Completed</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="activeProjects">5</div>
+            <div class="stat-label">Active Projects</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="teamCollaboration">98%</div>
+            <div class="stat-label">Team Rating</div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Check authentication
+    const userRole = localStorage.getItem('userRole');
+    const currentUser = localStorage.getItem('currentUser');
+    
+    if (!localStorage.getItem('isLoggedIn')) {
+      window.location.href = 'login.html';
+    }
+
+    // Load user profile data
+    function loadProfile() {
+      const profileData = JSON.parse(localStorage.getItem('userProfile')) || {
+        firstName: currentUser ? currentUser.split(' ')[0] : 'John',
+        lastName: currentUser ? currentUser.split(' ')[1] || 'Doe' : 'Doe',
+        email: `${(currentUser || 'john.doe').toLowerCase().replace(' ', '.')}@company.com`,
+        phone: '+1 (555) 123-4567',
+        jobTitle: userRole === 'manager' ? 'Project Manager' : 'Software Developer',
+        department: 'engineering',
+        employeeId: `EMP-2024-${Math.floor(Math.random() * 999) + 1}`,
+        startDate: '2024-01-15',
+        bio: userRole === 'manager' 
+          ? 'Experienced project manager focused on agile methodologies and team productivity.'
+          : 'Dedicated developer passionate about creating efficient solutions and learning new technologies.',
+        skills: userRole === 'manager' 
+          ? ['Project Management', 'Team Leadership', 'Agile/Scrum', 'Strategic Planning']
+          : ['JavaScript', 'React', 'Node.js', 'Problem Solving', 'Team Collaboration']
+      };
+
+      // Populate form fields
+      Object.keys(profileData).forEach(key => {
+        const element = document.getElementById(key);
+        if (element && key !== 'skills') {
+          element.value = profileData[key];
+        }
+      });
+
+      // Update header info
+      document.getElementById('profileName').textContent = `${profileData.firstName} ${profileData.lastName}`;
+      document.getElementById('profileRole').textContent = profileData.jobTitle;
+      document.getElementById('profileDepartment').textContent = `${profileData.department.charAt(0).toUpperCase() + profileData.department.slice(1)} Department`;
+      document.getElementById('avatarInitials').textContent = `${profileData.firstName.charAt(0)}${profileData.lastName.charAt(0)}`;
+
+      // Load skills
+      displaySkills(profileData.skills);
+      
+      // Update stats
+      updateStats();
+    }
+
+    function displaySkills(skills) {
+      const container = document.getElementById('skillsContainer');
+      container.innerHTML = '';
+      skills.forEach(skill => {
+        const tag = document.createElement('span');
+        tag.className = 'skill-tag';
+        tag.textContent = skill;
+        tag.onclick = () => removeSkill(skill);
+        tag.style.cursor = 'pointer';
+        tag.title = 'Click to remove';
+        container.appendChild(tag);
+      });
+    }
+
+    function addSkill() {
+      const input = document.getElementById('skillsInput');
+      const skill = input.value.trim();
+      if (skill) {
+        const profileData = JSON.parse(localStorage.getItem('userProfile')) || {};
+        profileData.skills = profileData.skills || [];
+        if (!profileData.skills.includes(skill)) {
+          profileData.skills.push(skill);
+          localStorage.setItem('userProfile', JSON.stringify(profileData));
+          displaySkills(profileData.skills);
+        }
+        input.value = '';
+      }
+    }
+
+    function removeSkill(skillToRemove) {
+      const profileData = JSON.parse(localStorage.getItem('userProfile')) || {};
+      profileData.skills = profileData.skills.filter(skill => skill !== skillToRemove);
+      localStorage.setItem('userProfile', JSON.stringify(profileData));
+      displaySkills(profileData.skills);
+    }
+
+    function updateStats() {
+      const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+      const userTasks = tasks.filter(t => t.assignee === currentUser || t.createdBy === currentUser);
+      const completedTasks = userTasks.filter(t => t.status === 'done').length;
+      
+      document.getElementById('completedTasks').textContent = completedTasks;
+      document.getElementById('activeProjects').textContent = Math.floor(Math.random() * 8) + 3;
+      document.getElementById('teamCollaboration').textContent = Math.floor(Math.random() * 10) + 90 + '%';
+    }
+
+    // Event listeners
+    document.getElementById('skillsInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addSkill();
+      }
+    });
+
+    document.getElementById('profileForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      const profileData = {};
+      
+      // Get all form values
+      ['firstName', 'lastName', 'email', 'phone', 'jobTitle', 'department', 'employeeId', 'startDate', 'bio'].forEach(field => {
+        profileData[field] = document.getElementById(field).value;
+      });
+      
+      // Keep existing skills
+      const existingData = JSON.parse(localStorage.getItem('userProfile')) || {};
+      profileData.skills = existingData.skills || [];
+      
+      localStorage.setItem('userProfile', JSON.stringify(profileData));
+      
+      // Update display
+      document.getElementById('profileName').textContent = `${profileData.firstName} ${profileData.lastName}`;
+      document.getElementById('profileRole').textContent = profileData.jobTitle;
+      document.getElementById('profileDepartment').textContent = `${profileData.department.charAt(0).toUpperCase() + profileData.department.slice(1)} Department`;
+      document.getElementById('avatarInitials').textContent = `${profileData.firstName.charAt(0)}${profileData.lastName.charAt(0)}`;
+      
+      alert('Profile updated successfully!');
+    });
+
+    function resetForm() {
+      if (confirm('Reset all changes? This will restore your profile to the last saved version.')) {
+        loadProfile();
+      }
+    }
+
+    function goToDashboard() {
+      if (userRole === 'manager') {
+        window.location.href = 'dashboard.html';
+      } else {
+        window.location.href = 'dashboard-team.html';
+      }
+    }
+
+    function logout() {
+      if (confirm('Are you sure you want to logout?')) {
+        localStorage.clear();
+        window.location.href = 'index.html';
+      }
+    }
+
+    // Initialize
+    loadProfile();
+  </script>
+</body>
+</html>

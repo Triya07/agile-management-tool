@@ -2,21 +2,736 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Agile Management Tool - Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agile Project Management Tool</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+      overflow-x: hidden;
+      background: #0f172a;
+      position: relative;
+    }
+    
+    /* Animated Wave Background */
+    .animated-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -2;
+      background: linear-gradient(135deg, #0891b2 0%, #0e7490 25%, #155e75 50%, #164e63 75%, #083344 100%);
+      background-size: 400% 400%;
+      animation: gradientFlow 15s ease infinite;
+    }
+    
+    @keyframes gradientFlow {
+      0%, 100% { background-position: 0% 50%; }
+      25% { background-position: 100% 50%; }
+      50% { background-position: 100% 100%; }
+      75% { background-position: 0% 100%; }
+    }
+    
+    /* Particle Wave System */
+    .wave-container {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: -1;
+    }
+    
+    .particle-wave {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: rgba(6, 182, 212, 0.8);
+      border-radius: 50%;
+      animation: waveMotion 8s ease-in-out infinite;
+      box-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+    }
+    
+    @keyframes waveMotion {
+      0%, 100% {
+        transform: translateY(100vh) translateX(0px);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      50% {
+        transform: translateY(50vh) translateX(100px);
+        opacity: 1;
+      }
+      90% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-10vh) translateX(-50px);
+        opacity: 0;
+      }
+    }
+    
+    /* Floating Geometric Network */
+    .geometric-network {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: -1;
+    }
+    
+    .network-node {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: rgba(34, 197, 94, 0.6);
+      border-radius: 50%;
+      animation: nodeFloat 20s linear infinite;
+    }
+    
+    @keyframes nodeFloat {
+      0% {
+        transform: translate(0, 100vh) scale(0);
+        opacity: 0;
+      }
+      5% {
+        transform: translate(0, 95vh) scale(1);
+        opacity: 1;
+      }
+      95% {
+        transform: translate(0, 5vh) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(0, 0vh) scale(0);
+        opacity: 0;
+      }
+    }
+    
+    /* Orbital Rings */
+    .orbital-container {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: -1;
+    }
+    
+    .orbital-ring {
+      position: absolute;
+      border: 1px solid rgba(6, 182, 212, 0.2);
+      border-radius: 50%;
+      animation: orbitalRotate 30s linear infinite;
+    }
+    
+    .ring-1 { 
+      width: 200px; 
+      height: 200px; 
+      top: 20%; 
+      left: 10%; 
+      animation-duration: 25s;
+    }
+    .ring-2 { 
+      width: 150px; 
+      height: 150px; 
+      top: 60%; 
+      right: 15%; 
+      animation-duration: 35s; 
+      animation-direction: reverse;
+    }
+    .ring-3 { 
+      width: 300px; 
+      height: 300px; 
+      bottom: 10%; 
+      left: 50%; 
+      animation-duration: 40s;
+    }
+    
+    @keyframes orbitalRotate {
+      0% { transform: rotate(0deg) scale(0.8); opacity: 0.3; }
+      50% { transform: rotate(180deg) scale(1.2); opacity: 0.8; }
+      100% { transform: rotate(360deg) scale(0.8); opacity: 0.3; }
+    }
+    
+    .orbital-ring::before {
+      content: '';
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background: rgba(34, 197, 94, 0.8);
+      border-radius: 50%;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      box-shadow: 0 0 15px rgba(34, 197, 94, 0.6);
+    }
+    
+    /* Energy Pulses */
+    .energy-pulse {
+      position: absolute;
+      width: 100px;
+      height: 100px;
+      border: 2px solid rgba(6, 182, 212, 0.3);
+      border-radius: 50%;
+      animation: energyExpand 4s ease-out infinite;
+    }
+    
+    @keyframes energyExpand {
+      0% {
+        transform: scale(0);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(4);
+        opacity: 0;
+      }
+    }
+    
+    /* Matrix Rain Effect */
+    .matrix-container {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: -1;
+    }
+    
+    .matrix-column {
+      position: absolute;
+      color: rgba(34, 197, 94, 0.2);
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      animation: matrixFall 10s linear infinite;
+    }
+    
+    @keyframes matrixFall {
+      0% {
+        transform: translateY(-100vh);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      90% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(100vh);
+        opacity: 0;
+      }
+    }
+    
+    /* Top Navigation Bar */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 15px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      backdrop-filter: blur(20px);
+      background: rgba(6, 182, 212, 0.08);
+      border-bottom: 1px solid rgba(6, 182, 212, 0.1);
+      z-index: 100;
+      box-sizing: border-box;
+    }
+    
+    .navbar-logo {
+      font-size: 1.5rem;
+      font-weight: 900;
+      font-family: 'Segoe UI', 'Arial Black', sans-serif;
+      background: linear-gradient(135deg, #06b6d4, #22c55e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -1px;
+    }
+    
+    .navbar-links {
+      display: flex;
+      gap: 25px;
+      align-items: center;
+    }
+    
+    .navbar-link {
+      color: rgba(255, 255, 255, 0.9);
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      padding: 6px 12px;
+      border-radius: 6px;
+    }
+    
+    .navbar-link:hover {
+      color: #22c55e;
+      background: rgba(6, 182, 212, 0.1);
+    }
+
+    /* Main Content Enhanced */
+    .landing-container {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: white;
+      padding: 120px 20px 20px 20px; /* Reduced top padding */
+      position: relative;
+      z-index: 10;
+    }
+    
+    .logo-section {
+      margin-bottom: 50px; /* Increased margin */
+      backdrop-filter: blur(30px);
+      background: rgba(6, 182, 212, 0.1);
+      padding: 40px 50px;
+      border-radius: 30px;
+      border: 1px solid rgba(6, 182, 212, 0.2);
+      box-shadow: 0 20px 60px rgba(8, 51, 68, 0.4);
+      animation: logoGlow 3s ease-in-out infinite alternate;
+    }
+    
+    @keyframes logoGlow {
+      0% { box-shadow: 0 20px 60px rgba(8, 51, 68, 0.4), 0 0 30px rgba(6, 182, 212, 0.1); }
+      100% { box-shadow: 0 20px 60px rgba(8, 51, 68, 0.4), 0 0 50px rgba(6, 182, 212, 0.2); }
+    }
+    
+    /* Stylish Logo Text */
+    .logo-text {
+      font-size: 4.5rem;
+      font-weight: 900;
+      margin-bottom: 10px;
+      font-family: 'Segoe UI', 'Arial Black', sans-serif;
+      background: linear-gradient(135deg, #06b6d4 0%, #22c55e 30%, #10b981 60%, #059669 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 0 40px rgba(6, 182, 212, 0.3);
+      letter-spacing: -2px;
+      position: relative;
+      animation: logoTextGlow 2s ease-in-out infinite alternate;
+    }
+    
+    .logo-text::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.3));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      z-index: -1;
+      animation: logoShimmer 3s ease-in-out infinite;
+    }
+    
+    @keyframes logoTextGlow {
+      0% { 
+        transform: scale(1);
+        filter: drop-shadow(0 0 20px rgba(6, 182, 212, 0.2));
+      }
+      100% { 
+        transform: scale(1.01);
+        filter: drop-shadow(0 0 30px rgba(34, 197, 94, 0.4));
+      }
+    }
+    
+    @keyframes logoShimmer {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.8; }
+    }
+    
+    .app-title {
+      font-size: 2rem;
+      font-weight: 300;
+      margin-bottom: 15px;
+      color: rgba(255, 255, 255, 0.9);
+      text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+    
+    .cta-btn {
+      padding: 18px 45px;
+      border: none;
+      border-radius: 50px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.4s ease;
+      text-decoration: none;
+      display: inline-block;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .cta-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s;
+    }
+    
+    .cta-btn:hover::before {
+      left: 100%;
+    }
+    
+    .btn-login {
+      background: rgba(6, 182, 212, 0.15);
+      color: white;
+      border: 2px solid rgba(6, 182, 212, 0.3);
+      backdrop-filter: blur(20px);
+    }
+    
+    .btn-login:hover {
+      background: rgba(6, 182, 212, 0.25);
+      transform: translateY(-5px);
+      box-shadow: 0 15px 40px rgba(6, 182, 212, 0.3);
+    }
+    
+    .btn-signup {
+      background: linear-gradient(135deg, #0891b2, #22c55e);
+      color: white;
+      border: 2px solid transparent;
+      padding: 20px 50px; /* Bigger hero button */
+      font-size: 1.3rem; /* Slightly larger */
+      font-weight: 700;
+    }
+    
+    .btn-signup:hover {
+      background: linear-gradient(135deg, #22c55e, #10b981);
+      transform: translateY(-5px);
+      box-shadow: 0 15px 40px rgba(34, 197, 94, 0.4);
+    }
+    
+    .btn-login {
+      background: rgba(6, 182, 212, 0.12);
+      color: rgba(255, 255, 255, 0.85);
+      border: 2px solid rgba(6, 182, 212, 0.25);
+      backdrop-filter: blur(20px);
+      padding: 18px 40px; /* Slightly smaller */
+      font-size: 1.1rem;
+      font-weight: 500;
+    }
+    
+    /* Scroll Hint */
+    .scroll-hint {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.85rem;
+      animation: bounceHint 2s ease-in-out infinite;
+    }
+    
+    .scroll-arrow {
+      font-size: 1.5rem;
+      animation: arrowBounce 2s ease-in-out infinite;
+    }
+    
+    @keyframes bounceHint {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(-10px); }
+    }
+    
+    @keyframes arrowBounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(8px); }
+    }
+    
+    /* Features Section */
+    .features-section {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 80px 20px;
+      background: rgba(6, 182, 212, 0.05);
+      backdrop-filter: blur(10px);
+    }
+    
+    .features-title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 50px;
+      background: linear-gradient(135deg, #06b6d4, #22c55e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-align: center;
+    }
+    
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      max-width: 1000px;
+      width: 100%;
+    }
+    
+    .feature-card {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(15px);
+      border-radius: 15px;
+      padding: 30px;
+      text-align: center;
+      border: 1px solid rgba(6, 182, 212, 0.2);
+      transition: transform 0.3s ease;
+    }
+    
+    .feature-card:hover {
+      transform: translateY(-5px);
+    }
+    
+    .feature-icon {
+      font-size: 3rem;
+      margin-bottom: 20px;
+      display: block;
+    }
+    
+    .feature-card h3 {
+      color: #22c55e;
+      margin-bottom: 15px;
+      font-size: 1.3rem;
+    }
+    
+    .feature-card p {
+      color: rgba(255, 255, 255, 0.8);
+      line-height: 1.6;
+      margin: 0;
+    }
+    
+    /* Footer */
+    .footer {
+      background: rgba(8, 51, 68, 0.6);
+      backdrop-filter: blur(20px);
+      padding: 30px 20px;
+      text-align: center;
+      border-top: 1px solid rgba(6, 182, 212, 0.1);
+    }
+    
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .footer-logo {
+      font-size: 1.3rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #06b6d4, #22c55e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+    }
+    
+    .footer-tagline {
+      font-size: 0.9rem;
+      margin-bottom: 15px;
+    }
+    
+    .footer-copyright {
+      font-size: 0.85rem;
+      opacity: 0.8;
+    }
+  </style>
 </head>
 <body>
+  <!-- Top Navigation Bar -->
+  <nav class="navbar">
+    <div class="navbar-logo">FlowBoard</div>
+    <div class="navbar-links">
+      <a href="#features" class="navbar-link">About</a>
+      <a href="login.html" class="navbar-link">Login</a>
+      <a href="signup.html" class="navbar-link">Sign Up</a>
+    </div>
+  </nav>
 
-  <div class="login-container">
-    <h2>Login</h2>
+  <!-- Animated Background -->
+  <div class="animated-bg"></div>
+  
+  <!-- Multi-layer Animation System -->
+  <div class="wave-container" id="waveContainer"></div>
+  <div class="geometric-network" id="geometricNetwork"></div>
+  <div class="orbital-container" id="orbitalContainer"></div>
+  <div class="matrix-container" id="matrixContainer"></div>
+
+  <div class="landing-container">
+    <div class="logo-section">
+      <div class="logo-text">FlowBoard</div>
+      <p class="tagline">Streamline your workflow with modern tools</p>
+    </div>
     
-    <input type="email" placeholder="Email">
-    <input type="password" placeholder="Password">
-
-    <button id="loginBtn">Login</button>
+    <!-- Improved CTA Buttons (removed feature preview) -->
+    <div class="cta-buttons">
+      <a href="signup.html" class="cta-btn btn-signup">Get Started Free</a>
+      <a href="login.html" class="cta-btn btn-login">Login</a>
+    </div>
+    
+    <!-- Scroll Hint -->
+    <div class="scroll-hint">
+      <span>Scroll to explore</span>
+      <div class="scroll-arrow">↓</div>
+    </div>
   </div>
   
-<script src="script.js"></script>
-
+  <!-- Features Section -->
+  <section class="features-section" id="features">
+    <h2 class="features-title">Why Choose FlowBoard?</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <span class="feature-icon">📋</span>
+        <h3>Visual Project Management</h3>
+        <p>Intuitive Kanban boards that make project tracking effortless. Drag, drop, and organize your workflow visually.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🚀</span>
+        <h3>Agile Sprint Planning</h3>
+        <p>Plan and execute sprints with precision. Track velocity, manage backlogs, and deliver results consistently.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">👥</span>
+        <h3>Team Collaboration</h3>
+        <p>Seamless collaboration tools that keep your team aligned. Real-time updates, comments, and notifications.</p>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-logo">FlowBoard</div>
+      <div class="footer-tagline">Agile Project Management Tool</div>
+      <div class="footer-copyright">© 2026 FlowBoard. All rights reserved.</div>
+    </div>
+  </footer>
+  
+  <!-- Clear session logic -->
+  <script>
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('currentUser');
+    
+    const rememberMe = localStorage.getItem('rememberMe');
+    const userRole = localStorage.getItem('savedUserRole');
+    
+    if (rememberMe === 'true' && userRole) {
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('userRole', userRole);
+      localStorage.setItem('currentUser', localStorage.getItem('savedUser') || 'User');
+      
+      if (userRole === 'manager') {
+        window.location.href = 'dashboard.html';
+      } else {
+        window.location.href = 'dashboard-team.html';
+      }
+    }
+    
+    // Create Wave Particle System
+    function createWaveSystem() {
+      const container = document.getElementById('waveContainer');
+      
+      for (let i = 0; i < 60; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle-wave';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 8 + 's';
+        particle.style.animationDuration = (8 + Math.random() * 4) + 's';
+        
+        // Updated color palette
+        const colors = ['rgba(6,182,212,0.8)', 'rgba(34,197,94,0.6)', 'rgba(16,185,129,0.6)', 'rgba(5,150,105,0.6)'];
+        particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+        
+        container.appendChild(particle);
+      }
+    }
+    
+    // Create Geometric Network
+    function createGeometricNetwork() {
+      const container = document.getElementById('geometricNetwork');
+      
+      for (let i = 0; i < 25; i++) {
+        const node = document.createElement('div');
+        node.className = 'network-node';
+        node.style.left = Math.random() * 100 + '%';
+        node.style.animationDelay = Math.random() * 20 + 's';
+        node.style.animationDuration = (15 + Math.random() * 10) + 's';
+        
+        container.appendChild(node);
+      }
+    }
+    
+    // Create Orbital Rings
+    function createOrbitalSystem() {
+      const container = document.getElementById('orbitalContainer');
+      
+      // Create energy pulses
+      for (let i = 0; i < 8; i++) {
+        const pulse = document.createElement('div');
+        pulse.className = 'energy-pulse';
+        pulse.style.top = Math.random() * 100 + '%';
+        pulse.style.left = Math.random() * 100 + '%';
+        pulse.style.animationDelay = Math.random() * 4 + 's';
+        
+        container.appendChild(pulse);
+      }
+      
+      // Add orbital rings
+      const rings = ['ring-1', 'ring-2', 'ring-3'];
+      rings.forEach(ringClass => {
+        const ring = document.createElement('div');
+        ring.className = `orbital-ring ${ringClass}`;
+        container.appendChild(ring);
+      });
+    }
+    
+    // Create Matrix Rain
+    function createMatrixRain() {
+      const container = document.getElementById('matrixContainer');
+      const chars = '01ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      
+      for (let i = 0; i < 15; i++) {
+        const column = document.createElement('div');
+        column.className = 'matrix-column';
+        column.style.left = Math.random() * 100 + '%';
+        column.style.animationDelay = Math.random() * 10 + 's';
+        
+        let text = '';
+        for (let j = 0; j < 20; j++) {
+          text += chars[Math.floor(Math.random() * chars.length)] + '<br>';
+        }
+        column.innerHTML = text;
+        
+        container.appendChild(column);
+      }
+    }
+    
+    // Initialize all animation systems
+    createWaveSystem();
+    createGeometricNetwork();
+    createOrbitalSystem();
+    createMatrixRain();
+  </script>
 </body>
 </html>

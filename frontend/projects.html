@@ -4,21 +4,95 @@
   <meta charset="UTF-8">
   <title>Projects</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    /* Initialize CSS variables for responsive sidebar */
+    :root {
+      --sidebar-width: 300px;
+      --sidebar-min-width: 220px;
+      --sidebar-max-width: 450px;
+    }
+    
+    /* Remove conflicting styles and let CSS variables handle responsiveness */
+    body { 
+      background: linear-gradient(135deg, #F7FCEB 0%, #ECFDF0 25%, #D1FAE5 50%, #A7F3D0 75%, #6EE7B7 100%); 
+      font-family: 'Segoe UI', Arial, sans-serif; 
+      color: #083344; 
+    }
+    
+    /* Ensure main container uses CSS variables */
+    .main-container {
+      margin-left: var(--sidebar-width) !important;
+      width: calc(100% - var(--sidebar-width)) !important;
+      transition: margin-left 0.3s ease, width 0.3s ease !important;
+    }
+    
+    /* Keep only essential page-specific styles */
+    .kanban-title {
+      background: linear-gradient(135deg, #76C893, #52B69A);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+      font-size: 2rem;
+    }
+    
+    .create-btn {
+      background: linear-gradient(135deg, #76C893, #52B69A);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+    
+    .create-btn:hover {
+      background: linear-gradient(135deg, #52B69A, #34A0A4);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(82, 182, 154, 0.25);
+    }
+    
+    .tab.active {
+      background: linear-gradient(135deg, #76C893, #52B69A);
+      color: white;
+    }
+    
+    /* Projects page scrollbar styling */
+    .projects-grid::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    .projects-grid::-webkit-scrollbar-track {
+      background: rgba(217, 237, 146, 0.05);
+      border-radius: 4px;
+    }
+    
+    .projects-grid::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, #99D98C, #76C893);
+      border-radius: 4px;
+    }
+    
+    .projects-grid::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(135deg, #76C893, #52B69A);
+    }
+  </style>
 </head>
 <body>
 
 
   <div class="main-container">
-    <!-- Sidebar Navigation (copied from board.html) -->
-    <aside class="sidebar">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
       <div class="sidebar-logo">
-        <img src="img/logo.png" alt="FlowBoard Logo">
+        <span style="font-size:1.8rem;font-weight:900;background:linear-gradient(135deg,#D9ED92,#76C893,#34A0A4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">FlowBoard</span>
+        <button class="sidebar-resize-btn" id="sidebarResizeBtn" title="Toggle sidebar size">⟷</button>
       </div>
       <nav class="sidebar-nav">
-        <button class="sidebar-btn" id="nav-board">Kanban Board</button>
+        <button class="sidebar-btn" onclick="navigateTo('kanban-board.html')" id="nav-board">Kanban Board</button>
         <button class="sidebar-btn active" id="nav-projects">Projects</button>
-        <button class="sidebar-btn" id="nav-dashboard">Dashboard</button>
-        <button class="sidebar-btn" id="nav-settings">Settings</button>
+        <button class="sidebar-btn" onclick="navigateTo('dashboard.html')" id="nav-dashboard">Dashboard</button>
+        <button class="sidebar-btn" onclick="navigateTo('settings.html')" id="nav-settings">Settings</button>
       </nav>
     </aside>
 
@@ -58,6 +132,368 @@
     </main>
   </div>
 
+  <!-- Create Project Modal -->
+  <div id="createProjectModal" class="modal" style="display:none;">
+    <div class="modal-content" style="width: 500px; max-width: 90vw;">
+      <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid rgba(118, 200, 147, 0.1);">
+        <h3 style="margin: 0; font-size: 1.5rem; font-weight: 700; background: linear-gradient(135deg, #76C893, #52B69A); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Create Project</h3>
+        <button id="closeCreateModal" style="background: none; border: none; font-size: 1.5rem; color: #666; cursor: pointer; padding: 4px; border-radius: 4px;">✕</button>
+      </div>
+
+      <form id="createProjectForm">
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label style="display: block; font-weight: 600; color: #34A0A4; margin-bottom: 8px; font-size: 0.95rem;">Project Name</label>
+          <input type="text" id="projectName" required style="width: 100%; padding: 12px 16px; border: 2px solid rgba(118, 200, 147, 0.3); border-radius: 8px; font-size: 1rem; background: rgba(118, 200, 147, 0.05); box-sizing: border-box; transition: all 0.3s;">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label style="display: block; font-weight: 600; color: #34A0A4; margin-bottom: 12px; font-size: 0.95rem;">Project Type</label>
+          <div style="display: flex; gap: 16px;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 12px 20px; border: 2px solid rgba(118, 200, 147, 0.3); border-radius: 8px; background: rgba(118, 200, 147, 0.05); transition: all 0.3s;" class="radio-option">
+              <input type="radio" name="projectType" value="scrum" checked style="margin: 0; accent-color: #76C893;">
+              <span style="font-weight: 500; color: #083344;">Scrum Project</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 12px 20px; border: 2px solid rgba(118, 200, 147, 0.3); border-radius: 8px; background: rgba(118, 200, 147, 0.05); transition: all 0.3s;" class="radio-option">
+              <input type="radio" name="projectType" value="kanban" style="margin: 0; accent-color: #76C893;">
+              <span style="font-weight: 500; color: #083344;">Kanban Project</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label style="display: block; font-weight: 600; color: #34A0A4; margin-bottom: 8px; font-size: 0.95rem;">Description</label>
+          <textarea id="projectDescription" rows="3" placeholder="Enter project description..." style="width: 100%; padding: 12px 16px; border: 2px solid rgba(118, 200, 147, 0.3); border-radius: 8px; font-size: 1rem; background: rgba(118, 200, 147, 0.05); box-sizing: border-box; resize: vertical; font-family: inherit; transition: all 0.3s;"></textarea>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label style="display: block; font-weight: 600; color: #34A0A4; margin-bottom: 8px; font-size: 0.95rem;">Tags</label>
+          <select id="projectTags" multiple style="width: 100%; padding: 12px 16px; border: 2px solid rgba(118, 200, 147, 0.3); border-radius: 8px; font-size: 1rem; background: rgba(118, 200, 147, 0.05); box-sizing: border-box; min-height: 80px;">
+            <option value="web-development">Web Development</option>
+            <option value="mobile-app">Mobile App</option>
+            <option value="ui-ux">UI/UX Design</option>
+            <option value="backend">Backend</option>
+            <option value="frontend">Frontend</option>
+            <option value="testing">Testing</option>
+            <option value="devops">DevOps</option>
+            <option value="research">Research</option>
+          </select>
+          <small style="color: #666; font-size: 0.85rem; margin-top: 4px; display: block;">Hold Ctrl/Cmd to select multiple tags</small>
+        </div>
+
+        <div style="background: linear-gradient(135deg, rgba(118, 200, 147, 0.1), rgba(82, 182, 154, 0.05)); border-radius: 12px; padding: 20px; margin-bottom: 24px; border: 1px solid rgba(118, 200, 147, 0.2);">
+          <h4 style="margin: 0 0 16px 0; font-size: 1.1rem; font-weight: 600; color: #34A0A4;">Default Section</h4>
+          
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label style="display: block; font-weight: 600; color: #34A0A4; margin-bottom: 8px; font-size: 0.9rem;">Owner</label>
+            <div style="display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: rgba(255, 255, 255, 0.8); border-radius: 8px; border: 1px solid rgba(118, 200, 147, 0.2);">
+              <span style="font-size: 1.2rem;">👤</span>
+              <span style="font-weight: 500; color: #083344;">Me</span>
+              <span style="margin-left: auto; background: rgba(118, 200, 147, 0.2); color: #34A0A4; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600;">DEFAULT</span>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label style="display: block; font-weight: 600; color: #34A0A4; margin-bottom: 8px; font-size: 0.9rem;">Group</label>
+            <select id="projectGroup" style="width: 100%; padding: 10px 14px; border: 1px solid rgba(118, 200, 147, 0.2); border-radius: 8px; font-size: 1rem; background: rgba(255, 255, 255, 0.8); box-sizing: border-box;">
+              <option value="ungrouped">Ungrouped Projects</option>
+              <option value="development">Development Team</option>
+              <option value="design">Design Team</option>
+              <option value="marketing">Marketing Team</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label style="display: block; font-weight: 600; color: #34A0A4; margin-bottom: 8px; font-size: 0.9rem;">Project Prefix</label>
+            <input type="text" id="projectPrefix" placeholder="e.g., PROJ" maxlength="10" style="width: 100%; padding: 10px 14px; border: 1px solid rgba(118, 200, 147, 0.2); border-radius: 8px; font-size: 1rem; background: rgba(255, 255, 255, 0.8); box-sizing: border-box; text-transform: uppercase;">
+          </div>
+        </div>
+
+        <div class="modal-actions" style="display: flex; justify-content: flex-end; gap: 12px; padding-top: 16px; border-top: 2px solid rgba(118, 200, 147, 0.1);">
+          <button type="button" id="cancelCreate" class="btn" style="background: #e2e8f0; color: #34A0A4; border: 2px solid rgba(118, 200, 147, 0.3); font-weight: 600;">Cancel</button>
+          <button type="submit" class="btn" style="background: linear-gradient(135deg, #76C893, #52B69A); color: white; font-weight: 700; padding: 12px 32px; box-shadow: 0 4px 15px rgba(118, 200, 147, 0.3);">Create</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script src="projects.js"></script>
+  <script>
+    // Initialize CSS variables first
+    const root = document.documentElement;
+    if (!root.style.getPropertyValue('--sidebar-width')) {
+      root.style.setProperty('--sidebar-width', '300px');
+    }
+    
+    // Sidebar resize functionality
+    const sidebar = document.getElementById('sidebar');
+    const resizeBtn = document.getElementById('sidebarResizeBtn');
+    
+    let sidebarState = 'normal';
+    
+    function setSidebarWidth(width) {
+      root.style.setProperty('--sidebar-width', width + 'px');
+      localStorage.setItem('sidebarWidth', width);
+      
+      // Update sidebar classes based on width
+      if (sidebar) {
+        sidebar.classList.remove('compact', 'wide');
+        if (width <= 250) {
+          sidebar.classList.add('compact');
+          sidebarState = 'compact';
+        } else if (width >= 380) {
+          sidebar.classList.add('wide');
+          sidebarState = 'wide';
+        } else {
+          sidebarState = 'normal';
+        }
+      }
+    }
+    
+    // Load saved width on page load
+    const savedWidth = localStorage.getItem('sidebarWidth');
+    if (savedWidth) {
+      setSidebarWidth(parseInt(savedWidth));
+    }
+    
+    // Toggle between preset sizes
+    if (resizeBtn) {
+      resizeBtn.addEventListener('click', () => {
+        if (sidebarState === 'compact') {
+          setSidebarWidth(300);
+        } else if (sidebarState === 'normal') {
+          setSidebarWidth(400);
+        } else {
+          setSidebarWidth(220);
+        }
+      });
+    }
+    
+    // Manual resize with drag
+    let isResizing = false;
+    
+    if (sidebar) {
+      sidebar.addEventListener('mousedown', (e) => {
+        if (e.offsetX > sidebar.offsetWidth - 10) {
+          isResizing = true;
+          document.body.style.cursor = 'col-resize';
+          e.preventDefault();
+        }
+      });
+    }
+    
+    document.addEventListener('mousemove', (e) => {
+      if (isResizing) {
+        const newWidth = Math.min(Math.max(e.clientX, 220), 450);
+        setSidebarWidth(newWidth);
+      }
+    });
+    
+    document.addEventListener('mouseup', () => {
+      if (isResizing) {
+        isResizing = false;
+        document.body.style.cursor = 'default';
+      }
+    });
+
+    // Navigation function
+    function navigateTo(page) {
+      window.location.href = page;
+    }
+    
+    // Make all sidebar buttons functional
+    document.addEventListener('DOMContentLoaded', function() {
+      // Remove the complex navigation object and use simple onclick handlers
+      
+      // User avatar button functionality
+      const userAvatarBtn = document.querySelector('.user-avatar-btn');
+      if (userAvatarBtn) {
+        userAvatarBtn.addEventListener('click', () => {
+          const dropdown = document.createElement('div');
+          dropdown.style.cssText = `
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            padding: 8px 0;
+            min-width: 180px;
+            z-index: 1000;
+            border: 1px solid rgba(118, 200, 147, 0.2);
+          `;
+          
+          dropdown.innerHTML = `
+            <div style="padding: 12px 16px; border-bottom: 1px solid #eee; font-weight: 600; color: #34A0A4;">Account</div>
+            <a href="profile.html" style="display: block; padding: 12px 16px; color: #333; text-decoration: none; transition: background 0.2s;">👤 Profile</a>
+            <a href="settings.html" style="display: block; padding: 12px 16px; color: #333; text-decoration: none; transition: background 0.2s;">⚙️ Settings</a>
+            <div style="border-top: 1px solid #eee; margin-top: 4px; padding-top: 4px;">
+              <button onclick="logout()" style="display: block; width: 100%; padding: 12px 16px; color: #dc3545; background: none; border: none; text-align: left; cursor: pointer; transition: background 0.2s;">🚪 Logout</button>
+            </div>
+          `;
+          
+          userAvatarBtn.style.position = 'relative';
+          userAvatarBtn.appendChild(dropdown);
+          
+          // Add hover effects
+          dropdown.querySelectorAll('a, button').forEach(item => {
+            item.addEventListener('mouseenter', () => {
+              item.style.background = '#f8f9fa';
+            });
+            item.addEventListener('mouseleave', () => {
+              item.style.background = 'transparent';
+            });
+          });
+          
+          // Remove dropdown when clicking outside
+          setTimeout(() => {
+            document.addEventListener('click', function removeDropdown(e) {
+              if (!userAvatarBtn.contains(e.target)) {
+                dropdown.remove();
+                document.removeEventListener('click', removeDropdown);
+              }
+            });
+          }, 100);
+        });
+      }
+      
+      // Search functionality
+      const searchInput = document.getElementById('searchInput');
+      if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+          const query = e.target.value.toLowerCase();
+          console.log('Searching for:', query);
+          // Add actual search logic here
+        });
+      }
+      
+      // Tab functionality
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          // Update active tab
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          
+          // Filter projects based on selected tab
+          const filter = tab.dataset.filter;
+          console.log('Filtering by:', filter);
+          // Add filtering logic here
+        });
+      });
+    });
+    
+    // Global logout function
+    function logout() {
+      if (confirm('Are you sure you want to logout?')) {
+        localStorage.clear();
+        window.location.href = 'login.html';
+      }
+    }
+    
+    // Create Project Modal functionality
+    const createProjectModal = document.getElementById('createProjectModal');
+    const openCreateBtns = document.querySelectorAll('.create-btn, #openCreate');
+    const closeCreateModal = document.getElementById('closeCreateModal');
+    const cancelCreate = document.getElementById('cancelCreate');
+    const createProjectForm = document.getElementById('createProjectForm');
+
+    // Open modal
+    openCreateBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        createProjectModal.style.display = 'flex';
+      });
+    });
+
+    // Close modal
+    function closeModal() {
+      createProjectModal.style.display = 'none';
+      createProjectForm.reset();
+    }
+
+    closeCreateModal.addEventListener('click', closeModal);
+    cancelCreate.addEventListener('click', closeModal);
+
+    // Close on outside click
+    createProjectModal.addEventListener('click', (e) => {
+      if (e.target === createProjectModal) {
+        closeModal();
+      }
+    });
+
+    // Handle form submission
+    createProjectForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const formData = {
+        name: document.getElementById('projectName').value,
+        type: document.querySelector('input[name="projectType"]:checked').value,
+        description: document.getElementById('projectDescription').value,
+        tags: Array.from(document.getElementById('projectTags').selectedOptions).map(opt => opt.value),
+        group: document.getElementById('projectGroup').value,
+        prefix: document.getElementById('projectPrefix').value,
+        owner: 'Me',
+        createdAt: new Date().toISOString(),
+        id: Date.now().toString()
+      };
+
+      // Save to localStorage (demo)
+      let projects = JSON.parse(localStorage.getItem('projects') || '[]');
+      projects.push(formData);
+      localStorage.setItem('projects', JSON.stringify(projects));
+
+      // Show success message
+      alert(`✅ Project "${formData.name}" created successfully!`);
+      
+      // Close modal and refresh projects
+      closeModal();
+      loadProjects();
+    });
+
+    // Handle radio button styling
+    document.querySelectorAll('input[name="projectType"]').forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        document.querySelectorAll('.radio-option').forEach(option => {
+          option.style.background = 'rgba(118, 200, 147, 0.05)';
+          option.style.borderColor = 'rgba(118, 200, 147, 0.3)';
+        });
+        
+        const activeOption = e.target.closest('.radio-option');
+        activeOption.style.background = 'linear-gradient(135deg, rgba(118, 200, 147, 0.15), rgba(82, 182, 154, 0.1))';
+        activeOption.style.borderColor = '#76C893';
+      });
+    });
+
+    // Handle input focus effects
+    document.querySelectorAll('#createProjectModal input, #createProjectModal textarea, #createProjectModal select').forEach(input => {
+      input.addEventListener('focus', (e) => {
+        e.target.style.borderColor = '#52B69A';
+        e.target.style.background = 'rgba(255, 255, 255, 0.9)';
+        e.target.style.boxShadow = '0 4px 15px rgba(82, 182, 154, 0.15)';
+      });
+      
+      input.addEventListener('blur', (e) => {
+        e.target.style.borderColor = 'rgba(118, 200, 147, 0.3)';
+        e.target.style.background = 'rgba(118, 200, 147, 0.05)';
+        e.target.style.boxShadow = 'none';
+      });
+    });
+
+    // Auto-generate prefix from project name
+    document.getElementById('projectName').addEventListener('input', (e) => {
+      const prefix = e.target.value
+        .split(' ')
+        .map(word => word.charAt(0))
+        .join('')
+        .toUpperCase()
+        .substring(0, 4);
+      document.getElementById('projectPrefix').value = prefix;
+    });
+
+    // Demo function to load projects
+    function loadProjects() {
+      // This would normally load projects from your backend
+      console.log('Loading projects...');
+    }
+  </script>
 </body>
 </html>

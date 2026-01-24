@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Task Details | Agile Management Tool</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { background: #f7f8fa; font-family: 'Segoe UI', Arial, sans-serif; color: #222; }
+    .main-container { display: flex; min-height: 100vh; }
+    #main-content { flex: 1; padding: 32px 40px; }
+    .task-section { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); padding: 24px; margin-bottom: 28px; }
+    .status-select { padding: 8px; border-radius: 6px; border: 1px solid #e5e7eb; }
+    .btn { background: #3182ce; color: #fff; border: none; border-radius: 7px; padding: 10px 22px; cursor: pointer; }
+    .comment-box { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #e5e7eb; margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <img src="img/logo.png" alt="FlowBoard Logo">
+      </div>
+      <nav class="sidebar-nav">
+        <button class="sidebar-btn" onclick="window.location.href='dashboard-team.html'">Dashboard</button>
+        <button class="sidebar-btn" onclick="window.location.href='my-tasks.html'">My Tasks</button>
+        <button class="sidebar-btn" onclick="window.location.href='sprint-overview.html'">Sprint Overview</button>
+        <button class="sidebar-btn" onclick="window.location.href='scrum-updates.html'">Scrum Updates</button>
+        <button class="sidebar-btn" onclick="logout()">Logout</button>
+      </nav>
+    </aside>
+    <main id="main-content">
+      <div class="task-section">
+        <div style="margin-bottom:20px;">
+          <button class="btn" onclick="window.location.href='my-tasks.html'" style="background:#6b7280;">← Back to My Tasks</button>
+        </div>
+        
+        <div id="taskDetails"></div>
+      </div>
+    </main>
+  </div>
+  
+  <script>
+    // Team member auth check
+    if (localStorage.getItem('userRole') !== 'worker') {
+      window.location.href = 'login.html';
+    }
+    
+    const currentUser = localStorage.getItem("currentUser");
+    const taskId = localStorage.getItem("viewTaskId");
+    
+    function renderTaskDetails() {
+      const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+      const task = tasks.find(t => t.id === taskId);
+      
+      if (!task || task.assignee !== currentUser) {
+        alert('Task not found or not assigned to you.');
+        window.location.href = 'my-tasks.html';
+        return;
+      }
+      
+      document.getElementById('taskDetails').innerHTML = `
+        <h2>${task.title}</h2>
+        <p><strong>Description:</strong> ${task.description || 'No description provided'}</p>
+        <p><strong>Priority:</strong> ${task.priority || 'Medium'}</p>
+        <p><strong>Due Date:</strong> ${task.dueDate || 'Not set'}</p>
+        
+        <div style="margin:20px 0;">
+          <label><strong>Status:</strong></label>
+          <select class="status-select" id="statusSelect">
+            <option value="todo" ${task.status === 'todo' ? 'selected' : ''}>To Do</option>
+            <option value="inprogress" ${task.status === 'inprogress' ? 'selected' : ''}>In Progress</option>
+            <option value="done" ${task.status === 'done' ? 'selected' : ''}>Done</option>
+          </select>
+          <button class="btn" onclick="updateTaskStatus()" style="margin-left:10px;">Update Status</button>
+        </div>
+        
+        <div>
+          <h3>Add Comment</h3>
+          <textarea class="comment-box" id="commentBox" placeholder="Add your comment..."></textarea>
+          <button class="btn" onclick="addComment()">Add Comment</button>
+        </div>
+        
+        <div id="comments"></div>
+      `;
+      
+      renderComments();
+    }
+    
+    function updateTaskStatus() {
+      const newStatus = document.getElementById('statusSelect').value;
+      let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+      const taskIndex = tasks.findIndex(t => t.id === taskId);
+      
+      if (taskIndex !== -1) {
+        tasks[taskIndex].status = newStatus;
+        if (newStatus === 'done') {
+          tasks[taskIndex].completedDate = new Date().toISOString().split('T')[0];
+        }
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+        alert('Task status updated!');
+      }
+    }
+    
+    function addComment() {
+      const comment = document.getElementById('commentBox').value;
+      if (!comment) return;
+      
+      const comments = JSON.parse(localStorage.getItem('taskComments')) || {};
+      if (!comments[taskId]) comments[taskId] = [];
+      
+      comments[taskId].unshift({
+        user: currentUser,
+        comment: comment,
+        date: new Date().toLocaleDateString(),
+        time: new Date().toLocaleTimeString()
+      });
+      
+      localStorage.setItem('taskComments', JSON.stringify(comments));
+      document.getElementById('commentBox').value = '';
+      renderComments();
+    }
+    
+    function renderComments() {
+      const comments = JSON.parse(localStorage.getItem('taskComments')) || {};
+      const taskComments = comments[taskId] || [];
+      
+      document.getElementById('comments').innerHTML = `
+        <h3>Comments</h3>
+        ${taskComments.map(c => `
+          <div style="padding:10px;background:#f7fafc;margin:8px 0;border-radius:6px;">
+            <strong>${c.user}</strong> - ${c.date} ${c.time}
+            <p style="margin:4px 0 0 0;">${c.comment}</p>
+          </div>
+        `).join('') || '<p>No comments yet.</p>'}
+      `;
+    }
+    
+    function logout() {
+      localStorage.clear();
+      window.location.href = 'index.html';
+    }
+    
+    renderTaskDetails();
+  </script>
+</body>
+</html>

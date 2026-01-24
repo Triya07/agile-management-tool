@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sprint Overview | Agile Management Tool</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { 
+      background: linear-gradient(135deg, #F7FCEB 0%, #ECFDF0 25%, #D1FAE5 50%, #A7F3D0 75%, #6EE7B7 100%); 
+      font-family: 'Segoe UI', Arial, sans-serif; 
+      color: #083344; 
+    }
+    .main-container { 
+      display: flex; 
+      min-height: 100vh; 
+      background: linear-gradient(135deg, #F7FCEB 0%, #ECFDF0 50%, #D1FAE5 100%);
+    }
+    #main-content { 
+      flex: 1; 
+      padding: 32px 40px; 
+      background: transparent;
+    }
+    .sprint-section { 
+      background: rgba(255, 255, 255, 0.8); 
+      border-radius: 15px; 
+      box-shadow: 0 4px 20px rgba(8, 51, 68, 0.08); 
+      padding: 28px; 
+      margin-bottom: 24px; 
+      border: 1px solid rgba(118, 200, 147, 0.2);
+    }
+    .sprint-section h2 {
+      background: linear-gradient(135deg, #76C893, #52B69A);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+      margin-top: 0;
+    }
+    .sprint-info { 
+      background: linear-gradient(135deg, rgba(118, 200, 147, 0.1), rgba(82, 182, 154, 0.05)); 
+      padding: 20px; 
+      border-radius: 12px; 
+      margin-bottom: 20px; 
+      border: 1px solid rgba(118, 200, 147, 0.2);
+    }
+    .sprint-info h3 {
+      color: #34A0A4;
+      margin-top: 0;
+      font-size: 1.3rem;
+    }
+    .progress-bar { 
+      background: rgba(52, 160, 164, 0.2); 
+      height: 24px; 
+      border-radius: 12px; 
+      overflow: hidden; 
+      border: 1px solid rgba(52, 160, 164, 0.3);
+    }
+    .progress-fill { 
+      background: linear-gradient(135deg, #76C893, #52B69A); 
+      height: 100%; 
+      transition: width 0.3s; 
+      border-radius: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <span style="font-size:1.8rem;font-weight:900;background:linear-gradient(135deg,#D9ED92,#76C893,#34A0A4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">FlowBoard</span>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="sidebar-btn" onclick="window.location.href='dashboard-team.html'">Dashboard</button>
+        <button class="sidebar-btn" onclick="window.location.href='my-tasks.html'">My Tasks</button>
+        <button class="sidebar-btn active">Sprint Overview</button>
+        <button class="sidebar-btn" onclick="window.location.href='scrum-updates.html'">Scrum Updates</button>
+        <button class="sidebar-btn" onclick="logout()">Logout</button>
+      </nav>
+    </aside>
+    <main id="main-content">
+      <div class="sprint-section">
+        <h2 style="margin-top:0;">Current Sprint Overview</h2>
+        
+        <div class="sprint-info">
+          <h3>Sprint 1 - Development Phase</h3>
+          <p>Duration: 2 weeks (Jan 15 - Jan 29)</p>
+          <div class="progress-bar">
+            <div class="progress-fill" id="sprintProgress" style="width:65%"></div>
+          </div>
+          <p style="margin-top:8px;">Progress: 65% complete</p>
+        </div>
+        
+        <div id="mySprintTasks"></div>
+      </div>
+    </main>
+  </div>
+  
+  <script>
+    // Team member auth check
+    if (localStorage.getItem('userRole') !== 'worker') {
+      alert('Access denied. Team member login required.');
+      window.location.href = 'login.html';
+    }
+    
+    const currentUser = localStorage.getItem("currentUser");
+    
+    function renderMySprintTasks() {
+      const tasks = (JSON.parse(localStorage.getItem('tasks')) || []).filter(t => t.assignee === currentUser);
+      const container = document.getElementById('mySprintTasks');
+      
+      if (tasks.length === 0) {
+        container.innerHTML = '<p style="color:#34A0A4;font-style:italic;">No tasks assigned in current sprint.</p>';
+        return;
+      }
+      
+      container.innerHTML = `
+        <h3 style="color:#34A0A4;margin-bottom:16px;">My Tasks in Current Sprint</h3>
+        ${tasks.map(task => `
+          <div style="padding:14px 18px;background:linear-gradient(135deg, rgba(118, 200, 147, 0.05), rgba(82, 182, 154, 0.02));margin:10px 0;border-radius:8px;border-left:4px solid #76C893;box-shadow:0 2px 8px rgba(8, 51, 68, 0.06);display:flex;justify-content:space-between;align-items:center;">
+            <strong style="color:#083344;">${task.title}</strong>
+            <span style="padding:4px 12px;background:${task.status==='done'?'linear-gradient(135deg, #34A0A4, #168AAD)':task.status==='inprogress'?'linear-gradient(135deg, #76C893, #52B69A)':'linear-gradient(135deg, #D9ED92, #B5E48C)'};color:${task.status==='todo'?'#1A759F':'white'};border-radius:12px;font-size:0.85rem;font-weight:600;border:1px solid ${task.status==='done'?'rgba(52, 160, 164, 0.5)':task.status==='inprogress'?'rgba(82, 182, 154, 0.5)':'rgba(181, 228, 140, 0.5)'};">
+              ${task.status.replace('inprogress', 'In Progress').replace('todo', 'To Do').replace('done', 'Done')}
+            </span>
+          </div>
+        `).join('')}
+      `;
+    }
+    
+    function logout() {
+      localStorage.clear();
+      window.location.href = 'index.html';
+    }
+    
+    renderMySprintTasks();
+  </script>
+</body>
+</html>
