@@ -5,11 +5,15 @@
   <title>Sprint Board | Agile Management Tool</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    /* Match style with other pages */
+    /* Initialize CSS variables */
+    :root {
+      --sidebar-width: 300px;
+    }
+    
     body {
-      background: #f7f8fa;
+      background: linear-gradient(135deg, #F7FCEB 0%, #ECFDF0 50%, #D1FAE5 100%);
       font-family: 'Segoe UI', Arial, sans-serif;
-      color: #222;
+      color: #083344;
       font-size: 16px;
       margin: 0;
       padding: 0;
@@ -17,7 +21,10 @@
     .main-container {
       display: flex;
       min-height: 100vh;
-      background: #f7f8fa;
+      background: linear-gradient(135deg, #F7FCEB 0%, #ECFDF0 50%, #D1FAE5 100%);
+      margin-left: var(--sidebar-width);
+      width: calc(100% - var(--sidebar-width));
+      transition: margin-left 0.3s ease, width 0.3s ease;
     }
     .sidebar {
       /* ...existing code... */
@@ -63,21 +70,25 @@
       margin-bottom: 36px;
     }
     .column {
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(8, 51, 68, 0.08);
       flex: 1;
       display: flex;
       flex-direction: column;
       min-width: 260px;
       padding: 0 0 18px 0;
+      border: 1px solid rgba(118, 200, 147, 0.2);
     }
     .column-title {
       font-size: 1.1rem;
-      font-weight: 500;
-      color: #2d3748;
+      font-weight: 600;
+      background: linear-gradient(135deg, #52B69A, #34A0A4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
       padding: 18px 18px 10px 18px;
-      border-bottom: 1px solid #f0f0f0;
+      border-bottom: 2px solid rgba(118, 200, 147, 0.2);
       margin-bottom: 8px;
       letter-spacing: 0.2px;
     }
@@ -147,20 +158,56 @@
       background: #2563eb;
     }
     /* ...existing code for sidebar, nav, etc... */
+    /* Sprint page scrollbar styling */
+    textarea::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    textarea::-webkit-scrollbar-track {
+      background: rgba(217, 237, 146, 0.05);
+      border-radius: 4px;
+    }
+    
+    textarea::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, #76C893, #52B69A);
+      border-radius: 4px;
+    }
+    
+    textarea::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(135deg, #52B69A, #34A0A4);
+    }
+    
+    /* Sprint review and retro section scrollbars */
+    .sprint-review::-webkit-scrollbar,
+    .sprint-retro::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    .sprint-review::-webkit-scrollbar-track,
+    .sprint-retro::-webkit-scrollbar-track {
+      background: rgba(217, 237, 146, 0.03);
+      border-radius: 4px;
+    }
+    
+    .sprint-review::-webkit-scrollbar-thumb,
+    .sprint-retro::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, #B5E48C, #99D98C);
+      border-radius: 4px;
+    }
   </style>
 </head>
 <body>
   <div class="main-container">
-    <!-- Sidebar (reuse your existing sidebar) -->
-    <aside class="sidebar">
+    <aside class="sidebar" id="sidebar">
       <div class="sidebar-logo">
-        <img src="img/logo.png" alt="FlowBoard Logo">
+        <span style="font-size:1.8rem;font-weight:900;background:linear-gradient(135deg,#D9ED92,#76C893,#34A0A4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">FlowBoard</span>
+        <button class="sidebar-resize-btn" id="sidebarResizeBtn" title="Toggle sidebar size">⟷</button>
       </div>
       <nav class="sidebar-nav">
         <button class="sidebar-btn" id="nav-board">Kanban Board</button>
         <button class="sidebar-btn" id="nav-projects">Projects</button>
         <button class="sidebar-btn" id="nav-dashboard">Dashboard</button>
-        <button class="sidebar-btn" id="nav-sprints">Sprints</button>
+        <button class="sidebar-btn active" id="nav-sprints">Sprints</button>
         <button class="sidebar-btn" id="nav-settings">Settings</button>
       </nav>
     </aside>
@@ -168,7 +215,7 @@
     <main id="main-content">
       <!-- Sprint Header -->
       <div class="topbar-ui">
-        <h2 class="kanban-title">Sprint Board</h2>
+        <h2 class="kanban-title" style="background: linear-gradient(135deg, #76C893, #52B69A); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Sprint Board</h2>
         <div class="topbar-actions-vertical">
           <button class="user-avatar-btn" title="User Profile">
             <img src="img/user.png" alt="User" class="user-avatar">
@@ -177,21 +224,30 @@
       </div>
 
       <!-- Sprint Info & Progress Tracking -->
-      <section class="sprint-info">
-        <div>
-          <strong>Sprint Name:</strong> <span id="sprintName">Sprint 1</span>
-          <strong> | Dates:</strong> <span id="sprintDates">Jan 22 - Feb 5</span>
+      <section class="sprint-info" style="background: linear-gradient(135deg, rgba(118, 200, 147, 0.1), rgba(82, 182, 154, 0.05)); border-radius: 12px; padding: 18px 28px; margin-bottom: 28px; border: 1px solid rgba(118, 200, 147, 0.2); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+        <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
+          <div>
+            <strong style="color: #34A0A4;">Sprint Name:</strong> 
+            <span style="color: #083344;" id="sprintName">Sprint 1 - Development Phase</span>
+          </div>
+          <div>
+            <strong style="color: #34A0A4;">Dates:</strong> 
+            <span style="color: #083344;" id="sprintDates">Jan 22 - Feb 5</span>
+          </div>
+          <div>
+            <strong style="color: #34A0A4;">Team:</strong> 
+            <span style="color: #083344;">5 Members</span>
+          </div>
         </div>
         <div class="sprint-progress">
-          <strong>Progress:</strong>
-          <span id="sprintProgress">3/8 tasks completed</span>
-          <!-- Optionally add a progress bar or burndown chart here -->
+          <strong style="color: #34A0A4;">Progress:</strong>
+          <span style="color: #083344;" id="sprintProgress">0/0 tasks completed</span>
         </div>
       </section>
 
       <!-- Add Task Button (Sprint Board) -->
       <div style="display:flex;justify-content:flex-end;margin-bottom:18px;">
-        <button class="btn" id="openAddTaskModal" style="min-width:120px;">+ Add Task</button>
+        <button class="btn" id="openAddTaskModal" style="min-width:120px; background: linear-gradient(135deg, #76C893, #52B69A); color: #fff; border: none; border-radius: 8px; padding: 12px 24px; font-size: 1rem; font-weight: 600; cursor: pointer;">+ Add Task</button>
       </div>
 
       <!-- Add Task Modal -->
@@ -219,15 +275,27 @@
       <div class="board fade-in" id="sprintBoard">
         <div class="column">
           <div class="column-title">To Do</div>
-          <div id="todo" class="column-tasks"></div>
+          <div id="todo" class="column-tasks">
+            <div class="column-placeholder" style="color: #6b7280; font-style: italic; text-align: center; padding: 20px 16px; background: rgba(118, 200, 147, 0.03); border-radius: 8px; border: 2px dashed rgba(118, 200, 147, 0.2);">
+              📝 No tasks yet. Add a task to get started.
+            </div>
+          </div>
         </div>
         <div class="column">
           <div class="column-title">In Progress</div>
-          <div id="inprogress" class="column-tasks"></div>
+          <div id="inprogress" class="column-tasks">
+            <div class="column-placeholder" style="color: #6b7280; font-style: italic; text-align: center; padding: 20px 16px; background: rgba(118, 200, 147, 0.03); border-radius: 8px; border: 2px dashed rgba(118, 200, 147, 0.2);">
+              🚀 Drag tasks here when work starts
+            </div>
+          </div>
         </div>
         <div class="column">
           <div class="column-title">Done</div>
-          <div id="done" class="column-tasks"></div>
+          <div id="done" class="column-tasks">
+            <div class="column-placeholder" style="color: #6b7280; font-style: italic; text-align: center; padding: 20px 16px; background: rgba(118, 200, 147, 0.03); border-radius: 8px; border: 2px dashed rgba(118, 200, 147, 0.2);">
+              ✅ Completed tasks appear here
+            </div>
+          </div>
         </div>
       </div>
 
@@ -250,6 +318,104 @@
       </section>
     </main>
   </div>
+  
+  <script>
+    // Initialize CSS variables and resize functionality first
+    const root = document.documentElement;
+    const sidebar = document.getElementById('sidebar');
+    const resizeBtn = document.getElementById('sidebarResizeBtn');
+    
+    let sidebarState = 'normal';
+    
+    function setSidebarWidth(width) {
+      root.style.setProperty('--sidebar-width', width + 'px');
+      localStorage.setItem('sidebarWidth', width);
+      
+      if (sidebar) {
+        sidebar.classList.remove('compact', 'wide');
+        if (width <= 250) {
+          sidebar.classList.add('compact');
+          sidebarState = 'compact';
+        } else if (width >= 380) {
+          sidebar.classList.add('wide');
+          sidebarState = 'wide';
+        } else {
+          sidebarState = 'normal';
+        }
+      }
+    }
+    
+    // Load saved width first
+    const savedWidth = localStorage.getItem('sidebarWidth');
+    if (savedWidth) {
+      setSidebarWidth(parseInt(savedWidth));
+    }
+    
+    if (resizeBtn) {
+      resizeBtn.addEventListener('click', () => {
+        if (sidebarState === 'compact') {
+          setSidebarWidth(300);
+        } else if (sidebarState === 'normal') {
+          setSidebarWidth(400);
+        } else {
+          setSidebarWidth(220);
+        }
+      });
+    }
+    
+    let isResizing = false;
+    
+    if (sidebar) {
+      sidebar.addEventListener('mousedown', (e) => {
+        if (e.offsetX > sidebar.offsetWidth - 10) {
+          isResizing = true;
+          document.body.style.cursor = 'col-resize';
+          e.preventDefault();
+        }
+      });
+    }
+    
+    document.addEventListener('mousemove', (e) => {
+      if (isResizing) {
+        const newWidth = Math.min(Math.max(e.clientX, 220), 450);
+        setSidebarWidth(newWidth);
+      }
+    });
+    
+    document.addEventListener('mouseup', () => {
+      if (isResizing) {
+        isResizing = false;
+        document.body.style.cursor = 'default';
+      }
+    });
+    
+    // Update task count when tasks change
+    function updateTaskCount() {
+      const tasks = document.querySelectorAll('.task-card');
+      const placeholders = document.querySelectorAll('.column-placeholder');
+      
+      // Hide placeholders if there are tasks, show if no tasks
+      ['todo', 'inprogress', 'done'].forEach(status => {
+        const column = document.getElementById(status);
+        const placeholder = column.querySelector('.column-placeholder');
+        const tasksInColumn = column.querySelectorAll('.task-card');
+        
+        if (tasksInColumn.length > 0) {
+          placeholder.style.display = 'none';
+        } else {
+          placeholder.style.display = 'block';
+        }
+      });
+      
+      // Update progress counter
+      const totalTasks = tasks.length;
+      const completedTasks = document.querySelectorAll('#done .task-card').length;
+      document.getElementById('sprintProgress').textContent = `${completedTasks}/${totalTasks} tasks completed`;
+    }
+    
+    // Call updateTaskCount initially and whenever tasks change
+    updateTaskCount();
+  </script>
   <script src="sprint.js"></script>
 </body>
 </html>

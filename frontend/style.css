@@ -1,4 +1,4 @@
-/* CSS Variables for dynamic sidebar sizing */
+/* CSS Variables for dynamic sidebar sizing - must be at the top */
 :root {
   --sidebar-width: 300px;
   --sidebar-min-width: 220px;
@@ -212,668 +212,2463 @@
 .main-container {
   display: flex;
   min-height: 100vh;
+  margin-left: var(--sidebar-width) !important;
+  width: calc(100% - var(--sidebar-width)) !important;
+  overflow-x: hidden !important;
+  transition: margin-left 0.3s ease, width 0.3s ease !important;
 }
 
+/* Main content area adjustments */
+#main-content {
+  flex: 1 !important;
+  padding: 32px 40px !important;
+  width: 100% !important;
+  max-width: calc(100vw - var(--sidebar-width)) !important;
+  box-sizing: border-box !important;
+  transition: max-width 0.3s ease !important;
+}
+
+/* Responsive topbar */
 .topbar-ui {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 32px;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 32px !important;
+  width: 100% !important;
+  flex-wrap: wrap !important;
+  gap: 16px !important;
 }
 
-.fade-in {
-  animation: fadeIn 0.5s ease-in;
+/* Responsive search and actions */
+.topbar-actions-vertical {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  gap: 12px !important;
+  min-width: 0 !important;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+.search-and-task {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex-wrap: wrap !important;
 }
 
-/* User Avatar */
-.user-avatar-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 50%;
-  transition: all 0.3s;
-}
-
-.user-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 2px solid rgba(118, 200, 147, 0.3);
-}
-
-.user-avatar-btn:hover .user-avatar {
-  border-color: #76C893;
-}
-
-/* Search bar */
+/* Responsive search bar */
 .search-bar {
-  position: relative;
-  margin-right: 16px;
+  position: relative !important;
+  min-width: 180px !important;
+  max-width: calc((100vw - var(--sidebar-width)) * 0.3) !important;
 }
 
 .search-bar input {
-  padding: 10px 40px 10px 16px;
-  border: 1px solid rgba(118, 200, 147, 0.3);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.8);
-  color: #083344;
-  min-width: 200px;
+  width: 100% !important;
+  min-width: 160px !important;
+  padding: 10px 40px 10px 16px !important;
+  border: 1px solid rgba(118, 200, 147, 0.3) !important;
+  border-radius: 8px !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  color: #083344 !important;
+  box-sizing: border-box !important;
 }
 
-.search-icon {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #34A0A4;
-}
-
-/* Tabs */
+/* Responsive tabs */
 .tabs {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 24px;
+  display: flex !important;
+  gap: 4px !important;
+  margin-bottom: 24px !important;
+  flex-wrap: wrap !important;
+  width: 100% !important;
 }
 
 .tab {
-  padding: 10px 20px;
-  background: rgba(255, 255, 255, 0.6);
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  color: #34A0A4;
-  transition: all 0.3s;
+  padding: 10px 16px !important;
+  background: rgba(255, 255, 255, 0.6) !important;
+  border: none !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  font-weight: 500 !important;
+  color: #34A0A4 !important;
+  transition: all 0.3s !important;
+  flex: 1 !important;
+  min-width: 80px !important;
+  text-align: center !important;
 }
 
-.tab:hover {
-  background: rgba(255, 255, 255, 0.8);
-}
-
-.tab.active {
-  background: linear-gradient(135deg, #76C893, #52B69A);
-  color: white;
-}
-
-/* Grid layouts */
+/* Responsive projects grid */
 .projects-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 24px;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+  gap: 24px !important;
+  width: 100% !important;
 }
 
-/* Board layouts */
+/* Responsive board layout */
 .board {
-  display: flex;
-  gap: 28px;
-  margin-bottom: 36px;
+  display: flex !important;
+  gap: 20px !important;
+  margin-bottom: 36px !important;
+  width: 100% !important;
+  overflow-x: auto !important;
+}
+
+.column {
+  flex: 1 !important;
+  min-width: 240px !important;
+  max-width: calc((100vw - var(--sidebar-width) - 120px) / 3) !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 20px rgba(8, 51, 68, 0.08) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 0 0 18px 0 !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
 }
 
 .column-tasks {
-  flex: 1;
-  padding: 0 18px;
-  min-height: 60px;
+  flex: 1 !important;
+  padding: 0 16px !important;
+  min-height: 60px !important;
 }
 
-.task-card:active {
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+/* Responsive sprint info bar */
+.sprint-info-bar {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 16px !important;
+  width: 100% !important;
+  padding: 16px 20px !important;
+  margin-bottom: 24px !important;
+  background: linear-gradient(135deg, rgba(118, 200, 147, 0.1), rgba(82, 182, 154, 0.05)) !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+  box-sizing: border-box !important;
 }
 
-/* Modal styles */
+/* Responsive dashboard cards */
+.summary-card {
+  background: linear-gradient(135deg, rgba(118, 200, 147, 0.1), rgba(82, 182, 154, 0.05)) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 12px rgba(8, 51, 68, 0.08) !important;
+  padding: 20px !important;
+  text-align: center !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+  transition: transform 0.3s, box-shadow 0.3s !important;
+  min-width: 0 !important;
+}
+
+/* Responsive task sections */
+.task-section, .dashboard-section {
+  background: rgba(255, 255, 255, 0.8) !important;
+  border-radius: 15px !important;
+  box-shadow: 0 4px 20px rgba(8, 51, 68, 0.08) !important;
+  padding: 24px !important;
+  margin-bottom: 24px !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Responsive modals */
 .modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.4);
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(4px);
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(0, 0, 0, 0.4) !important;
+  z-index: 1000 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  backdrop-filter: blur(4px) !important;
+  animation: fadeIn 0.3s ease !important;
 }
 
 .modal-content {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  padding: 24px;
-  max-width: 90vw;
-  max-height: 90vh;
-  overflow-y: auto;
+  background: white !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
+  padding: 32px !important;
+  max-width: 90vw !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+  margin: 20px !important;
+  animation: slideIn 0.3s ease !important;
 }
 
-/* Topbar actions vertical layout for avatar above add task */
-  .topbar-actions-vertical {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0;
-    position: relative;
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
   }
-  .user-avatar-btn {
-    margin-bottom: 10px;
-    margin-left: 0;
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
-  .search-and-task {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 18px;
+}
+
+/* Form styling for create project modal */
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none !important;
+  border-color: #52B69A !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  box-shadow: 0 4px 15px rgba(82, 182, 154, 0.15) !important;
+}
+
+.radio-option:hover {
+  background: linear-gradient(135deg, rgba(118, 200, 147, 0.15), rgba(82, 182, 154, 0.1)) !important;
+  border-color: #76C893 !important;
+}
+
+/* Enhanced Modal Styles */
+.modal {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(0, 0, 0, 0.5) !important;
+  z-index: 1000 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  backdrop-filter: blur(6px) !important;
+  animation: fadeIn 0.3s ease !important;
+}
+
+.modal-content {
+  background: white !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
+  padding: 32px !important;
+  max-width: 90vw !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+  margin: 20px !important;
+  animation: slideIn 0.3s ease !important;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
   }
-  .task-input.fade-in {
-    margin-top: 10px;
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
-  /* Topbar UI for search and user profile */
-  .topbar-ui {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 32px;
-    gap: 18px;
-  }
-  .kanban-title {
-    margin: 0;
-    font-size: 2rem;
-    font-weight: 600;
-    color: #4f8cff;
-    letter-spacing: 1px;
-  }
-  .topbar-actions {
-    display: flex;
-    align-items: center;
-    gap: 18px;
-  }
-  .search-bar {
-    display: flex;
-    align-items: center;
-    background: #fff;
-    border-radius: 24px;
-    box-shadow: 0 2px 8px rgba(80,130,255,0.08);
-    padding: 4px 14px 4px 10px;
-    border: 1.5px solid #e0d7ff;
-  }
-  .search-bar input {
-    border: none;
-    outline: none;
-    background: transparent;
-    font-size: 1rem;
-    padding: 6px 0 6px 4px;
-    width: 160px;
-  }
-  .search-icon {
-    font-size: 1.1rem;
-    color: #7c4dff;
-    margin-left: 6px;
-  }
-  /* User avatar round button at rightmost */
-  .user-avatar-btn {
-    background: #fff;
-    border: 1.5px solid #e0d7ff;
-    border-radius: 50%;
-    padding: 0;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 8px rgba(80,130,255,0.08);
-    cursor: pointer;
-    margin-left: 18px;
-    transition: box-shadow 0.2s, border 0.2s;
-  }
-  .user-avatar-btn:hover {
-    box-shadow: 0 4px 16px rgba(124,77,255,0.13);
-    border: 1.5px solid #7c4dff;
-  }
-  .user-avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    object-fit: cover;
-    background: #e0d7ff;
-    margin: 0;
-  }
-  /* Remove margin and padding above logo, make it flush to top */
-  .sidebar-logo {
-    width: 160px;
-    height: auto;
-    margin: 0 auto 8px auto;
-    display: block;
-    padding: 0;
-    background: none;
-    margin-top: 0 !important;
-    padding-top: 0 !important;
-  }
-  .add-task-hint {
-    opacity: 0.45;
-    font-size: 1.05rem;
-    color: #4f8cff;
-    font-style: italic;
-    cursor: pointer;
-    user-select: none;
-    transition: opacity 0.2s;
-    padding: 8px 0;
-    display: block;
-    text-align: center;
-  }
-  .add-task-hint:hover {
-    opacity: 0.7;
-    text-decoration: underline;
-  }
-body {
-  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
-  background: #f8fafc;
-  margin: 0;
-  padding: 0px;
-  color: #222;
+}
+
+/* Global layout styles */
+.main-container {
+  display: flex;
   min-height: 100vh;
+  margin-left: var(--sidebar-width) !important;
+  width: calc(100% - var(--sidebar-width)) !important;
+  overflow-x: hidden !important;
+  transition: margin-left 0.3s ease, width 0.3s ease !important;
 }
 
-  .sidebar {
-    width: 220px;
-    min-width: 220px;
-    max-width: 220px;
-    background: #7c4dff;
-    color: #fff;
-    padding: 24px 0 0 0;
-    box-shadow: none;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    position: fixed;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    height: 100vh;
-    z-index: 10;
-    border-radius: 0;
-  }
-  .main-container {
-    display: flex;
-    min-height: 100vh;
-    max-width: 1200px;
-    margin-left: 220px;
-    width: calc(100% - 220px);
-    overflow-x: hidden;
-  }
-
-
-  .sidebar-nav {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    width: 100%;
-    align-items: stretch;
-    padding: 0;
-  }
-
-  .sidebar-btn {
-    width: 100%;
-    background: #fff;
-    color: #7c4dff;
-    border: none;
-    padding: 18px 0 18px 32px;
-    font-size: 1.08rem;
-    border-radius: 0;
-    margin: 0;
-    font-weight: 500;
-    cursor: pointer;
-    text-align: left;
-    transition: background 0.2s, color 0.2s;
-    box-shadow: none;
-    outline: none;
-    border-bottom: 1px solid #ececec;
-  }
-  .sidebar-btn.active, .sidebar-btn:focus, .sidebar-btn:hover {
-    background: #e0d7ff;
-    color: #4b2bb5;
-    box-shadow: none;
-    transform: none;
-  }
-
-  main {
-    flex: 1;
-    padding: 40px 48px;
-    background: transparent;
-    min-height: 100vh;
-  }
-
-  .board {
-    display: flex;
-    flex-direction: row;
-    gap: 24px;
-    justify-content: space-between;
-    align-items: flex-start;
-    flex-wrap: nowrap;
-    width: 100%;
-    max-width: 900px;
-    margin: 0 auto;
-    overflow-x: visible;
-    background: transparent;
-  }
-
-  .column {
-    border-radius: 18px;
-    box-shadow: 0 6px 32px rgba(80, 130, 255, 0.10);
-    padding: 20px 12px 16px 12px;
-    min-width: 240px;
-    max-width: 280px;
-    flex: 1 1 0;
-    transition: box-shadow 0.3s, transform 0.2s;
-    margin-bottom: 24px;
-    margin-right: 0;
-  }
-
-  /* Pastel backgrounds for columns */
-  #todo.column-tasks, .column:nth-child(1) {
-    background: #ffe7e7;
-  }
-  #inprogress.column-tasks, .column:nth-child(2) {
-    background: #e7f7ff;
-  }
-  #done.column-tasks, .column:nth-child(3) {
-    background: #e7ffe7;
-  }
-
-  .column {
-    background-clip: padding-box;
-  }
-  .column:hover {
-    box-shadow: 0 12px 40px rgba(133, 134, 137, 0.18);
-    transform: translateY(-4px) scale(1.02);
-  }
-
-  .column-title {
-    font-size: 1.3rem;
-    font-weight: 600;
-    margin-bottom: 18px;
-    color: #4f8cff;
-    letter-spacing: 0.5px;
-  }
-
-  .card, .task {
-    background: #fff;
-    border-radius: 14px;
-    box-shadow: 0 2px 12px rgba(80, 130, 255, 0.08);
-    margin-bottom: 18px;
-    padding: 18px 16px 14px 16px;
-    transition: box-shadow 0.3s, transform 0.2s, background 0.2s;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-    border: 1.5px solid #f0e6ff;
-  }
-  .card:hover, .task:hover {
-    box-shadow: 0 8px 32px rgba(80, 130, 255, 0.13);
-    background: #f6f0ff;
-    transform: translateY(-2px) scale(1.01);
-  }
-
-  .card-title {
-    font-size: 1.1rem;
-    font-weight: 500;
-    margin-bottom: 8px;
-    color: #222;
-  }
-  .card-desc {
-    font-size: 0.98rem;
-    color: #555;
-    margin-bottom: 6px;
-  }
-  .card-meta {
-    font-size: 0.85rem;
-    color: #888;
-    margin-top: 6px;
-  }
-
-  .btn {
-    background: linear-gradient(90deg, #4f8cff 0%, #fc5c7d 100%);
-    color: #fff;
-    border: none;
-    padding: 10px 28px;
-    border-radius: 24px;
-    cursor: pointer;
-    font-size: 1rem;
-    font-weight: 600;
-    margin-top: 10px;
-    box-shadow: 0 2px 8px rgba(80, 130, 255, 0.10);
-    transition: background 0.3s, box-shadow 0.3s, transform 0.2s;
-  }
-  .btn:hover {
-    background: linear-gradient(90deg, #fc5c7d 0%, #4f8cff 100%);
-    box-shadow: 0 4px 16px rgba(252, 92, 125, 0.18);
-    transform: scale(1.04);
-  }
-
-  /* Scrollbar styling */
-  ::-webkit-scrollbar {
-    width: 10px;
-    background: #e3e8ee;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #4f8cff 0%, #fc5c7d 100%);
-    border-radius: 8px;
-  }
-
-  /* Animations */
-  .fade-in {
-    animation: fadeIn 0.7s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: none; }
-  }
-  padding: 15px;
-  width: 180px;
-  min-height: 250px;
-  border-radius: 6px;
-
-.column h3 {
-  text-align: center;
-  margin-top: 0;
-}
-.task {
-  background: white;
-  padding: 8px;
-  margin-top: 10px;
-  border-radius: 4px;
-  cursor: pointer;
+/* Main content area adjustments */
+#main-content {
+  flex: 1 !important;
+  padding: 32px 40px !important;
+  width: 100% !important;
+  max-width: calc(100vw - var(--sidebar-width)) !important;
+  box-sizing: border-box !important;
+  transition: max-width 0.3s ease !important;
 }
 
-.task:hover {
-  background: #e0e7ff;
+/* Responsive topbar */
+.topbar-ui {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 32px !important;
+  width: 100% !important;
+  flex-wrap: wrap !important;
+  gap: 16px !important;
 }
 
-#taskInput {
-  padding: 8px;
-  width: 200px;
+/* Responsive search and actions */
+.topbar-actions-vertical {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  gap: 12px !important;
+  min-width: 0 !important;
 }
 
-#addBtn {
-  padding: 8px 12px;
-  margin-left: 5px;
-  cursor: pointer;
+.search-and-task {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex-wrap: wrap !important;
 }
 
-/* Top bar */
-.topbar {
-  background: #2f3a4a;
-  color: white;
-  padding: 12px 20px;
-}
-/* App layout */
-.app {
-  display: flex;
-  height: calc(100vh - 50px);
+/* Responsive search bar */
+.search-bar {
+  position: relative !important;
+  min-width: 180px !important;
+  max-width: calc((100vw - var(--sidebar-width)) * 0.3) !important;
 }
 
-
-/* Main content */
-.content {
-  flex: 1;
-  padding: 20px;
+.search-bar input {
+  width: 100% !important;
+  min-width: 160px !important;
+  padding: 10px 40px 10px 16px !important;
+  border: 1px solid rgba(118, 200, 147, 0.3) !important;
+  border-radius: 8px !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  color: #083344 !important;
+  box-sizing: border-box !important;
 }
 
-/* Task input */
-.task-input {
-  margin-bottom: 20px;
-}
-
-/* Board */
-.board {
-  display: flex;
-  gap: 20px;
-}
-.column {
-  background: #e5e7eb;
-  padding: 15px;
-  width: 200px;
-  min-height: 300px;
-  border-radius: 6px;
-}
-
-.task {
-  background: white;
-  padding: 8px;
-  margin-top: 10px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-/* Modal */
-.modal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.4);
-}
-.modal-content {
-  background: white;
-  width: 300px;
-  padding: 20px;
-  margin: 100px auto;
-  border-radius: 6px;
-}
-
-/* Tabs */
+/* Responsive tabs */
 .tabs {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
+  display: flex !important;
+  gap: 4px !important;
+  margin-bottom: 24px !important;
+  flex-wrap: wrap !important;
+  width: 100% !important;
 }
 
 .tab {
-  padding: 8px 14px;
-  border: none;
-  background: #e5e7eb;
-  cursor: pointer;
-  border-radius: 4px;
+  padding: 10px 16px !important;
+  background: rgba(255, 255, 255, 0.6) !important;
+  border: none !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  font-weight: 500 !important;
+  color: #34A0A4 !important;
+  transition: all 0.3s !important;
+  flex: 1 !important;
+  min-width: 80px !important;
+  text-align: center !important;
 }
 
-.tab.active {
-  background: #2563eb;
-  color: white;
-}
-
-/* Projects grid */
+/* Responsive projects grid */
 .projects-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 20px;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+  gap: 24px !important;
+  width: 100% !important;
 }
 
-/* Project card */
-.project-card {
-  background: white;
-  padding: 15px;
-  border-radius: 6px;
-  cursor: pointer;
-  border: 1px solid #e5e7eb;
+/* Responsive board layout */
+.board {
+  display: flex !important;
+  gap: 20px !important;
+  margin-bottom: 36px !important;
+  width: 100% !important;
+  overflow-x: auto !important;
 }
 
-.project-card:hover {
-  border-color: #2563eb;
+.column {
+  flex: 1 !important;
+  min-width: 240px !important;
+  max-width: calc((100vw - var(--sidebar-width) - 120px) / 3) !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 20px rgba(8, 51, 68, 0.08) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 0 0 18px 0 !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
 }
 
-.project-type {
-  font-size: 12px;
-  color: #6b7280;
+.column-tasks {
+  flex: 1 !important;
+  padding: 0 16px !important;
+  min-height: 60px !important;
 }
 
-/* Empty state */
-.empty-state {
-  grid-column: 1 / -1;
-  text-align: center;
-  padding: 60px;
-  color: #6b7280;
+/* Responsive sprint info bar */
+.sprint-info-bar {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 16px !important;
+  width: 100% !important;
+  padding: 16px 20px !important;
+  margin-bottom: 24px !important;
+  background: linear-gradient(135deg, rgba(118, 200, 147, 0.1), rgba(82, 182, 154, 0.05)) !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+  box-sizing: border-box !important;
 }
 
-/* Create button */
-.create-btn {
-  background: #22c55e;
-  color: white;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.placeholder {
-  color: #6b7280;
-  font-size: 14px;
-  margin-top: 10px;
-  text-align: center;
+/* Responsive dashboard cards */
+.summary-card {
+  background: linear-gradient(135deg, rgba(118, 200, 147, 0.1), rgba(82, 182, 154, 0.05)) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 12px rgba(8, 51, 68, 0.08) !important;
+  padding: 20px !important;
+  text-align: center !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+  transition: transform 0.3s, box-shadow 0.3s !important;
+  min-width: 0 !important;
 }
 
-/* Sidebar */
-.sidebar {
-  top: 0;
-  width: 200px;
-  background: #ffffff;
-  color: white;
-}
-.sidebar ul {
-  list-style: none;
-  padding: 0;
-}
-
-.sidebar li {
-  padding: 15px;
-  cursor: pointer;
+/* Responsive task sections */
+.task-section, .dashboard-section {
+  background: rgba(255, 255, 255, 0.8) !important;
+  border-radius: 15px !important;
+  box-shadow: 0 4px 20px rgba(8, 51, 68, 0.08) !important;
+  padding: 24px !important;
+  margin-bottom: 24px !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 
-.sidebar li.active,
-.sidebar li:hover {
-  background: #374151;
+/* Responsive modals */
+.modal {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(0, 0, 0, 0.4) !important;
+  z-index: 1000 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  backdrop-filter: blur(4px) !important;
+  animation: fadeIn 0.3s ease !important;
 }
 
-/* Remove extra padding above logo, make it flush to top */
-.sidebar-logo {
-  padding: 0 18px 12px 18px;
+.modal-content {
+  background: white !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
+  padding: 32px !important;
+  max-width: 90vw !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+  margin: 20px !important;
+  animation: slideIn 0.3s ease !important;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Form styling for create project modal */
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none !important;
+  border-color: #52B69A !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  box-shadow: 0 4px 15px rgba(82, 182, 154, 0.15) !important;
+}
+
+.radio-option:hover {
+  background: linear-gradient(135deg, rgba(118, 200, 147, 0.15), rgba(82, 182, 154, 0.1)) !important;
+  border-color: #76C893 !important;
+}
+
+/* Global layout styles */
+.main-container {
   display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  margin-top: 0 !important;
+  min-height: 100vh;
+  margin-left: var(--sidebar-width) !important;
+  width: calc(100% - var(--sidebar-width)) !important;
+  overflow-x: hidden !important;
+  transition: margin-left 0.3s ease, width 0.3s ease !important;
 }
 
-.sidebar-logo img {
-  height: 32px;        /* PERFECT height */
-  width: auto;         /* keeps aspect ratio */
-  max-width: 140px;    /* prevents over-stretch */
-  /* object-fit: contain; */
-}
-.sidebar-logo span {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-left: 12px;
-  color: #fff;
+/* Main content area adjustments */
+#main-content {
+  flex: 1 !important;
+  padding: 32px 40px !important;
+  width: 100% !important;
+  max-width: calc(100vw - var(--sidebar-width)) !important;
+  box-sizing: border-box !important;
+  transition: max-width 0.3s ease !important;
 }
 
+/* Responsive topbar */
+.topbar-ui {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 32px !important;
+  width: 100% !important;
+  flex-wrap: wrap !important;
+  gap: 16px !important;
+}
 
+/* Responsive search and actions */
+.topbar-actions-vertical {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  gap: 12px !important;
+  min-width: 0 !important;
+}
+
+.search-and-task {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex-wrap: wrap !important;
+}
+
+/* Responsive search bar */
+.search-bar {
+  position: relative !important;
+  min-width: 180px !important;
+  max-width: calc((100vw - var(--sidebar-width)) * 0.3) !important;
+}
+
+.search-bar input {
+  width: 100% !important;
+  min-width: 160px !important;
+  padding: 10px 40px 10px 16px !important;
+  border: 1px solid rgba(118, 200, 147, 0.3) !important;
+  border-radius: 8px !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  color: #083344 !important;
+  box-sizing: border-box !important;
+}
+
+/* Responsive tabs */
+.tabs {
+  display: flex !important;
+  gap: 4px !important;
+  margin-bottom: 24px !important;
+  flex-wrap: wrap !important;
+  width: 100% !important;
+}
+
+.tab {
+  padding: 10px 16px !important;
+  background: rgba(255, 255, 255, 0.6) !important;
+  border: none !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  font-weight: 500 !important;
+  color: #34A0A4 !important;
+  transition: all 0.3s !important;
+  flex: 1 !important;
+  min-width: 80px !important;
+  text-align: center !important;
+}
+
+/* Responsive projects grid */
+.projects-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+  gap: 24px !important;
+  width: 100% !important;
+}
+
+/* Responsive board layout */
+.board {
+  display: flex !important;
+  gap: 20px !important;
+  margin-bottom: 36px !important;
+  width: 100% !important;
+  overflow-x: auto !important;
+}
+
+.column {
+  flex: 1 !important;
+  min-width: 240px !important;
+  max-width: calc((100vw - var(--sidebar-width) - 120px) / 3) !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 20px rgba(8, 51, 68, 0.08) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 0 0 18px 0 !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+}
+
+.column-tasks {
+  flex: 1 !important;
+  padding: 0 16px !important;
+  min-height: 60px !important;
+}
+
+/* Responsive sprint info bar */
+.sprint-info-bar {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 16px !important;
+  width: 100% !important;
+  padding: 16px 20px !important;
+  margin-bottom: 24px !important;
+  background: linear-gradient(135deg, rgba(118, 200, 147, 0.1), rgba(82, 182, 154, 0.05)) !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+  box-sizing: border-box !important;
+}
+
+/* Responsive dashboard cards */
+.summary-card {
+  background: linear-gradient(135deg, rgba(118, 200, 147, 0.1), rgba(82, 182, 154, 0.05)) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 12px rgba(8, 51, 68, 0.08) !important;
+  padding: 20px !important;
+  text-align: center !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+  transition: transform 0.3s, box-shadow 0.3s !important;
+  min-width: 0 !important;
+}
+
+/* Responsive task sections */
+.task-section, .dashboard-section {
+  background: rgba(255, 255, 255, 0.8) !important;
+  border-radius: 15px !important;
+  box-shadow: 0 4px 20px rgba(8, 51, 68, 0.08) !important;
+  padding: 24px !important;
+  margin-bottom: 24px !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Responsive modals */
+.modal {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(0, 0, 0, 0.4) !important;
+  z-index: 1000 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  backdrop-filter: blur(4px) !important;
+  animation: fadeIn 0.3s ease !important;
+}
+
+.modal-content {
+  background: white !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
+  padding: 32px !important;
+  max-width: 90vw !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+  margin: 20px !important;
+  animation: slideIn 0.3s ease !important;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Form styling for create project modal */
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none !important;
+  border-color: #52B69A !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  box-shadow: 0 4px 15px rgba(82, 182, 154, 0.15) !important;
+}
+
+.radio-option:hover {
+  background: linear-gradient(135deg, rgba(118, 200, 147, 0.15), rgba(82, 182, 154, 0.1)) !important;
+  border-color: #76C893 !important;
+}
+
+/* Global layout styles */
+.main-container {
+  display: flex;
+  min-height: 100vh;
+  margin-left: var(--sidebar-width) !important;
+  width: calc(100% - var(--sidebar-width)) !important;
+  overflow-x: hidden !important;
+  transition: margin-left 0.3s ease, width 0.3s ease !important;
+}
+
+/* Main content area adjustments */
+#main-content {
+  flex: 1 !important;
+  padding: 32px 40px !important;
+  width: 100% !important;
+  max-width: calc(100vw - var(--sidebar-width)) !important;
+  box-sizing: border-box !important;
+  transition: max-width 0.3s ease !important;
+}
+
+/* Responsive topbar */
+.topbar-ui {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 32px !important;
+  width: 100% !important;
+  flex-wrap: wrap !important;
+  gap: 16px !important;
+}
+
+/* Responsive search and actions */
+.topbar-actions-vertical {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  gap: 12px !important;
+  min-width: 0 !important;
+}
+
+.search-and-task {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex-wrap: wrap !important;
+}
+
+/* Responsive search bar */
+.search-bar {
+  position: relative !important;
+  min-width: 180px !important;
+  max-width: calc((100vw - var(--sidebar-width)) * 0.3) !important;
+}
+
+.search-bar input {
+  width: 100% !important;
+  min-width: 160px !important;
+  padding: 10px 40px 10px 16px !important;
+  border: 1px solid rgba(118, 200, 147, 0.3) !important;
+  border-radius: 8px !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  color: #083344 !important;
+  box-sizing: border-box !important;
+}
+
+/* Responsive tabs */
+.tabs {
+  display: flex !important;
+  gap: 4px !important;
+  margin-bottom: 24px !important;
+  flex-wrap: wrap !important;
+  width: 100% !important;
+}
+
+.tab {
+  padding: 10px 16px !important;
+  background: rgba(255, 255, 255, 0.6) !important;
+  border: none !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  font-weight: 500 !important;
+  color: #34A0A4 !important;
+  transition: all 0.3s !important;
+  flex: 1 !important;
+  min-width: 80px !important;
+  text-align: center !important;
+}
+
+/* Responsive projects grid */
+.projects-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+  gap: 24px !important;
+  width: 100% !important;
+}
+
+/* Responsive board layout */
+.board {
+  display: flex !important;
+  gap: 20px !important;
+  margin-bottom: 36px !important;
+  width: 100% !important;
+  overflow-x: auto !important;
+}
+
+.column {
+  flex: 1 !important;
+  min-width: 240px !important;
+  max-width: calc((100vw - var(--sidebar-width) - 120px) / 3) !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 20px rgba(8, 51, 68, 0.08) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 0 0 18px 0 !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+}
+
+.column-tasks {
+  flex: 1 !important;
+  padding: 0 16px !important;
+  min-height: 60px !important;
+}
+
+/* Responsive sprint info bar */
+.sprint-info-bar {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 16px !important;
+  width: 100% !important;
+  padding: 16px 20px !important;
+  margin-bottom: 24px !important;
+  background: linear-gradient(135deg, rgba(118, 200, 147, 0.1), rgba(82, 182, 154, 0.05)) !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+  box-sizing: border-box !important;
+}
+
+/* Responsive dashboard cards */
+.summary-card {
+  background: linear-gradient(135deg, rgba(118, 200, 147, 0.1), rgba(82, 182, 154, 0.05)) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 12px rgba(8, 51, 68, 0.08) !important;
+  padding: 20px !important;
+  text-align: center !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+  transition: transform 0.3s, box-shadow 0.3s !important;
+  min-width: 0 !important;
+}
+
+/* Responsive task sections */
+.task-section, .dashboard-section {
+  background: rgba(255, 255, 255, 0.8) !important;
+  border-radius: 15px !important;
+  box-shadow: 0 4px 20px rgba(8, 51, 68, 0.08) !important;
+  padding: 24px !important;
+  margin-bottom: 24px !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Responsive modals */
+.modal {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(0, 0, 0, 0.4) !important;
+  z-index: 1000 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  backdrop-filter: blur(4px) !important;
+  animation: fadeIn 0.3s ease !important;
+}
+
+.modal-content {
+  background: white !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
+  padding: 32px !important;
+  max-width: 90vw !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+  margin: 20px !important;
+  animation: slideIn 0.3s ease !important;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Form styling for create project modal */
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none !important;
+  border-color: #52B69A !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  box-shadow: 0 4px 15px rgba(82, 182, 154, 0.15) !important;
+}
+
+.radio-option:hover {
+  background: linear-gradient(135deg, rgba(118, 200, 147, 0.15), rgba(82, 182, 154, 0.1)) !important;
+  border-color: #76C893 !important;
+}
+
+/* Global layout styles */
+.main-container {
+  display: flex;
+  min-height: 100vh;
+  margin-left: var(--sidebar-width) !important;
+  width: calc(100% - var(--sidebar-width)) !important;
+  overflow-x: hidden !important;
+  transition: margin-left 0.3s ease, width 0.3s ease !important;
+}
+
+/* Main content area adjustments */
+#main-content {
+  flex: 1 !important;
+  padding: 32px 40px !important;
+  width: 100% !important;
+  max-width: calc(100vw - var(--sidebar-width)) !important;
+  box-sizing: border-box !important;
+  transition: max-width 0.3s ease !important;
+}
+
+/* Responsive topbar */
+.topbar-ui {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 32px !important;
+  width: 100% !important;
+  flex-wrap: wrap !important;
+  gap: 16px !important;
+}
+
+/* Responsive search and actions */
+.topbar-actions-vertical {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  gap: 12px !important;
+  min-width: 0 !important;
+}
+
+.search-and-task {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex-wrap: wrap !important;
+}
+
+/* Responsive search bar */
+.search-bar {
+  position: relative !important;
+  min-width: 180px !important;
+  max-width: calc((100vw - var(--sidebar-width)) * 0.3) !important;
+}
+
+.search-bar input {
+  width: 100% !important;
+  min-width: 160px !important;
+  padding: 10px 40px 10px 16px !important;
+  border: 1px solid rgba(118, 200, 147, 0.3) !important;
+  border-radius: 8px !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  color: #083344 !important;
+  box-sizing: border-box !important;
+}
+
+/* Responsive tabs */
+.tabs {
+  display: flex !important;
+  gap: 4px !important;
+  margin-bottom: 24px !important;
+  flex-wrap: wrap !important;
+  width: 100% !important;
+}
+
+.tab {
+  padding: 10px 16px !important;
+  background: rgba(255, 255, 255, 0.6) !important;
+  border: none !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  font-weight: 500 !important;
+  color: #34A0A4 !important;
+  transition: all 0.3s !important;
+  flex: 1 !important;
+  min-width: 80px !important;
+  text-align: center !important;
+}
+
+/* Responsive projects grid */
+.projects-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+  gap: 24px !important;
+  width: 100% !important;
+}
+
+/* Responsive board layout */
+.board {
+  display: flex !important;
+  gap: 20px !important;
+  margin-bottom: 36px !important;
+  width: 100% !important;
+  overflow-x: auto !important;
+}
+
+.column {
+  flex: 1 !important;
+  min-width: 240px !important;
+  max-width: calc((100vw - var(--sidebar-width) - 120px) / 3) !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 20px rgba(8, 51, 68, 0.08) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 0 0 18px 0 !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+}
+
+.column-tasks {
+  flex: 1 !important;
+  padding: 0 16px !important;
+  min-height: 60px !important;
+}
+
+/* Responsive sprint info bar */
+.sprint-info-bar {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 16px !important;
+  width: 100% !important;
+  padding: 16px 20px !important;
+  margin-bottom: 24px !important;
+  background: linear-gradient(135deg, rgba(118, 200, 147, 0.1), rgba(82, 182, 154, 0.05)) !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+  box-sizing: border-box !important;
+}
+
+/* Responsive dashboard cards */
+.summary-card {
+  background: linear-gradient(135deg, rgba(118, 200, 147, 0.1), rgba(82, 182, 154, 0.05)) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 12px rgba(8, 51, 68, 0.08) !important;
+  padding: 20px !important;
+  text-align: center !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+  transition: transform 0.3s, box-shadow 0.3s !important;
+  min-width: 0 !important;
+}
+
+/* Responsive task sections */
+.task-section, .dashboard-section {
+  background: rgba(255, 255, 255, 0.8) !important;
+  border-radius: 15px !important;
+  box-shadow: 0 4px 20px rgba(8, 51, 68, 0.08) !important;
+  padding: 24px !important;
+  margin-bottom: 24px !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Responsive modals */
+.modal {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(0, 0, 0, 0.4) !important;
+  z-index: 1000 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  backdrop-filter: blur(4px) !important;
+  animation: fadeIn 0.3s ease !important;
+}
+
+.modal-content {
+  background: white !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
+  padding: 32px !important;
+  max-width: 90vw !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+  margin: 20px !important;
+  animation: slideIn 0.3s ease !important;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Form styling for create project modal */
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none !important;
+  border-color: #52B69A !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  box-shadow: 0 4px 15px rgba(82, 182, 154, 0.15) !important;
+}
+
+.radio-option:hover {
+  background: linear-gradient(135deg, rgba(118, 200, 147, 0.15), rgba(82, 182, 154, 0.1)) !important;
+  border-color: #76C893 !important;
+}
+
+/* Global layout styles */
+.main-container {
+  display: flex;
+  min-height: 100vh;
+  margin-left: var(--sidebar-width) !important;
+  width: calc(100% - var(--sidebar-width)) !important;
+  overflow-x: hidden !important;
+  transition: margin-left 0.3s ease, width 0.3s ease !important;
+}
+
+/* Main content area adjustments */
+#main-content {
+  flex: 1 !important;
+  padding: 32px 40px !important;
+  width: 100% !important;
+  max-width: calc(100vw - var(--sidebar-width)) !important;
+  box-sizing: border-box !important;
+  transition: max-width 0.3s ease !important;
+}
+
+/* Responsive topbar */
+.topbar-ui {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 32px !important;
+  width: 100% !important;
+  flex-wrap: wrap !important;
+  gap: 16px !important;
+}
+
+/* Responsive search and actions */
+.topbar-actions-vertical {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  gap: 12px !important;
+  min-width: 0 !important;
+}
+
+.search-and-task {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex-wrap: wrap !important;
+}
+
+/* Responsive search bar */
+.search-bar {
+  position: relative !important;
+  min-width: 180px !important;
+  max-width: calc((100vw - var(--sidebar-width)) * 0.3) !important;
+}
+
+.search-bar input {
+  width: 100% !important;
+  min-width: 160px !important;
+  padding: 10px 40px 10px 16px !important;
+  border: 1px solid rgba(118, 200, 147, 0.3) !important;
+  border-radius: 8px !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  color: #083344 !important;
+  box-sizing: border-box !important;
+}
+
+/* Responsive tabs */
+.tabs {
+  display: flex !important;
+  gap: 4px !important;
+  margin-bottom: 24px !important;
+  flex-wrap: wrap !important;
+  width: 100% !important;
+}
+
+.tab {
+  padding: 10px 16px !important;
+  background: rgba(255, 255, 255, 0.6) !important;
+  border: none !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  font-weight: 500 !important;
+  color: #34A0A4 !important;
+  transition: all 0.3s !important;
+  flex: 1 !important;
+  min-width: 80px !important;
+  text-align: center !important;
+}
+
+/* Responsive projects grid */
+.projects-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+  gap: 24px !important;
+  width: 100% !important;
+}
+
+/* Responsive board layout */
+.board {
+  display: flex !important;
+  gap: 20px !important;
+  margin-bottom: 36px !important;
+  width: 100% !important;
+  overflow-x: auto !important;
+}
+
+.column {
+  flex: 1 !important;
+  min-width: 240px !important;
+  max-width: calc((100vw - var(--sidebar-width) - 120px) / 3) !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 20px rgba(8, 51, 68, 0.08) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 0 0 18px 0 !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+}
+
+.column-tasks {
+  flex: 1 !important;
+  padding: 0 16px !important;
+  min-height: 60px !important;
+}
+
+/* Responsive sprint info bar */
+.sprint-info-bar {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 16px !important;
+  width: 100% !important;
+  padding: 16px 20px !important;
+  margin-bottom: 24px !important;
+  background: linear-gradient(135deg, rgba(118, 200, 147, 0.1), rgba(82, 182, 154, 0.05)) !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+  box-sizing: border-box !important;
+}
+
+/* Responsive dashboard cards */
+.summary-card {
+  background: linear-gradient(135deg, rgba(118, 200, 147, 0.1), rgba(82, 182, 154, 0.05)) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 12px rgba(8, 51, 68, 0.08) !important;
+  padding: 20px !important;
+  text-align: center !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+  transition: transform 0.3s, box-shadow 0.3s !important;
+  min-width: 0 !important;
+}
+
+/* Responsive task sections */
+.task-section, .dashboard-section {
+  background: rgba(255, 255, 255, 0.8) !important;
+  border-radius: 15px !important;
+  box-shadow: 0 4px 20px rgba(8, 51, 68, 0.08) !important;
+  padding: 24px !important;
+  margin-bottom: 24px !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Responsive modals */
+.modal {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(0, 0, 0, 0.4) !important;
+  z-index: 1000 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  backdrop-filter: blur(4px) !important;
+  animation: fadeIn 0.3s ease !important;
+}
+
+.modal-content {
+  background: white !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
+  padding: 32px !important;
+  max-width: 90vw !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+  margin: 20px !important;
+  animation: slideIn 0.3s ease !important;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Form styling for create project modal */
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none !important;
+  border-color: #52B69A !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  box-shadow: 0 4px 15px rgba(82, 182, 154, 0.15) !important;
+}
+
+.radio-option:hover {
+  background: linear-gradient(135deg, rgba(118, 200, 147, 0.15), rgba(82, 182, 154, 0.1)) !important;
+  border-color: #76C893 !important;
+}
+
+/* Global layout styles */
+.main-container {
+  display: flex;
+  min-height: 100vh;
+  margin-left: var(--sidebar-width) !important;
+  width: calc(100% - var(--sidebar-width)) !important;
+  overflow-x: hidden !important;
+  transition: margin-left 0.3s ease, width 0.3s ease !important;
+}
+
+/* Main content area adjustments */
+#main-content {
+  flex: 1 !important;
+  padding: 32px 40px !important;
+  width: 100% !important;
+  max-width: calc(100vw - var(--sidebar-width)) !important;
+  box-sizing: border-box !important;
+  transition: max-width 0.3s ease !important;
+}
+
+/* Responsive topbar */
+.topbar-ui {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 32px !important;
+  width: 100% !important;
+  flex-wrap: wrap !important;
+  gap: 16px !important;
+}
+
+/* Responsive search and actions */
+.topbar-actions-vertical {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  gap: 12px !important;
+  min-width: 0 !important;
+}
+
+.search-and-task {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex-wrap: wrap !important;
+}
+
+/* Responsive search bar */
+.search-bar {
+  position: relative !important;
+  min-width: 180px !important;
+  max-width: calc((100vw - var(--sidebar-width)) * 0.3) !important;
+}
+
+.search-bar input {
+  width: 100% !important;
+  min-width: 160px !important;
+  padding: 10px 40px 10px 16px !important;
+  border: 1px solid rgba(118, 200, 147, 0.3) !important;
+  border-radius: 8px !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  color: #083344 !important;
+  box-sizing: border-box !important;
+}
+
+/* Responsive tabs */
+.tabs {
+  display: flex !important;
+  gap: 4px !important;
+  margin-bottom: 24px !important;
+  flex-wrap: wrap !important;
+  width: 100% !important;
+}
+
+.tab {
+  padding: 10px 16px !important;
+  background: rgba(255, 255, 255, 0.6) !important;
+  border: none !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  font-weight: 500 !important;
+  color: #34A0A4 !important;
+  transition: all 0.3s !important;
+  flex: 1 !important;
+  min-width: 80px !important;
+  text-align: center !important;
+}
+
+/* Responsive projects grid */
+.projects-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+  gap: 24px !important;
+  width: 100% !important;
+}
+
+/* Responsive board layout */
+.board {
+  display: flex !important;
+  gap: 20px !important;
+  margin-bottom: 36px !important;
+  width: 100% !important;
+  overflow-x: auto !important;
+}
+
+.column {
+  flex: 1 !important;
+  min-width: 240px !important;
+  max-width: calc((100vw - var(--sidebar-width) - 120px) / 3) !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 20px rgba(8, 51, 68, 0.08) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 0 0 18px 0 !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+}
+
+.column-tasks {
+  flex: 1 !important;
+  padding: 0 16px !important;
+  min-height: 60px !important;
+}
+
+/* Responsive sprint info bar */
+.sprint-info-bar {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 16px !important;
+  width: 100% !important;
+  padding: 16px 20px !important;
+  margin-bottom: 24px !important;
+  background: linear-gradient(135deg, rgba(118, 200, 147, 0.1), rgba(82, 182, 154, 0.05)) !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+  box-sizing: border-box !important;
+}
+
+/* Responsive dashboard cards */
+.summary-card {
+  background: linear-gradient(135deg, rgba(118, 200, 147, 0.1), rgba(82, 182, 154, 0.05)) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 12px rgba(8, 51, 68, 0.08) !important;
+  padding: 20px !important;
+  text-align: center !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+  transition: transform 0.3s, box-shadow 0.3s !important;
+  min-width: 0 !important;
+}
+
+/* Responsive task sections */
+.task-section, .dashboard-section {
+  background: rgba(255, 255, 255, 0.8) !important;
+  border-radius: 15px !important;
+  box-shadow: 0 4px 20px rgba(8, 51, 68, 0.08) !important;
+  padding: 24px !important;
+  margin-bottom: 24px !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Responsive modals */
+.modal {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(0, 0, 0, 0.4) !important;
+  z-index: 1000 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  backdrop-filter: blur(4px) !important;
+  animation: fadeIn 0.3s ease !important;
+}
+
+.modal-content {
+  background: white !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
+  padding: 32px !important;
+  max-width: 90vw !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+  margin: 20px !important;
+  animation: slideIn 0.3s ease !important;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Form styling for create project modal */
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none !important;
+  border-color: #52B69A !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  box-shadow: 0 4px 15px rgba(82, 182, 154, 0.15) !important;
+}
+
+.radio-option:hover {
+  background: linear-gradient(135deg, rgba(118, 200, 147, 0.15), rgba(82, 182, 154, 0.1)) !important;
+  border-color: #76C893 !important;
+}
+
+/* Global layout styles */
+.main-container {
+  display: flex;
+  min-height: 100vh;
+  margin-left: var(--sidebar-width) !important;
+  width: calc(100% - var(--sidebar-width)) !important;
+  overflow-x: hidden !important;
+  transition: margin-left 0.3s ease, width 0.3s ease !important;
+}
+
+/* Main content area adjustments */
+#main-content {
+  flex: 1 !important;
+  padding: 32px 40px !important;
+  width: 100% !important;
+  max-width: calc(100vw - var(--sidebar-width)) !important;
+  box-sizing: border-box !important;
+  transition: max-width 0.3s ease !important;
+}
+
+/* Responsive topbar */
+.topbar-ui {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 32px !important;
+  width: 100% !important;
+  flex-wrap: wrap !important;
+  gap: 16px !important;
+}
+
+/* Responsive search and actions */
+.topbar-actions-vertical {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  gap: 12px !important;
+  min-width: 0 !important;
+}
+
+.search-and-task {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex-wrap: wrap !important;
+}
+
+/* Responsive search bar */
+.search-bar {
+  position: relative !important;
+  min-width: 180px !important;
+  max-width: calc((100vw - var(--sidebar-width)) * 0.3) !important;
+}
+
+.search-bar input {
+  width: 100% !important;
+  min-width: 160px !important;
+  padding: 10px 40px 10px 16px !important;
+  border: 1px solid rgba(118, 200, 147, 0.3) !important;
+  border-radius: 8px !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  color: #083344 !important;
+  box-sizing: border-box !important;
+}
+
+/* Responsive tabs */
+.tabs {
+  display: flex !important;
+  gap: 4px !important;
+  margin-bottom: 24px !important;
+  flex-wrap: wrap !important;
+  width: 100% !important;
+}
+
+.tab {
+  padding: 10px 16px !important;
+  background: rgba(255, 255, 255, 0.6) !important;
+  border: none !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  font-weight: 500 !important;
+  color: #34A0A4 !important;
+  transition: all 0.3s !important;
+  flex: 1 !important;
+  min-width: 80px !important;
+  text-align: center !important;
+}
+
+/* Responsive projects grid */
+.projects-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+  gap: 24px !important;
+  width: 100% !important;
+}
+
+/* Responsive board layout */
+.board {
+  display: flex !important;
+  gap: 20px !important;
+  margin-bottom: 36px !important;
+  width: 100% !important;
+  overflow-x: auto !important;
+}
+
+.column {
+  flex: 1 !important;
+  min-width: 240px !important;
+  max-width: calc((100vw - var(--sidebar-width) - 120px) / 3) !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 20px rgba(8, 51, 68, 0.08) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 0 0 18px 0 !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+}
+
+.column-tasks {
+  flex: 1 !important;
+  padding: 0 16px !important;
+  min-height: 60px !important;
+}
+
+/* Responsive sprint info bar */
+.sprint-info-bar {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 16px !important;
+  width: 100% !important;
+  padding: 16px 20px !important;
+  margin-bottom: 24px !important;
+  background: linear-gradient(135deg, rgba(118, 200, 147, 0.1), rgba(82, 182, 154, 0.05)) !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+  box-sizing: border-box !important;
+}
+
+/* Responsive dashboard cards */
+.summary-card {
+  background: linear-gradient(135deg, rgba(118, 200, 147, 0.1), rgba(82, 182, 154, 0.05)) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 12px rgba(8, 51, 68, 0.08) !important;
+  padding: 20px !important;
+  text-align: center !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+  transition: transform 0.3s, box-shadow 0.3s !important;
+  min-width: 0 !important;
+}
+
+/* Responsive task sections */
+.task-section, .dashboard-section {
+  background: rgba(255, 255, 255, 0.8) !important;
+  border-radius: 15px !important;
+  box-shadow: 0 4px 20px rgba(8, 51, 68, 0.08) !important;
+  padding: 24px !important;
+  margin-bottom: 24px !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Responsive modals */
+.modal {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(0, 0, 0, 0.4) !important;
+  z-index: 1000 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  backdrop-filter: blur(4px) !important;
+  animation: fadeIn 0.3s ease !important;
+}
+
+.modal-content {
+  background: white !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
+  padding: 32px !important;
+  max-width: 90vw !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+  margin: 20px !important;
+  animation: slideIn 0.3s ease !important;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Form styling for create project modal */
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none !important;
+  border-color: #52B69A !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  box-shadow: 0 4px 15px rgba(82, 182, 154, 0.15) !important;
+}
+
+.radio-option:hover {
+  background: linear-gradient(135deg, rgba(118, 200, 147, 0.15), rgba(82, 182, 154, 0.1)) !important;
+  border-color: #76C893 !important;
+}
+
+/* Global layout styles */
+.main-container {
+  display: flex;
+  min-height: 100vh;
+  margin-left: var(--sidebar-width) !important;
+  width: calc(100% - var(--sidebar-width)) !important;
+  overflow-x: hidden !important;
+  transition: margin-left 0.3s ease, width 0.3s ease !important;
+}
+
+/* Main content area adjustments */
+#main-content {
+  flex: 1 !important;
+  padding: 32px 40px !important;
+  width: 100% !important;
+  max-width: calc(100vw - var(--sidebar-width)) !important;
+  box-sizing: border-box !important;
+  transition: max-width 0.3s ease !important;
+}
+
+/* Responsive topbar */
+.topbar-ui {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 32px !important;
+  width: 100% !important;
+  flex-wrap: wrap !important;
+  gap: 16px !important;
+}
+
+/* Responsive search and actions */
+.topbar-actions-vertical {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  gap: 12px !important;
+  min-width: 0 !important;
+}
+
+.search-and-task {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex-wrap: wrap !important;
+}
+
+/* Responsive search bar */
+.search-bar {
+  position: relative !important;
+  min-width: 180px !important;
+  max-width: calc((100vw - var(--sidebar-width)) * 0.3) !important;
+}
+
+.search-bar input {
+  width: 100% !important;
+  min-width: 160px !important;
+  padding: 10px 40px 10px 16px !important;
+  border: 1px solid rgba(118, 200, 147, 0.3) !important;
+  border-radius: 8px !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  color: #083344 !important;
+  box-sizing: border-box !important;
+}
+
+/* Responsive tabs */
+.tabs {
+  display: flex !important;
+  gap: 4px !important;
+  margin-bottom: 24px !important;
+  flex-wrap: wrap !important;
+  width: 100% !important;
+}
+
+.tab {
+  padding: 10px 16px !important;
+  background: rgba(255, 255, 255, 0.6) !important;
+  border: none !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  font-weight: 500 !important;
+  color: #34A0A4 !important;
+  transition: all 0.3s !important;
+  flex: 1 !important;
+  min-width: 80px !important;
+  text-align: center !important;
+}
+
+/* Responsive projects grid */
+.projects-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+  gap: 24px !important;
+  width: 100% !important;
+}
+
+/* Responsive board layout */
+.board {
+  display: flex !important;
+  gap: 20px !important;
+  margin-bottom: 36px !important;
+  width: 100% !important;
+  overflow-x: auto !important;
+}
+
+.column {
+  flex: 1 !important;
+  min-width: 240px !important;
+  max-width: calc((100vw - var(--sidebar-width) - 120px) / 3) !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 20px rgba(8, 51, 68, 0.08) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 0 0 18px 0 !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+}
+
+.column-tasks {
+  flex: 1 !important;
+  padding: 0 16px !important;
+  min-height: 60px !important;
+}
+
+/* Responsive sprint info bar */
+.sprint-info-bar {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 16px !important;
+  width: 100% !important;
+  padding: 16px 20px !important;
+  margin-bottom: 24px !important;
+  background: linear-gradient(135deg, rgba(118, 200, 147, 0.1), rgba(82, 182, 154, 0.05)) !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+  box-sizing: border-box !important;
+}
+
+/* Responsive dashboard cards */
+.summary-card {
+  background: linear-gradient(135deg, rgba(118, 200, 147, 0.1), rgba(82, 182, 154, 0.05)) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 12px rgba(8, 51, 68, 0.08) !important;
+  padding: 20px !important;
+  text-align: center !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+  transition: transform 0.3s, box-shadow 0.3s !important;
+  min-width: 0 !important;
+}
+
+/* Responsive task sections */
+.task-section, .dashboard-section {
+  background: rgba(255, 255, 255, 0.8) !important;
+  border-radius: 15px !important;
+  box-shadow: 0 4px 20px rgba(8, 51, 68, 0.08) !important;
+  padding: 24px !important;
+  margin-bottom: 24px !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Responsive modals */
+.modal {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(0, 0, 0, 0.4) !important;
+  z-index: 1000 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  backdrop-filter: blur(4px) !important;
+  animation: fadeIn 0.3s ease !important;
+}
+
+.modal-content {
+  background: white !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
+  padding: 32px !important;
+  max-width: 90vw !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+  margin: 20px !important;
+  animation: slideIn 0.3s ease !important;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Form styling for create project modal */
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none !important;
+  border-color: #52B69A !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  box-shadow: 0 4px 15px rgba(82, 182, 154, 0.15) !important;
+}
+
+.radio-option:hover {
+  background: linear-gradient(135deg, rgba(118, 200, 147, 0.15), rgba(82, 182, 154, 0.1)) !important;
+  border-color: #76C893 !important;
+}
+
+/* Global layout styles */
+.main-container {
+  display: flex;
+  min-height: 100vh;
+  margin-left: var(--sidebar-width) !important;
+  width: calc(100% - var(--sidebar-width)) !important;
+  overflow-x: hidden !important;
+  transition: margin-left 0.3s ease, width 0.3s ease !important;
+}
+
+/* Main content area adjustments */
+#main-content {
+  flex: 1 !important;
+  padding: 32px 40px !important;
+  width: 100% !important;
+  max-width: calc(100vw - var(--sidebar-width)) !important;
+  box-sizing: border-box !important;
+  transition: max-width 0.3s ease !important;
+}
+
+/* Responsive topbar */
+.topbar-ui {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 32px !important;
+  width: 100% !important;
+  flex-wrap: wrap !important;
+  gap: 16px !important;
+}
+
+/* Responsive search and actions */
+.topbar-actions-vertical {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  gap: 12px !important;
+  min-width: 0 !important;
+}
+
+.search-and-task {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex-wrap: wrap !important;
+}
+
+/* Responsive search bar */
+.search-bar {
+  position: relative !important;
+  min-width: 180px !important;
+  max-width: calc((100vw - var(--sidebar-width)) * 0.3) !important;
+}
+
+.search-bar input {
+  width: 100% !important;
+  min-width: 160px !important;
+  padding: 10px 40px 10px 16px !important;
+  border: 1px solid rgba(118, 200, 147, 0.3) !important;
+  border-radius: 8px !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  color: #083344 !important;
+  box-sizing: border-box !important;
+}
+
+/* Responsive tabs */
+.tabs {
+  display: flex !important;
+  gap: 4px !important;
+  margin-bottom: 24px !important;
+  flex-wrap: wrap !important;
+  width: 100% !important;
+}
+
+.tab {
+  padding: 10px 16px !important;
+  background: rgba(255, 255, 255, 0.6) !important;
+  border: none !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  font-weight: 500 !important;
+  color: #34A0A4 !important;
+  transition: all 0.3s !important;
+  flex: 1 !important;
+  min-width: 80px !important;
+  text-align: center !important;
+}
+
+/* Responsive projects grid */
+.projects-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+  gap: 24px !important;
+  width: 100% !important;
+}
+
+/* Responsive board layout */
+.board {
+  display: flex !important;
+  gap: 20px !important;
+  margin-bottom: 36px !important;
+  width: 100% !important;
+  overflow-x: auto !important;
+}
+
+.column {
+  flex: 1 !important;
+  min-width: 240px !important;
+  max-width: calc((100vw - var(--sidebar-width) - 120px) / 3) !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 20px rgba(8, 51, 68, 0.08) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 0 0 18px 0 !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+}
+
+.column-tasks {
+  flex: 1 !important;
+  padding: 0 16px !important;
+  min-height: 60px !important;
+}
+
+/* Responsive sprint info bar */
+.sprint-info-bar {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 16px !important;
+  width: 100% !important;
+  padding: 16px 20px !important;
+  margin-bottom: 24px !important;
+  background: linear-gradient(135deg, rgba(118, 200, 147, 0.1), rgba(82, 182, 154, 0.05)) !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+  box-sizing: border-box !important;
+}
+
+/* Responsive dashboard cards */
+.summary-card {
+  background: linear-gradient(135deg, rgba(118, 200, 147, 0.1), rgba(82, 182, 154, 0.05)) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 12px rgba(8, 51, 68, 0.08) !important;
+  padding: 20px !important;
+  text-align: center !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+  transition: transform 0.3s, box-shadow 0.3s !important;
+  min-width: 0 !important;
+}
+
+/* Responsive task sections */
+.task-section, .dashboard-section {
+  background: rgba(255, 255, 255, 0.8) !important;
+  border-radius: 15px !important;
+  box-shadow: 0 4px 20px rgba(8, 51, 68, 0.08) !important;
+  padding: 24px !important;
+  margin-bottom: 24px !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Responsive modals */
+.modal {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(0, 0, 0, 0.4) !important;
+  z-index: 1000 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  backdrop-filter: blur(4px) !important;
+  animation: fadeIn 0.3s ease !important;
+}
+
+.modal-content {
+  background: white !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
+  padding: 32px !important;
+  max-width: 90vw !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+  margin: 20px !important;
+  animation: slideIn 0.3s ease !important;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Form styling for create project modal */
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none !important;
+  border-color: #52B69A !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  box-shadow: 0 4px 15px rgba(82, 182, 154, 0.15) !important;
+}
+
+.radio-option:hover {
+  background: linear-gradient(135deg, rgba(118, 200, 147, 0.15), rgba(82, 182, 154, 0.1)) !important;
+  border-color: #76C893 !important;
+}
+
+/* Global layout styles */
+.main-container {
+  display: flex;
+  min-height: 100vh;
+  margin-left: var(--sidebar-width) !important;
+  width: calc(100% - var(--sidebar-width)) !important;
+  overflow-x: hidden !important;
+  transition: margin-left 0.3s ease, width 0.3s ease !important;
+}
+
+/* Main content area adjustments */
+#main-content {
+  flex: 1 !important;
+  padding: 32px 40px !important;
+  width: 100% !important;
+  max-width: calc(100vw - var(--sidebar-width)) !important;
+  box-sizing: border-box !important;
+  transition: max-width 0.3s ease !important;
+}
+
+/* Responsive topbar */
+.topbar-ui {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 32px !important;
+  width: 100% !important;
+  flex-wrap: wrap !important;
+  gap: 16px !important;
+}
+
+/* Responsive search and actions */
+.topbar-actions-vertical {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  gap: 12px !important;
+  min-width: 0 !important;
+}
+
+.search-and-task {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex-wrap: wrap !important;
+}
+
+/* Responsive search bar */
+.search-bar {
+  position: relative !important;
+  min-width: 180px !important;
+  max-width: calc((100vw - var(--sidebar-width)) * 0.3) !important;
+}
+
+.search-bar input {
+  width: 100% !important;
+  min-width: 160px !important;
+  padding: 10px 40px 10px 16px !important;
+  border: 1px solid rgba(118, 200, 147, 0.3) !important;
+  border-radius: 8px !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  color: #083344 !important;
+  box-sizing: border-box !important;
+}
+
+/* Responsive tabs */
+.tabs {
+  display: flex !important;
+  gap: 4px !important;
+  margin-bottom: 24px !important;
+  flex-wrap: wrap !important;
+  width: 100% !important;
+}
+
+.tab {
+  padding: 10px 16px !important;
+  background: rgba(255, 255, 255, 0.6) !important;
+  border: none !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  font-weight: 500 !important;
+  color: #34A0A4 !important;
+  transition: all 0.3s !important;
+  flex: 1 !important;
+  min-width: 80px !important;
+  text-align: center !important;
+}
+
+/* Responsive projects grid */
+.projects-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+  gap: 24px !important;
+  width: 100% !important;
+}
+
+/* Responsive board layout */
+.board {
+  display: flex !important;
+  gap: 20px !important;
+  margin-bottom: 36px !important;
+  width: 100% !important;
+  overflow-x: auto !important;
+}
+
+.column {
+  flex: 1 !important;
+  min-width: 240px !important;
+  max-width: calc((100vw - var(--sidebar-width) - 120px) / 3) !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 20px rgba(8, 51, 68, 0.08) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 0 0 18px 0 !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+}
+
+.column-tasks {
+  flex: 1 !important;
+  padding: 0 16px !important;
+  min-height: 60px !important;
+}
+
+/* Responsive sprint info bar */
+.sprint-info-bar {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 16px !important;
+  width: 100% !important;
+  padding: 16px 20px !important;
+  margin-bottom: 24px !important;
+  background: linear-gradient(135deg, rgba(118, 200, 147, 0.1), rgba(82, 182, 154, 0.05)) !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+  box-sizing: border-box !important;
+}
+
+/* Responsive dashboard cards */
+.summary-card {
+  background: linear-gradient(135deg, rgba(118, 200, 147, 0.1), rgba(82, 182, 154, 0.05)) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 12px rgba(8, 51, 68, 0.08) !important;
+  padding: 20px !important;
+  text-align: center !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+  transition: transform 0.3s, box-shadow 0.3s !important;
+  min-width: 0 !important;
+}
+
+/* Responsive task sections */
+.task-section, .dashboard-section {
+  background: rgba(255, 255, 255, 0.8) !important;
+  border-radius: 15px !important;
+  box-shadow: 0 4px 20px rgba(8, 51, 68, 0.08) !important;
+  padding: 24px !important;
+  margin-bottom: 24px !important;
+  border: 1px solid rgba(118, 200, 147, 0.2) !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Responsive modals */
+.modal {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(0, 0, 0, 0.4) !important;
+  z-index: 1000 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  backdrop-filter: blur(4px) !important;
+  animation: fadeIn 0.3s ease !important;
+}
+
+.modal-content {
+  background: white !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
+  padding: 32px !important;
+  max-width: 90vw !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+  margin: 20px !important;
+  animation: slideIn 0.3s ease !important;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Form styling for create project modal */
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none !important;
+  border-color: #52B69A !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  box-shadow: 0 4px 15px rgba(82, 182, 154, 0.15) !important;
+}
+
+.radio-option:hover {
+  background: linear-gradient(135deg, rgba(118, 200, 147, 0.15), rgba(82, 182, 154, 0.1)) !important;
+  border-color: #76C893 !important;
+}
+
+/* Global layout styles */
+.main-container {
+  display: flex;
+  min-height: 100vh;
+  margin-left: var(--sidebar-width) !important;
+  width: calc(100% - var(--sidebar-width)) !important;
+  overflow-x: hidden !important;
+  transition: margin-left 0.3s ease, width 0.3s ease !important;
+}
+
+/* Main content area adjustments */
+#main-content {
+  flex: 1 !important;
+  padding: 32px 40px !important;
+  width: 100% !important;
+  max-width: calc(100vw - var(--sidebar-width)) !

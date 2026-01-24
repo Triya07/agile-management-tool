@@ -5,6 +5,11 @@
   <title>Sign Up | Agile Management Tool</title>
   <link rel="stylesheet" href="style.css">
   <style>
+    /* Initialize CSS variables */
+    :root {
+      --sidebar-width: 300px;
+    }
+    
     body {
       background: linear-gradient(135deg, #D9ED92 0%, #B5E48C 25%, #99D98C 50%, #76C893 75%, #52B69A 100%);
       min-height: 100vh;
@@ -124,6 +129,25 @@
     .login-link:hover {
       color: #76C893;
     }
+    /* Custom scrollbar for signup page */
+    ::-webkit-scrollbar {
+      width: 10px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: rgba(217, 237, 146, 0.1);
+      border-radius: 5px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, #76C893, #52B69A);
+      border-radius: 5px;
+      border: 1px solid rgba(217, 237, 146, 0.1);
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(135deg, #52B69A, #34A0A4);
+    }
   </style>
 </head>
 <body>
@@ -149,23 +173,122 @@
     const managerBtn = document.getElementById('role-manager');
     const workerBtn = document.getElementById('role-worker');
     let selectedRole = 'manager';
+    
     managerBtn.onclick = function() {
       managerBtn.classList.add('active');
       workerBtn.classList.remove('active');
       selectedRole = 'manager';
     };
+    
     workerBtn.onclick = function() {
       workerBtn.classList.add('active');
       managerBtn.classList.remove('active');
       selectedRole = 'worker';
     };
-    // Handle signup (demo only)
+    
+    // Enhanced signup form handling
     document.querySelector('.signup-form').onsubmit = function(e) {
       e.preventDefault();
-      // Save role to localStorage for demo
+      
+      const username = this.querySelector('input[type="text"]').value.trim();
+      const email = this.querySelector('input[type="email"]').value.trim();
+      const password = this.querySelector('input[type="password"]').value;
+      
+      // Basic validation
+      if (!username || !email || !password) {
+        showNotification('Please fill in all fields', 'error');
+        return;
+      }
+      
+      if (password.length < 6) {
+        showNotification('Password must be at least 6 characters long', 'error');
+        return;
+      }
+      
+      // Simulate account creation
+      const userData = {
+        username,
+        email,
+        role: selectedRole,
+        createdAt: new Date().toISOString(),
+        id: Date.now().toString()
+      };
+      
+      // Save to localStorage (simulated backend)
       localStorage.setItem('userRole', selectedRole);
-      window.location.href = 'projects.html';
+      localStorage.setItem('currentUser', username);
+      localStorage.setItem('userEmail', email);
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('userData', JSON.stringify(userData));
+      
+      // Show success message
+      showNotification('Account created successfully! Redirecting...', 'success');
+      
+      // Redirect based on role
+      setTimeout(() => {
+        if (selectedRole === 'manager') {
+          window.location.href = 'projects.html';
+        } else {
+          window.location.href = 'dashboard-team.html';
+        }
+      }, 1500);
     };
+    
+    // Notification system
+    function showNotification(message, type = 'info') {
+      const notification = document.createElement('div');
+      const colors = {
+        success: { bg: '#d4edda', color: '#155724', border: '#c3e6cb' },
+        error: { bg: '#f8d7da', color: '#721c24', border: '#f5c6cb' },
+        info: { bg: '#d1ecf1', color: '#0c5460', border: '#bee5eb' }
+      };
+      
+      const colorScheme = colors[type];
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${colorScheme.bg};
+        color: ${colorScheme.color};
+        padding: 12px 20px;
+        border-radius: 8px;
+        border: 1px solid ${colorScheme.border};
+        z-index: 1001;
+        animation: slideInDown 0.3s ease;
+        max-width: 350px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        font-weight: 500;
+      `;
+      notification.textContent = message;
+      
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.style.animation = 'slideOutUp 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+      }, 3000);
+    }
+    
+    // Add CSS animations
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideInDown {
+        from { transform: translateY(-100%); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+      @keyframes slideOutUp {
+        from { transform: translateY(0); opacity: 1; }
+        to { transform: translateY(-100%); opacity: 0; }
+      }
+      .fade-in {
+        animation: fadeIn 0.6s ease;
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+    `;
+    document.head.appendChild(style);
   </script>
 </body>
 </html>
