@@ -78,20 +78,49 @@ document.getElementById("openAddTaskModal").onclick = () => {
 document.getElementById("cancelAddTask").onclick = () => {
   addTaskModal.style.display = "none";
 };
-document.getElementById("addTaskForm").onsubmit = function(e) {
+
+document.getElementById("addTaskForm").onsubmit = async function(e) {
   e.preventDefault();
+
   const title = document.getElementById("taskTitleInput").value.trim();
   const status = document.getElementById("taskStatusInput").value;
-  if (title) {
-    tasks.push({
-      id: Date.now(),
-      title,
-      status
+
+  // ⚠️ TEMP: hardcode sprintId (we’ll fix later)
+  const sprintId = "696e3c093920f68d5b1d6d96";
+
+  if (!title) return;
+
+  try {
+    const res = await fetch("http://localhost:5000/api/tasks/create", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        title,
+        status,
+        sprint: sprintId
+      })
     });
+
+    const data = await res.json();
+    console.log("Task created:", data);
+
+    // push backend task into UI state
+    tasks.push({
+      id: data.task._id,
+      title: data.task.title,
+      status: data.task.status
+    });
+
     renderBoard();
     addTaskModal.style.display = "none";
+  } catch (err) {
+    console.error("Error creating task:", err);
+    alert("Failed to create task");
   }
 };
+
 
 // Initial render
 renderBoard();
