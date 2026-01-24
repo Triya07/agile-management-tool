@@ -1,4 +1,356 @@
-  /* Topbar actions vertical layout for avatar above add task */
+/* CSS Variables for dynamic sidebar sizing */
+:root {
+  --sidebar-width: 300px;
+  --sidebar-min-width: 220px;
+  --sidebar-max-width: 450px;
+}
+
+/* Global Sidebar Styles - Solid colors from palette */
+.sidebar {
+  width: var(--sidebar-width) !important;
+  min-width: var(--sidebar-min-width) !important;
+  max-width: var(--sidebar-max-width) !important;
+  background: #34A0A4 !important; /* Solid teal color from palette */
+  color: white !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  box-shadow: 2px 0 15px rgba(8, 51, 68, 0.2) !important;
+  position: fixed !important;
+  left: 0 !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  height: 100vh !important;
+  z-index: 10 !important;
+  resize: horizontal !important;
+  overflow: auto !important;
+  transition: width 0.3s ease !important;
+}
+
+/* Resize handle for sidebar */
+.sidebar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 4px;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.2);
+  cursor: col-resize;
+  transition: background 0.2s;
+}
+
+.sidebar:hover::after {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.sidebar-logo {
+  padding: 24px 20px !important;
+  text-align: center !important;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.15) !important;
+  background: #168AAD !important; /* Darker blue from palette for logo area */
+  margin-bottom: 8px !important;
+  position: relative !important;
+}
+
+/* Resize toggle button */
+.sidebar-resize-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 4px;
+  padding: 6px 8px;
+  color: white;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s;
+}
+
+.sidebar-resize-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.sidebar-nav {
+  flex: 1 !important;
+  padding: 12px 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 3px !important;
+  width: 100% !important;
+}
+
+.sidebar-btn {
+  background: #52B69A !important; /* Mid-green from palette */
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-left: 4px solid transparent !important;
+  color: #F7FCEB !important; /* Light color from palette for text */
+  padding: 14px 20px !important;
+  margin: 1px 12px !important;
+  text-align: left !important;
+  cursor: pointer !important;
+  font-size: 0.95rem !important;
+  font-weight: 500 !important;
+  transition: all 0.3s ease !important;
+  border-radius: 8px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  width: calc(100% - 24px) !important;
+  box-sizing: border-box !important;
+}
+
+.sidebar-btn:hover {
+  background: #76C893 !important; /* Lighter green on hover */
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  border-left-color: #D9ED92 !important; /* Lightest green for accent */
+  color: white !important;
+  transform: translateX(3px) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
+}
+
+.sidebar-btn.active {
+  background: #99D98C !important; /* Different green shade for active state */
+  border: 2px solid #B5E48C !important; /* Light green border for active */
+  border-left: 4px solid #D9ED92 !important; /* Accent color */
+  color: #083344 !important; /* Dark text for contrast on light active background */
+  font-weight: 600 !important;
+  box-shadow: inset 0 0 10px rgba(217, 237, 146, 0.3), 0 3px 8px rgba(0, 0, 0, 0.2) !important;
+  transform: translateX(2px) !important;
+}
+
+/* Compact mode styles for smaller sidebar */
+.sidebar.compact .sidebar-btn {
+  font-size: 0.95rem !important;
+  padding: 12px 16px !important;
+}
+
+.sidebar.compact .sidebar-logo {
+  padding: 16px 12px !important;
+}
+
+.sidebar.compact .sidebar-logo span {
+  font-size: 1.4rem !important;
+}
+
+/* Wide mode styles for larger sidebar */
+.sidebar.wide .sidebar-btn {
+  font-size: 0.95rem !important;
+  padding: 16px 24px !important;
+}
+
+.sidebar.wide .sidebar-logo {
+  padding: 32px 24px !important;
+}
+
+.sidebar.wide .sidebar-logo span {
+  font-size: 2.2rem !important;
+}
+
+/* Status Badge Colors using the palette */
+.status-todo { 
+  background: linear-gradient(135deg, #D9ED92, #B5E48C); 
+  color: #1A759F; 
+  font-weight: 600;
+  border: 1px solid rgba(181, 228, 140, 0.5);
+}
+
+.status-inprogress { 
+  background: linear-gradient(135deg, #76C893, #52B69A); 
+  color: white; 
+  font-weight: 600;
+  border: 1px solid rgba(82, 182, 154, 0.5);
+}
+
+.status-done { 
+  background: linear-gradient(135deg, #34A0A4, #168AAD); 
+  color: white; 
+  font-weight: 600;
+  border: 1px solid rgba(52, 160, 164, 0.5);
+}
+
+/* Column title colors */
+.column-title {
+  background: linear-gradient(135deg, #52B69A, #34A0A4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 600;
+}
+
+/* Task card border colors */
+.task-card {
+  border-left: 4px solid #76C893;
+}
+
+/* Button variants using palette */
+.btn {
+  background: linear-gradient(135deg, #76C893, #52B69A);
+}
+
+.btn:hover {
+  background: linear-gradient(135deg, #52B69A, #34A0A4);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #76C893, #52B69A);
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, #34A0A4, #168AAD);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #B5E48C, #99D98C);
+  color: #1A759F;
+}
+
+/* Global layout styles */
+.main-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+.topbar-ui {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* User Avatar */
+.user-avatar-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  transition: all 0.3s;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid rgba(118, 200, 147, 0.3);
+}
+
+.user-avatar-btn:hover .user-avatar {
+  border-color: #76C893;
+}
+
+/* Search bar */
+.search-bar {
+  position: relative;
+  margin-right: 16px;
+}
+
+.search-bar input {
+  padding: 10px 40px 10px 16px;
+  border: 1px solid rgba(118, 200, 147, 0.3);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.8);
+  color: #083344;
+  min-width: 200px;
+}
+
+.search-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #34A0A4;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 24px;
+}
+
+.tab {
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.6);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #34A0A4;
+  transition: all 0.3s;
+}
+
+.tab:hover {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.tab.active {
+  background: linear-gradient(135deg, #76C893, #52B69A);
+  color: white;
+}
+
+/* Grid layouts */
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+/* Board layouts */
+.board {
+  display: flex;
+  gap: 28px;
+  margin-bottom: 36px;
+}
+
+.column-tasks {
+  flex: 1;
+  padding: 0 18px;
+  min-height: 60px;
+}
+
+.task-card:active {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* Modal styles */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  padding: 24px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* Topbar actions vertical layout for avatar above add task */
   .topbar-actions-vertical {
     display: flex;
     flex-direction: column;

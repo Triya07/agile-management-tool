@@ -6,7 +6,7 @@
   <link rel="stylesheet" href="style.css">
   <style>
     body {
-      background: #f8fafc;
+      background: linear-gradient(135deg, #D9ED92 0%, #B5E48C 25%, #99D98C 50%, #76C893 75%, #52B69A 100%);
       min-height: 100vh;
       display: flex;
       align-items: center;
@@ -14,13 +14,15 @@
       font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
     }
     .signup-container {
-      background: #fff;
-      border-radius: 18px;
-      box-shadow: 0 8px 32px rgba(80,130,255,0.13);
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      box-shadow: 0 12px 40px rgba(26, 117, 159, 0.3);
       padding: 40px 36px 32px 36px;
       min-width: 340px;
       max-width: 380px;
       text-align: center;
+      border: 1px solid rgba(118, 200, 147, 0.2);
     }
     .signup-logo {
       display: flex;
@@ -28,15 +30,23 @@
       justify-content: center;
       margin-bottom: 18px;
     }
-    .signup-logo img {
-      height: 38px;
-      width: auto;
-      margin-right: 10px;
+    .signup-logo-text {
+      font-size: 2.2rem;
+      font-weight: 900;
+      font-family: 'Segoe UI', 'Arial Black', sans-serif;
+      background: linear-gradient(135deg, #76C893, #52B69A, #34A0A4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -1px;
     }
     .signup-title {
-      font-size: 1.7rem;
-      font-weight: 700;
-      color: #7c4dff;
+      font-size: 1.4rem;
+      font-weight: 600;
+      background: linear-gradient(135deg, #34A0A4, #168AAD);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
       margin-bottom: 18px;
       letter-spacing: 1px;
     }
@@ -47,16 +57,19 @@
       margin-bottom: 18px;
     }
     .signup-form input {
-      padding: 10px 14px;
-      border-radius: 8px;
-      border: 1.5px solid #e0d7ff;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 2px solid #76C893;
       font-size: 1rem;
       outline: none;
-      background: #f8fafc;
-      transition: border 0.2s;
+      background: rgba(118, 200, 147, 0.05);
+      transition: all 0.3s;
+      color: #083344;
     }
     .signup-form input:focus {
-      border: 1.5px solid #7c4dff;
+      border: 2px solid #52B69A;
+      background: rgba(255, 255, 255, 0.8);
+      box-shadow: 0 4px 15px rgba(82, 182, 154, 0.2);
     }
     .role-select {
       display: flex;
@@ -65,54 +78,60 @@
       margin-bottom: 10px;
     }
     .role-btn {
-      padding: 10px 24px;
-      border-radius: 24px;
-      border: none;
+      padding: 12px 28px;
+      border-radius: 25px;
+      border: 2px solid #76C893;
       font-size: 1.05rem;
       font-weight: 600;
       cursor: pointer;
-      background: #e7f7ff;
-      color: #4f8cff;
-      transition: background 0.2s, color 0.2s;
+      background: rgba(118, 200, 147, 0.1);
+      color: #34A0A4;
+      transition: all 0.3s;
     }
     .role-btn.active, .role-btn:focus {
-      background: #7c4dff;
+      background: linear-gradient(135deg, #76C893, #52B69A);
       color: #fff;
+      border-color: transparent;
+      box-shadow: 0 4px 15px rgba(118, 200, 147, 0.3);
     }
     .signup-btn {
-      background: linear-gradient(90deg, #4f8cff 0%, #fc5c7d 100%);
+      background: linear-gradient(135deg, #76C893 0%, #52B69A 50%, #34A0A4 100%);
       color: #fff;
       border: none;
-      padding: 12px 0;
-      border-radius: 24px;
+      padding: 14px 0;
+      border-radius: 25px;
       font-size: 1.1rem;
       font-weight: 700;
       margin-top: 8px;
-      box-shadow: 0 2px 8px rgba(80,130,255,0.10);
+      box-shadow: 0 6px 20px rgba(118, 200, 147, 0.25);
       cursor: pointer;
-      transition: background 0.3s, box-shadow 0.3s, transform 0.2s;
+      transition: all 0.3s;
     }
     .signup-btn:hover {
-      background: linear-gradient(90deg, #fc5c7d 0%, #4f8cff 100%);
-      box-shadow: 0 4px 16px rgba(252, 92, 125, 0.18);
-      transform: scale(1.04);
+      background: linear-gradient(135deg, #52B69A 0%, #34A0A4 100%);
+      box-shadow: 0 8px 25px rgba(52, 160, 164, 0.35);
+      transform: translateY(-2px);
     }
     .login-link {
       margin-top: 18px;
       font-size: 1rem;
-      color: #4f8cff;
+      color: #34A0A4;
       text-decoration: underline;
       cursor: pointer;
       display: block;
+      transition: color 0.3s;
+    }
+    .login-link:hover {
+      color: #76C893;
     }
   </style>
 </head>
 <body>
   <div class="signup-container fade-in">
     <div class="signup-logo">
-      <img src="img/logo.png" alt="FlowBoard Logo">
-      <span class="signup-title">Agile Project Management</span>
+      <span class="signup-logo-text">FlowBoard</span>
     </div>
+    <div class="signup-title">Create Account</div>
     <form class="signup-form">
       <input type="text" placeholder="Username" required>
       <input type="email" placeholder="Email" required>

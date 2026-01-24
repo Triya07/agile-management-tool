@@ -6,7 +6,7 @@
   <link rel="stylesheet" href="style.css">
   <style>
     body {
-      background: #f8fafc;
+      background: linear-gradient(135deg, #0891b2 0%, #0e7490 50%, #083344 100%);
       min-height: 100vh;
       display: flex;
       align-items: center;
@@ -14,13 +14,15 @@
       font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
     }
     .login-container {
-      background: #fff;
-      border-radius: 18px;
-      box-shadow: 0 8px 32px rgba(80,130,255,0.13);
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      box-shadow: 0 12px 40px rgba(8, 51, 68, 0.3);
       padding: 40px 36px 32px 36px;
       min-width: 340px;
       max-width: 380px;
       text-align: center;
+      border: 1px solid rgba(6, 182, 212, 0.2);
     }
     .login-logo {
       display: flex;
@@ -28,15 +30,24 @@
       justify-content: center;
       margin-bottom: 18px;
     }
-    .login-logo img {
-      height: 38px;
-      width: auto;
-      margin-right: 10px;
+    .login-logo-text {
+      font-size: 2.2rem;
+      font-weight: 900;
+      font-family: 'Segoe UI', 'Arial Black', sans-serif;
+      background: linear-gradient(135deg, #0891b2, #22c55e, #10b981);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -1px;
+      margin-right: 12px;
     }
     .login-title {
-      font-size: 1.7rem;
-      font-weight: 700;
-      color: #7c4dff;
+      font-size: 1.4rem;
+      font-weight: 600;
+      background: linear-gradient(135deg, #0e7490, #059669);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
       margin-bottom: 18px;
       letter-spacing: 1px;
     }
@@ -47,16 +58,19 @@
       margin-bottom: 18px;
     }
     .login-form input {
-      padding: 10px 14px;
-      border-radius: 8px;
-      border: 1.5px solid #e0d7ff;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 2px solid #06b6d4;
       font-size: 1rem;
       outline: none;
-      background: #f8fafc;
-      transition: border 0.2s;
+      background: rgba(6, 182, 212, 0.05);
+      transition: all 0.3s;
+      color: #083344;
     }
     .login-form input:focus {
-      border: 1.5px solid #7c4dff;
+      border: 2px solid #22c55e;
+      background: rgba(255, 255, 255, 0.8);
+      box-shadow: 0 4px 15px rgba(34, 197, 94, 0.2);
     }
     .role-select {
       display: flex;
@@ -65,54 +79,60 @@
       margin-bottom: 10px;
     }
     .role-btn {
-      padding: 10px 24px;
-      border-radius: 24px;
-      border: none;
+      padding: 12px 28px;
+      border-radius: 25px;
+      border: 2px solid #06b6d4;
       font-size: 1.05rem;
       font-weight: 600;
       cursor: pointer;
-      background: #e7f7ff;
-      color: #4f8cff;
-      transition: background 0.2s, color 0.2s;
+      background: rgba(6, 182, 212, 0.1);
+      color: #0e7490;
+      transition: all 0.3s;
     }
     .role-btn.active, .role-btn:focus {
-      background: #7c4dff;
+      background: linear-gradient(135deg, #0891b2, #22c55e);
       color: #fff;
+      border-color: transparent;
+      box-shadow: 0 4px 15px rgba(8, 145, 178, 0.3);
     }
     .login-btn {
-      background: linear-gradient(90deg, #4f8cff 0%, #fc5c7d 100%);
+      background: linear-gradient(135deg, #0891b2 0%, #22c55e 50%, #10b981 100%);
       color: #fff;
       border: none;
-      padding: 12px 0;
-      border-radius: 24px;
+      padding: 14px 0;
+      border-radius: 25px;
       font-size: 1.1rem;
       font-weight: 700;
       margin-top: 8px;
-      box-shadow: 0 2px 8px rgba(80,130,255,0.10);
+      box-shadow: 0 6px 20px rgba(8, 145, 178, 0.25);
       cursor: pointer;
-      transition: background 0.3s, box-shadow 0.3s, transform 0.2s;
+      transition: all 0.3s;
     }
     .login-btn:hover {
-      background: linear-gradient(90deg, #fc5c7d 0%, #4f8cff 100%);
-      box-shadow: 0 4px 16px rgba(252, 92, 125, 0.18);
-      transform: scale(1.04);
+      background: linear-gradient(135deg, #22c55e 0%, #059669 100%);
+      box-shadow: 0 8px 25px rgba(34, 197, 94, 0.35);
+      transform: translateY(-2px);
     }
     .signup-link {
       margin-top: 18px;
       font-size: 1rem;
-      color: #4f8cff;
+      color: #0e7490;
       text-decoration: underline;
       cursor: pointer;
       display: block;
+      transition: color 0.3s;
+    }
+    .signup-link:hover {
+      color: #22c55e;
     }
   </style>
 </head>
 <body>
   <div class="login-container fade-in">
     <div class="login-logo">
-      <img src="img/logo.png" alt="FlowBoard Logo">
-      <span class="login-title">Agile Project Management</span>
+      <span class="login-logo-text">FlowBoard</span>
     </div>
+    <div class="login-title">Welcome Back</div>
     <form class="login-form">
       <input type="text" placeholder="Username" required>
       <input type="password" placeholder="Password" required>
@@ -120,6 +140,10 @@
         <button type="button" class="role-btn active" id="role-manager">Manager</button>
         <button type="button" class="role-btn" id="role-worker">Worker</button>
       </div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;margin:8px 0;">
+        <input type="checkbox" id="rememberMe" style="margin:0;">
+        <span>Remember me</span>
+      </label>
       <button type="submit" class="login-btn">Login</button>
     </form>
     <span class="signup-link" onclick="window.location.href='signup.html'">Don't have an account? Sign up</span>
@@ -129,6 +153,7 @@
     const managerBtn = document.getElementById('role-manager');
     const workerBtn = document.getElementById('role-worker');
     let selectedRole = 'manager';
+    
     managerBtn.onclick = function() {
       managerBtn.classList.add('active');
       workerBtn.classList.remove('active');
@@ -139,11 +164,31 @@
       managerBtn.classList.remove('active');
       selectedRole = 'worker';
     };
-    // Handle login (demo only)
+    
+    // Handle login with proper user session and remember me
     document.querySelector('.login-form').onsubmit = function(e) {
       e.preventDefault();
-      // Save role to localStorage for demo
+      const username = document.querySelector('input[type="text"]').value;
+      const password = document.querySelector('input[type="password"]').value;
+      const rememberMe = document.getElementById('rememberMe').checked;
+      
+      // Save user session info
       localStorage.setItem('userRole', selectedRole);
+      localStorage.setItem('currentUser', username);
+      localStorage.setItem('isLoggedIn', 'true');
+      
+      // Save remember me preference
+      if (rememberMe) {
+        localStorage.setItem('rememberMe', 'true');
+        localStorage.setItem('savedUserRole', selectedRole);
+        localStorage.setItem('savedUser', username);
+      } else {
+        localStorage.removeItem('rememberMe');
+        localStorage.removeItem('savedUserRole');
+        localStorage.removeItem('savedUser');
+      }
+      
+      // Redirect based on role
       if (selectedRole === 'manager') {
         window.location.href = 'dashboard.html';
       } else {
