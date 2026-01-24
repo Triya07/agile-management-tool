@@ -1,62 +1,93 @@
-// Task storage (empty by default, user will add tasks manually)
-const tasks = [];
+/***********************
+ * CONSTANTS & STATE
+ ***********************/
+const STATUS = {
+  TODO: "todo",
+  IN_PROGRESS: "in-progress",
+  DONE: "done"
+};
 
-// Render tasks in columns
+const tasks = [];
+let draggedTaskId = null;
+
+// ⚠️ TEMP sprintId (replace later dynamically)
+const SPRINT_ID = "696e3c093920f68d5b1d6d96";
+
+/***********************
+ * RENDER BOARD
+ ***********************/
 function renderBoard() {
-  ["todo", "inprogress", "done"].forEach(col => {
-    const colDiv = document.getElementById(col);
-    colDiv.innerHTML = "";
-    tasks.filter(t => t.status === col).forEach(task => {
-      const div = document.createElement("div");
-      div.className = "task-card";
-      div.textContent = task.title;
-      div.draggable = true;
-      div.dataset.id = task.id;
-      div.addEventListener("dragstart", onDragStart);
-      colDiv.appendChild(div);
-    });
+  Object.values(STATUS).forEach(status => {
+    const column = document.getElementById(status);
+
+    // remove only task cards
+    column.querySelectorAll(".task-card").forEach(t => t.remove());
+
+    tasks
+      .filter(task => task.status === status)
+      .forEach(task => {
+        const div = document.createElement("div");
+        div.className = "task-card";
+        div.textContent = task.title;
+        div.draggable = true;
+        div.dataset.id = task.id;
+        div.addEventListener("dragstart", onDragStart);
+        column.appendChild(div);
+      });
   });
+
   updateProgress();
   renderCompletedTasks();
+  updateTaskCount();
 }
 
-// Drag & Drop
-let draggedTaskId = null;
+/***********************
+ * DRAG & DROP
+ ***********************/
 function onDragStart(e) {
   draggedTaskId = e.target.dataset.id;
 }
-["todo", "inprogress", "done"].forEach(col => {
-  const colDiv = document.getElementById(col);
-  colDiv.ondragover = e => e.preventDefault();
-  colDiv.ondrop = e => {
+
+Object.values(STATUS).forEach(status => {
+  const column = document.getElementById(status);
+
+  column.ondragover = e => e.preventDefault();
+
+  column.ondrop = e => {
     e.preventDefault();
-    if (draggedTaskId) {
-      const task = tasks.find(t => t.id == draggedTaskId);
-      if (task) {
-        task.status = col;
-        renderBoard();
-      }
-    }
+    if (!draggedTaskId) return;
+
+    const task = tasks.find(t => t.id === draggedTaskId);
+    if (!task) return;
+
+    task.status = status;
+    draggedTaskId = null;
+    renderBoard();
   };
 });
 
-// Progress
+/***********************
+ * PROGRESS & REVIEW
+ ***********************/
 function updateProgress() {
-  const done = tasks.filter(t => t.status === "done").length;
-  document.getElementById("sprintProgress").textContent = `${done}/${tasks.length} tasks completed`;
+  const doneCount = tasks.filter(t => t.status === STATUS.DONE).length;
+  document.getElementById("sprintProgress").textContent =
+    `${doneCount}/${tasks.length} tasks completed`;
 }
 
-// Sprint Review: show completed tasks
 function renderCompletedTasks() {
-  const completed = tasks.filter(t => t.status === "done");
+  const completed = tasks.filter(t => t.status === STATUS.DONE);
   const div = document.getElementById("completedTasks");
+
   div.innerHTML = completed.length
-    ? "<ul>" + completed.map(t => `<li>${t.title}</li>`).join("") + "</ul>"
+    ? `<ul>${completed.map(t => `<li>${t.title}</li>`).join("")}</ul>`
     : "<em>No tasks completed yet.</em>";
 }
 
-// Retrospective: Save feedback to localStorage (demo)
-document.getElementById("saveRetro").onclick = function() {
+/***********************
+ * RETROSPECTIVE
+ ***********************/
+document.getElementById("saveRetro").onclick = () => {
   const retro = {
     good: document.getElementById("retroGood").value,
     bad: document.getElementById("retroBad").value,
@@ -67,60 +98,62 @@ document.getElementById("saveRetro").onclick = function() {
   alert("Retrospective saved!");
 };
 
-// Modal logic for Add Task
+/***********************
+ * MODAL LOGIC
+ ***********************/
 const addTaskModal = document.getElementById("addTaskModal");
+
 document.getElementById("openAddTaskModal").onclick = () => {
   addTaskModal.style.display = "flex";
   document.getElementById("taskTitleInput").value = "";
-  document.getElementById("taskStatusInput").value = "todo";
-  document.getElementById("taskTitleInput").focus();
+  document.getElementById("taskStatusInput").value = STATUS.TODO;
 };
+
 document.getElementById("cancelAddTask").onclick = () => {
   addTaskModal.style.display = "none";
 };
 
-document.getElementById("addTaskForm").onsubmit = async function(e) {
+/***********************
+ * ADD TASK (BACKEND)
+ ***********************/
+document.getElementById("addTaskForm").onsubmit = async e => {
   e.preventDefault();
 
   const title = document.getElementById("taskTitleInput").value.trim();
   const status = document.getElementById("taskStatusInput").value;
-
-  // ⚠️ TEMP: hardcode sprintId (we’ll fix later)
-  const sprintId = "696e3c093920f68d5b1d6d96";
 
   if (!title) return;
 
   try {
     const res = await fetch("http://localhost:5000/api/tasks/create", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         title,
         status,
-        sprint: sprintId
+        sprint: SPRINT_ID
       })
     });
 
-    const data = await res.json();
-    console.log("Task created:", data);
+    const result = await res.json();
+    const task = result.task;
 
-    // push backend task into UI state
     tasks.push({
-      id: data.task._id,
-      title: data.task.title,
-      status: data.task.status
+      id: task._id,
+      title: task.title,
+      status: task.status
     });
 
-    renderBoard();
     addTaskModal.style.display = "none";
+    renderBoard();
+
   } catch (err) {
-    console.error("Error creating task:", err);
+    console.error(err);
     alert("Failed to create task");
   }
 };
 
-
-// Initial render
+/***********************
+ * INITIAL LOAD
+ ***********************/
 renderBoard();
