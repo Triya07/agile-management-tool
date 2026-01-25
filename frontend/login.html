@@ -165,34 +165,52 @@
       selectedRole = 'worker';
     };
     
-    // Handle login with proper user session and remember me
+    // Simple login form handling without backend testing
     document.querySelector('.login-form').onsubmit = function(e) {
       e.preventDefault();
-      const username = document.querySelector('input[type="text"]').value;
-      const password = document.querySelector('input[type="password"]').value;
-      const rememberMe = document.getElementById('rememberMe').checked;
       
-      // Save user session info
-      localStorage.setItem('userRole', selectedRole);
-      localStorage.setItem('currentUser', username);
-      localStorage.setItem('isLoggedIn', 'true');
+      const email = this.querySelector('input[type="email"]').value.trim();
+      const password = this.querySelector('input[type="password"]').value;
+      const rememberMe = this.querySelector('input[type="checkbox"]')?.checked || false;
       
-      // Save remember me preference
-      if (rememberMe) {
-        localStorage.setItem('rememberMe', 'true');
-        localStorage.setItem('savedUserRole', selectedRole);
-        localStorage.setItem('savedUser', username);
-      } else {
-        localStorage.removeItem('rememberMe');
-        localStorage.removeItem('savedUserRole');
-        localStorage.removeItem('savedUser');
+      // Basic validation
+      if (!email || !password) {
+        showNotification('Please fill in all fields', 'error');
+        return;
       }
       
-      // Redirect based on role
-      if (selectedRole === 'manager') {
-        window.location.href = 'dashboard.html';
+      // Demo login - no backend calls
+      const demoUsers = {
+        'admin@example.com': { password: 'admin123', role: 'manager', username: 'Admin' },
+        'worker@example.com': { password: 'worker123', role: 'worker', username: 'Worker' },
+        'test@example.com': { password: 'test123', role: 'worker', username: 'TestUser' }
+      };
+      
+      const user = demoUsers[email];
+      if (user && user.password === password) {
+        // Save user data
+        localStorage.setItem('userRole', user.role);
+        localStorage.setItem('currentUser', user.username);
+        localStorage.setItem('userEmail', email);
+        localStorage.setItem('isLoggedIn', 'true');
+        
+        if (rememberMe) {
+          localStorage.setItem('rememberMe', 'true');
+          localStorage.setItem('savedUser', user.username);
+          localStorage.setItem('savedUserRole', user.role);
+        }
+        
+        showNotification('Login successful! Redirecting...', 'success');
+        
+        setTimeout(() => {
+          if (user.role === 'manager') {
+            window.location.href = 'projects.html';
+          } else {
+            window.location.href = 'dashboard-team.html';
+          }
+        }, 1000);
       } else {
-        window.location.href = 'dashboard-team.html';
+        showNotification('Invalid credentials. Try demo accounts:\nadmin@example.com / admin123\nworker@example.com / worker123', 'error');
       }
     };
   </script>

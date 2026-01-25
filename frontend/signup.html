@@ -186,7 +186,7 @@
       selectedRole = 'worker';
     };
     
-    // Enhanced signup form handling
+    // Simple signup form handling
     document.querySelector('.signup-form').onsubmit = function(e) {
       e.preventDefault();
       
@@ -205,7 +205,7 @@
         return;
       }
       
-      // Simulate account creation
+      // Save user data
       const userData = {
         username,
         email,
@@ -214,14 +214,12 @@
         id: Date.now().toString()
       };
       
-      // Save to localStorage (simulated backend)
       localStorage.setItem('userRole', selectedRole);
       localStorage.setItem('currentUser', username);
       localStorage.setItem('userEmail', email);
       localStorage.setItem('isLoggedIn', 'true');
       localStorage.setItem('userData', JSON.stringify(userData));
       
-      // Show success message
       showNotification('Account created successfully! Redirecting...', 'success');
       
       // Redirect based on role

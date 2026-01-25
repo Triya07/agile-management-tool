@@ -260,7 +260,7 @@
             <label style="font-size:1rem;">Status</label>
             <select id="taskStatusInput" style="width:100%;margin-bottom:18px;padding:9px 10px;border-radius:7px;border:1px solid #e2e8f0;font-size:1rem;background:#f7fafc;">
               <option value="todo">To Do</option>
-              <option value="inprogress">In Progress</option>
+              <option value="in-progress">In Progress</option>
               <option value="done">Done</option>
             </select>
             <div style="display:flex;justify-content:flex-end;gap:10px;">
@@ -283,7 +283,7 @@
         </div>
         <div class="column">
           <div class="column-title">In Progress</div>
-          <div id="inprogress" class="column-tasks">
+          <div id="in-progress" class="column-tasks">
             <div class="column-placeholder" style="color: #6b7280; font-style: italic; text-align: center; padding: 20px 16px; background: rgba(118, 200, 147, 0.03); border-radius: 8px; border: 2px dashed rgba(118, 200, 147, 0.2);">
               🚀 Drag tasks here when work starts
             </div>
@@ -395,7 +395,7 @@
       const placeholders = document.querySelectorAll('.column-placeholder');
       
       // Hide placeholders if there are tasks, show if no tasks
-      ['todo', 'inprogress', 'done'].forEach(status => {
+      ['todo', 'in-progress', 'done'].forEach(status => {
         const column = document.getElementById(status);
         const placeholder = column.querySelector('.column-placeholder');
         const tasksInColumn = column.querySelectorAll('.task-card');

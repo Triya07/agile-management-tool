@@ -1,32 +1,65 @@
-const express = require("express");
-const cors = require("cors");
-const mongoose = require("mongoose");
+const { protect } = require("./middleware/authMiddleware");
+const projectRoutes = require("./routes/projectRoutes");
+
+
 require("dotenv").config();
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+
+const authRoutes = require("./routes/authRoutes");
 
 const app = express();
-
-app.use(cors());
-app.use(express.json());
-
-const sprintRoutes = require("./routes/sprintRoutes");
-const taskRoutes = require("./routes/taskRoutes");
-
 const PORT = process.env.PORT || 5000;
 
+// Middleware
+app.use(cors({
+  origin: process.env.FRONTEND_URL || "http://localhost:3000",
+  credentials: true
+}));
+app.use(express.json());
+
 // MongoDB connection
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => {
-    console.log("MongoDB connected");
-  })
-  .catch((err) => {
-    console.error("MongoDB connection error:", err);
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log("📊 Database connected successfully"))
+  .catch(err => {
+    console.error("❌ MongoDB connection failed:", err.message);
+    process.exit(1);
   });
 
-// Sprint routes
-app.use("/api/sprints", sprintRoutes);
-app.use("/api/tasks", taskRoutes);
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// Routes
+app.get("/", (req, res) => {
+  res.send("FlowBoard backend is running 🚀");
 });
+
+app.get("/api/test", (req, res) => {
+  res.json({ message: "API working perfectly", status: "success" });
+});
+
+app.use("/api/auth", authRoutes);
+
+
+
+//diff
+app.get("/api/protected", protect, (req, res) => {
+  res.json({
+    message: "Access granted ✅",
+    user: req.user
+  });
+});
+
+app.use("/api/projects", projectRoutes);
+
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`🚀 FlowBoard Server running on port ${PORT}`);
+});
+
+// Graceful shutdown
+process.on("SIGINT", async () => {
+  console.log("🛑 Shutting down server...");
+  await mongoose.connection.close();
+  process.exit(0);
+});
+

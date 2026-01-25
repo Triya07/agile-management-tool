@@ -216,7 +216,6 @@
     </div>
   </div>
 
-  <script src="projects.js"></script>
   <script>
     // Initialize CSS variables first
     const root = document.documentElement;
@@ -420,7 +419,7 @@
       }
     });
 
-    // Handle form submission
+    // Handle form submission - save to localStorage only
     createProjectForm.addEventListener('submit', (e) => {
       e.preventDefault();
       
@@ -431,24 +430,27 @@
         tags: Array.from(document.getElementById('projectTags').selectedOptions).map(opt => opt.value),
         group: document.getElementById('projectGroup').value,
         prefix: document.getElementById('projectPrefix').value,
-        owner: 'Me',
+        owner: localStorage.getItem('currentUser') || 'Me',
         createdAt: new Date().toISOString(),
         id: Date.now().toString()
       };
 
-      // Save to localStorage (demo)
+      // Save to localStorage
       let projects = JSON.parse(localStorage.getItem('projects') || '[]');
       projects.push(formData);
       localStorage.setItem('projects', JSON.stringify(projects));
 
-      // Show success message
       alert(`✅ Project "${formData.name}" created successfully!`);
-      
-      // Close modal and refresh projects
       closeModal();
       loadProjects();
     });
 
+    function loadProjects() {
+      const projects = JSON.parse(localStorage.getItem('projects') || '[]');
+      console.log('Loaded projects:', projects.length);
+      // Display projects in grid
+    }
+    
     // Handle radio button styling
     document.querySelectorAll('input[name="projectType"]').forEach(radio => {
       radio.addEventListener('change', (e) => {
