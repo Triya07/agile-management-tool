@@ -156,4 +156,8 @@ document.getElementById("addTaskForm").onsubmit = async e => {
 /***********************
  * INITIAL LOAD
  ***********************/
+<<<<<<< HEAD
 renderBoard();
+=======
+renderBoard();
+>>>>>>> 596a974c9515b51f5d02c1daccc038022483f211
