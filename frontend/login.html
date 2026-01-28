@@ -125,6 +125,26 @@
     .signup-link:hover {
       color: #22c55e;
     }
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    @keyframes slideOut {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+    }
   </style>
 </head>
 <body>
@@ -134,7 +154,7 @@
     </div>
     <div class="login-title">Welcome Back</div>
     <form class="login-form">
-      <input type="text" placeholder="Username" required>
+      <input type="email" placeholder="Email" required>
       <input type="password" placeholder="Password" required>
       <div class="role-select">
         <button type="button" class="role-btn active" id="role-manager">Manager</button>
@@ -149,6 +169,39 @@
     <span class="signup-link" onclick="window.location.href='signup.html'">Don't have an account? Sign up</span>
   </div>
   <script>
+    // Notification function
+    function showNotification(message, type) {
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        z-index: 9999;
+        animation: slideIn 0.3s ease;
+        max-width: 300px;
+      `;
+      
+      if (type === 'error') {
+        notification.style.background = '#ef4444';
+        notification.style.color = '#fff';
+      } else if (type === 'success') {
+        notification.style.background = '#22c55e';
+        notification.style.color = '#fff';
+      }
+      
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+      }, 3000);
+    }
+
     // Role selection toggle
     const managerBtn = document.getElementById('role-manager');
     const workerBtn = document.getElementById('role-worker');
@@ -165,8 +218,8 @@
       selectedRole = 'worker';
     };
     
-    // Simple login form handling without backend testing
-    document.querySelector('.login-form').onsubmit = function(e) {
+    // Simple login form handling with backend
+    document.querySelector('.login-form').onsubmit = async function(e) {
       e.preventDefault();
       
       const email = this.querySelector('input[type="email"]').value.trim();
@@ -179,38 +232,49 @@
         return;
       }
       
-      // Demo login - no backend calls
-      const demoUsers = {
-        'admin@example.com': { password: 'admin123', role: 'manager', username: 'Admin' },
-        'worker@example.com': { password: 'worker123', role: 'worker', username: 'Worker' },
-        'test@example.com': { password: 'test123', role: 'worker', username: 'TestUser' }
-      };
-      
-      const user = demoUsers[email];
-      if (user && user.password === password) {
-        // Save user data
-        localStorage.setItem('userRole', user.role);
-        localStorage.setItem('currentUser', user.username);
-        localStorage.setItem('userEmail', email);
-        localStorage.setItem('isLoggedIn', 'true');
+      try {
+        const response = await fetch('http://localhost:5000/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            email,
+            password
+          })
+        });
         
-        if (rememberMe) {
-          localStorage.setItem('rememberMe', 'true');
-          localStorage.setItem('savedUser', user.username);
-          localStorage.setItem('savedUserRole', user.role);
-        }
+        const result = await response.json();
         
-        showNotification('Login successful! Redirecting...', 'success');
-        
-        setTimeout(() => {
-          if (user.role === 'manager') {
-            window.location.href = 'projects.html';
-          } else {
-            window.location.href = 'dashboard-team.html';
+        if (response.ok) {
+          // Save user data
+          localStorage.setItem('userRole', result.user.role);
+          localStorage.setItem('currentUser', result.user.name);
+          localStorage.setItem('userEmail', email);
+          localStorage.setItem('isLoggedIn', 'true');
+          localStorage.setItem('authToken', result.token);
+          
+          if (rememberMe) {
+            localStorage.setItem('rememberMe', 'true');
+            localStorage.setItem('savedUser', result.user.name);
+            localStorage.setItem('savedUserRole', result.user.role);
           }
-        }, 1000);
-      } else {
-        showNotification('Invalid credentials. Try demo accounts:\nadmin@example.com / admin123\nworker@example.com / worker123', 'error');
+          
+          showNotification('Login successful! Redirecting...', 'success');
+          
+          setTimeout(() => {
+            if (result.user.role === 'manager') {
+              window.location.href = 'projects.html';
+            } else {
+              window.location.href = 'dashboard-team.html';
+            }
+          }, 1000);
+        } else {
+          showNotification(result.message || 'Invalid email or password', 'error');
+        }
+      } catch (err) {
+        console.error('Login error:', err);
+        showNotification('Connection error. Make sure the backend is running on http://localhost:5000', 'error');
       }
     };
   </script>

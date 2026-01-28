@@ -405,8 +405,25 @@
 
     // Close modal
     function closeModal() {
-      createProjectModal.style.display = 'none';
+      createProjectModal.setAttribute('style', 'display: none !important;');
       createProjectForm.reset();
+    }
+
+    // Ensure close button works
+    if (closeCreateModal) {
+      closeCreateModal.onclick = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        closeModal();
+      };
+    }
+    
+    if (cancelCreate) {
+      cancelCreate.onclick = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        closeModal();
+      };
     }
 
     closeCreateModal.addEventListener('click', closeModal);
@@ -440,17 +457,58 @@
       projects.push(formData);
       localStorage.setItem('projects', JSON.stringify(projects));
 
-      alert(`✅ Project "${formData.name}" created successfully!`);
+      // Show success notification and close modal
+      showNotification(`✅ Project "${formData.name}" created successfully!`, 'success');
       closeModal();
       loadProjects();
     });
 
     function loadProjects() {
       const projects = JSON.parse(localStorage.getItem('projects') || '[]');
-      console.log('Loaded projects:', projects.length);
-      // Display projects in grid
+      const grid = document.getElementById('projectsGrid');
+      const emptyState = document.getElementById('emptyState');
+
+      // Read current filter and search
+      const activeTab = document.querySelector('.tab.active');
+      const filter = activeTab ? activeTab.dataset.filter : 'all';
+      const query = (document.getElementById('searchInput')?.value || '').trim().toLowerCase();
+
+      // Clear existing project cards (keep empty state container if needed)
+      grid.querySelectorAll('.project-card').forEach(n => n.remove());
+
+      const filtered = projects.filter(p => {
+        if (filter !== 'all' && p.type !== filter) return false;
+        if (query) {
+          return (p.name || '').toLowerCase().includes(query) || (p.description || '').toLowerCase().includes(query);
+        }
+        return true;
+      });
+
+      if (!filtered.length) {
+        emptyState.style.display = 'block';
+        return;
+      }
+
+      emptyState.style.display = 'none';
+
+      filtered.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'project-card';
+        card.style.cssText = 'background: rgba(255,255,255,0.9); padding:16px; border-radius:12px; margin:12px; box-shadow:0 6px 18px rgba(0,0,0,0.06); width:300px; display:inline-block; vertical-align:top;';
+        card.innerHTML = `
+          <h4 style="margin:0 0 8px 0; font-size:1.1rem;">${p.name}</h4>
+          <div style="font-size:0.85rem;color:#066; margin-bottom:8px;">Type: ${p.type}</div>
+          <p style="margin:0 0 8px 0; color:#334; font-size:0.95rem;">${p.description || ''}</p>
+          <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;">${(p.tags||[]).map(t=>`<span style=\"background:#eef; padding:4px 8px; border-radius:8px; font-size:0.8rem;\">${t}</span>`).join('')}</div>
+          <div style="font-size:0.8rem; color:#666; display:flex; justify-content:space-between; align-items:center;">
+            <small>Owner: ${p.owner || 'Me'}</small>
+            <small>${new Date(p.createdAt).toLocaleDateString()}</small>
+          </div>
+        `;
+
+        grid.appendChild(card);
+      });
     }
-    
     // Handle radio button styling
     document.querySelectorAll('input[name="projectType"]').forEach(radio => {
       radio.addEventListener('change', (e) => {
@@ -491,11 +549,79 @@
       document.getElementById('projectPrefix').value = prefix;
     });
 
-    // Demo function to load projects
-    function loadProjects() {
-      // This would normally load projects from your backend
-      console.log('Loading projects...');
+    // Tabs: filter projects
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        loadProjects();
+      });
+    });
+
+    // Search
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) searchInput.addEventListener('input', () => loadProjects());
+
+    // Empty state create button
+    const emptyCreate = document.querySelector('#emptyState .create-btn');
+    if (emptyCreate) emptyCreate.addEventListener('click', (e) => {
+      e.preventDefault();
+      createProjectModal.style.display = 'flex';
+    });
+
+    // Load projects on page load and ensure modal is hidden
+    document.addEventListener('DOMContentLoaded', () => {
+      // Ensure create modal is hidden on initial load (override any CSS !important)
+      if (createProjectModal) createProjectModal.setAttribute('style', 'display: none !important;');
+      loadProjects();
+    });
+
+    // Notification function
+    function showNotification(message, type = 'info') {
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        z-index: 9999;
+        animation: slideIn 0.3s ease;
+        max-width: 300px;
+      `;
+      
+      if (type === 'error') {
+        notification.style.background = '#ef4444';
+        notification.style.color = '#fff';
+      } else if (type === 'success') {
+        notification.style.background = '#22c55e';
+        notification.style.color = '#fff';
+      }
+      
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+      }, 3000);
     }
+
+    // Add animations
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideIn {
+        from { transform: translateX(400px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(400px); opacity: 0; }
+      }
+    `;
+    document.head.appendChild(style);
   </script>
 </body>
 </html>

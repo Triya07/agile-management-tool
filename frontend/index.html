@@ -373,6 +373,8 @@
       box-shadow: 0 8px 30px rgba(0,0,0,0.3);
       position: relative;
       overflow: hidden;
+      z-index: 1;
+      pointer-events: auto;
     }
     
     .cta-btn::before {
@@ -384,6 +386,7 @@
       height: 100%;
       background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
       transition: left 0.5s;
+      pointer-events: none;
     }
     
     .cta-btn:hover::before {
@@ -391,10 +394,13 @@
     }
     
     .btn-login {
-      background: rgba(6, 182, 212, 0.15);
-      color: white;
-      border: 2px solid rgba(6, 182, 212, 0.3);
+      background: rgba(6, 182, 212, 0.12);
+      color: rgba(255, 255, 255, 0.85);
+      border: 2px solid rgba(6, 182, 212, 0.25);
       backdrop-filter: blur(20px);
+      padding: 18px 40px;
+      font-size: 1.1rem;
+      font-weight: 500;
     }
     
     .btn-login:hover {
@@ -407,8 +413,8 @@
       background: linear-gradient(135deg, #0891b2, #22c55e);
       color: white;
       border: 2px solid transparent;
-      padding: 20px 50px; /* Bigger hero button */
-      font-size: 1.3rem; /* Slightly larger */
+      padding: 20px 50px;
+      font-size: 1.3rem;
       font-weight: 700;
     }
     
@@ -416,16 +422,6 @@
       background: linear-gradient(135deg, #22c55e, #10b981);
       transform: translateY(-5px);
       box-shadow: 0 15px 40px rgba(34, 197, 94, 0.4);
-    }
-    
-    .btn-login {
-      background: rgba(6, 182, 212, 0.12);
-      color: rgba(255, 255, 255, 0.85);
-      border: 2px solid rgba(6, 182, 212, 0.25);
-      backdrop-filter: blur(20px);
-      padding: 18px 40px; /* Slightly smaller */
-      font-size: 1.1rem;
-      font-weight: 500;
     }
     
     /* Scroll Hint */
