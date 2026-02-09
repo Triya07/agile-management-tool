@@ -437,6 +437,12 @@
     });
 
     // Handle form submission - save to localStorage only
+    // Helper function to get user-specific storage key
+    function getUserProjectsKey() {
+      const userEmail = localStorage.getItem('userEmail') || 'default';
+      return `projects_${userEmail}`;
+    }
+
     createProjectForm.addEventListener('submit', (e) => {
       e.preventDefault();
       
@@ -452,10 +458,10 @@
         id: Date.now().toString()
       };
 
-      // Save to localStorage
-      let projects = JSON.parse(localStorage.getItem('projects') || '[]');
+      // Save to localStorage with user-specific key
+      let projects = JSON.parse(localStorage.getItem(getUserProjectsKey()) || '[]');
       projects.push(formData);
-      localStorage.setItem('projects', JSON.stringify(projects));
+      localStorage.setItem(getUserProjectsKey(), JSON.stringify(projects));
 
       // Show success notification and close modal
       showNotification(`✅ Project "${formData.name}" created successfully!`, 'success');
@@ -464,7 +470,7 @@
     });
 
     function loadProjects() {
-      const projects = JSON.parse(localStorage.getItem('projects') || '[]');
+      const projects = JSON.parse(localStorage.getItem(getUserProjectsKey()) || '[]');
       const grid = document.getElementById('projectsGrid');
       const emptyState = document.getElementById('emptyState');
 
