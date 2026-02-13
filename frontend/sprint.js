@@ -66,6 +66,28 @@ Object.values(STATUS).forEach(status => {
   };
 });
 
+// Navigation helper: make sidebar buttons work on this page
+function navigateTo(page) {
+  window.location.href = page;
+}
+
+['nav-board', 'nav-projects', 'nav-dashboard', 'nav-sprints', 'nav-settings'].forEach(id => {
+  const btn = document.getElementById(id);
+  if (btn) btn.addEventListener('click', () => {
+    // update active state for visual feedback
+    document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    // perform navigation
+    switch(id) {
+      case 'nav-board': navigateTo('kanban-board.html'); break;
+      case 'nav-projects': navigateTo('projects.html'); break;
+      case 'nav-dashboard': navigateTo('dashboard.html'); break;
+      case 'nav-sprints': navigateTo('sprint.html'); break;
+      case 'nav-settings': navigateTo('settings.html'); break;
+    }
+  });
+});
+
 /***********************
  * PROGRESS & REVIEW
  ***********************/
@@ -149,7 +171,17 @@ document.getElementById("addTaskForm").onsubmit = async e => {
 
   } catch (err) {
     console.error(err);
-    alert("Failed to create task");
+    // Backend unavailable — fallback to local-only task so UX still works
+    const localTask = {
+      id: Date.now().toString(),
+      title,
+      status
+    };
+    tasks.push(localTask);
+    addTaskModal.style.display = "none";
+    renderBoard();
+    // Optionally inform the user the task is stored locally
+    alert("Task added locally (backend unavailable)");
   }
 };
 

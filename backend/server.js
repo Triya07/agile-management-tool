@@ -1,13 +1,13 @@
 const { protect } = require("./middleware/authMiddleware");
+const authRoutes = require("./routes/authRoutes");
 const projectRoutes = require("./routes/projectRoutes");
+const taskRoutes = require("./routes/taskRoutes");
 
 
 require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-
-const authRoutes = require("./routes/authRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -51,6 +51,7 @@ app.get("/api/protected", protect, (req, res) => {
 });
 
 app.use("/api/projects", projectRoutes);
+app.use("/api/tasks", taskRoutes);
 
 
 // Start server
