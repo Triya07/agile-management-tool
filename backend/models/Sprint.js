@@ -13,6 +13,16 @@ const sprintSchema = new mongoose.Schema(
     endDate: {
       type: Date,
       required: true
+    },
+    projectId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Project",
+      required: true
+    },
+    status: {
+      type: String,
+      enum: ["planning", "active", "completed"],
+      default: "planning"
     }
   },
   {

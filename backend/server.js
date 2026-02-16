@@ -2,6 +2,8 @@ const { protect } = require("./middleware/authMiddleware");
 const authRoutes = require("./routes/authRoutes");
 const projectRoutes = require("./routes/projectRoutes");
 const taskRoutes = require("./routes/taskRoutes");
+const sprintRoutes = require("./routes/sprintRoutes");
+const userRoutes = require("./routes/userRoutes");
 
 
 require("dotenv").config();
@@ -39,18 +41,9 @@ app.get("/api/test", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
-
-
-
-//diff
-app.get("/api/protected", protect, (req, res) => {
-  res.json({
-    message: "Access granted ✅",
-    user: req.user
-  });
-});
-
+app.use("/api/users", userRoutes);
 app.use("/api/projects", projectRoutes);
+app.use("/api/sprints", sprintRoutes);
 app.use("/api/tasks", taskRoutes);
 
 

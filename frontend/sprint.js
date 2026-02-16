@@ -188,4 +188,28 @@ document.getElementById("addTaskForm").onsubmit = async e => {
 /***********************
  * INITIAL LOAD
  ***********************/
-renderBoard();
+async function loadTasks() {
+  try {
+    const sprintId = "696e3c093920f68d5b1d6d96"; // same sprint id
+
+    const res = await fetch(`http://localhost:5000/api/tasks?sprint=${sprintId}`);
+    const data = await res.json();
+
+    tasks.length = 0; // clear local array
+
+    data.forEach(task => {
+      tasks.push({
+        id: task._id,
+        title: task.title,
+        status: task.status
+      });
+    });
+
+    renderBoard();
+  } catch (err) {
+    console.error("Failed to load tasks:", err);
+  }
+}
+
+loadTasks();
+

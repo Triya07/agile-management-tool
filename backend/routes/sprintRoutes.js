@@ -1,9 +1,11 @@
 const express = require("express");
 const router = express.Router();
 
-const { createSprint, getAllSprints } = require("../controllers/sprintController");
+const { protect } = require("../middleware/authMiddleware");
+const { createSprint, getAllSprints, getProjectSprints } = require("../controllers/sprintController");
 
-router.post("/create", createSprint);
-router.get("/", getAllSprints);
+router.post("/create", protect, createSprint);
+router.get("/", protect, getAllSprints);
+router.get("/project", protect, getProjectSprints);
 
 module.exports = router;

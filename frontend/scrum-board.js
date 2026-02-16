@@ -1,64 +1,72 @@
-// Get active project (must be scrum)
-const activeProjectId = localStorage.getItem("activeProject");
-const projects = JSON.parse(localStorage.getItem("projects")) || [];
-let activeProject = projects.find(p => p.id === activeProjectId && p.type === "scrum");
+// Initialize board with API data
+let activeProject = null;
+let activeSprint = null;
+let tasks = [];
+let teamMembers = [];
 
-// If no active scrum project, try to find any scrum project or create one
-if (!activeProject) {
-  const scrumProjects = projects.filter(p => p.type === "scrum");
-  if (scrumProjects.length > 0) {
-    // Use the first scrum project found
-    activeProject = scrumProjects[0];
-    localStorage.setItem("activeProject", activeProject.id);
-  } else {
-    // Create a demo scrum project
-    const demoProject = {
-      id: Date.now().toString(),
-      name: "Demo Scrum Project",
-      type: "scrum"
-    };
-    projects.push(demoProject);
-    localStorage.setItem("projects", JSON.stringify(projects));
-    localStorage.setItem("activeProject", demoProject.id);
-    activeProject = demoProject;
+// Load data from API
+async function initializeBoard() {
+  try {
+    // Check if user is logged in
+    const user = getCurrentUser();
+    if (!user) {
+      window.location.href = "/login.html";
+      return;
+    }
+
+    // Get projects
+    const projectsResponse = await getProjects();
+    const projects = projectsResponse.data || projectsResponse;
+    
+    // Find or select active project
+    const activeProjectId = localStorage.getItem("activeProject");
+    activeProject = projects.find(p => p._id === activeProjectId && p.type === "scrum") || 
+                    projects.find(p => p.type === "scrum");
+
+    if (!activeProject) {
+      alert("No Scrum projects found. Please create one first.");
+      window.location.href = "/projects.html";
+      return;
+    }
+
+    localStorage.setItem("activeProject", activeProject._id);
+
+    // Get sprints for this project
+    const sprintsResponse = await getProjectSprints(activeProject._id);
+    const sprints = sprintsResponse.data || sprintsResponse;
+
+    // Find active sprint or use first
+    const activeSprintId = localStorage.getItem("activeSprint");
+    activeSprint = sprints.find(s => s._id === activeSprintId) || sprints[0];
+
+    if (!activeSprint) {
+      alert("No sprints found for this project. Please create one first.");
+      return;
+    }
+
+    localStorage.setItem("activeSprint", activeSprint._id);
+
+    // Load tasks for this sprint
+    const tasksResponse = await getSprintTasks(activeSprint._id, activeProject._id);
+    tasks = tasksResponse.data || tasksResponse;
+
+    // Get team members from project
+    teamMembers = activeProject.members || [];
+
+    // Update UI
+    document.querySelector('.kanban-title').textContent = `Scrum Board - ${activeSprint.sprintName}`;
+    document.getElementById("sprintNotice").style.display = "none";
+    document.getElementById("addTaskBtnRow").style.display = "flex";
+    document.getElementById("scrumBoard").style.opacity = "1";
+
+    renderBoard();
+  } catch (error) {
+    console.error("Error initializing board:", error);
+    alert("Failed to load board: " + error.message);
   }
 }
 
-// Get active sprint for this project - create one if none exists
-let activeSprintId = localStorage.getItem("activeSprint");
-let sprints = JSON.parse(localStorage.getItem("sprints")) || [];
-let activeSprint = sprints.find(s => s.id === activeSprintId && s.projectId === activeProject.id);
-
-if (!activeSprint) {
-  // Create a demo sprint for this project
-  const demoSprint = {
-    id: Date.now().toString(),
-    projectId: activeProject.id,
-    name: "Sprint 1",
-    startDate: new Date().toISOString().split('T')[0],
-    endDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // 2 weeks from now
-  };
-  sprints.push(demoSprint);
-  localStorage.setItem("sprints", JSON.stringify(sprints));
-  localStorage.setItem("activeSprint", demoSprint.id);
-  activeSprintId = demoSprint.id;
-  activeSprint = demoSprint;
-}
-
-// Show sprint info in the header
-document.querySelector('.kanban-title').textContent = `Scrum Board - ${activeSprint.name}`;
-
-// Load tasks for this project and sprint
-let tasks = (JSON.parse(localStorage.getItem("tasks")) || []).filter(
-  t => t.projectId === activeProject.id && t.sprintId === activeSprintId
-);
-
-// Hide the notice since we have an active sprint
-document.getElementById("sprintNotice").style.display = "none";
-document.getElementById("addTaskBtnRow").style.display = "flex";
-document.getElementById("scrumBoard").style.opacity = "1";
-
-// Render board
+// Render board with tasks
 function renderBoard() {
   ["todo", "inprogress", "done"].forEach(col => {
     const colDiv = document.getElementById(col);
@@ -69,26 +77,22 @@ function renderBoard() {
       const div = document.createElement("div");
       div.className = "task-card";
       
-      // Enhanced task card with more details
+      const assigneeName = task.assignedTo ? task.assignedTo.name : "Unassigned";
+      const dueDate = task.dueDate ? new Date(task.dueDate).toLocaleDateString() : "";
+      
       div.innerHTML = `
         <div style="font-weight:500;margin-bottom:4px;">${task.title}</div>
-        ${task.assignee ? `<div style="font-size:0.8rem;color:#666;margin-bottom:4px;">Assigned to: ${getAssigneeName(task.assignee)}</div>` : ''}
-        ${task.dueDate ? `<div style="font-size:0.8rem;color:#666;margin-bottom:4px;">Due: ${task.dueDate}</div>` : ''}
+        ${task.assignedTo ? `<div style="font-size:0.8rem;color:#666;margin-bottom:4px;">Assigned to: ${assigneeName}</div>` : ''}
+        ${dueDate ? `<div style="font-size:0.8rem;color:#666;margin-bottom:4px;">Due: ${dueDate}</div>` : ''}
         ${task.priority ? `<span style="font-size:0.7rem;padding:2px 6px;border-radius:3px;background:${getPriorityColor(task.priority)};color:white;">${task.priority.toUpperCase()}</span>` : ''}
       `;
       
       div.draggable = true;
-      div.dataset.id = task.id;
+      div.dataset.id = task._id;
       div.addEventListener("dragstart", onDragStart);
       colDiv.appendChild(div);
     });
   });
-}
-
-function getAssigneeName(assigneeId) {
-  const teamMembers = JSON.parse(localStorage.getItem("teamMembers")) || [];
-  const member = teamMembers.find(m => m.id === assigneeId);
-  return member ? member.name : assigneeId;
 }
 
 function getPriorityColor(priority) {
@@ -105,63 +109,49 @@ let draggedTaskId = null;
 function onDragStart(e) {
     draggedTaskId = e.target.dataset.id;
 }
+
 ["todo", "inprogress", "done"].forEach(col => {
     const colDiv = document.getElementById(col);
     colDiv.ondragover = e => e.preventDefault();
-    colDiv.ondrop = e => {
+    colDiv.ondrop = async (e) => {
         e.preventDefault();
         if (draggedTaskId) {
-            const task = tasks.find(t => t.id == draggedTaskId);
+            const task = tasks.find(t => t._id == draggedTaskId);
             if (task) {
-                task.status = col;
-                saveTasks();
-                renderBoard();
+                try {
+                  await updateTaskStatus(draggedTaskId, col);
+                  task.status = col;
+                  renderBoard();
+                } catch (error) {
+                  alert("Failed to update task: " + error.message);
+                }
             }
         }
     };
 });
 
-// Save tasks to localStorage
-function saveTasks() {
-    let allTasks = JSON.parse(localStorage.getItem("tasks")) || [];
-    // Remove all tasks for this project+sprint
-    allTasks = allTasks.filter(t => !(t.projectId === activeProjectId && t.sprintId === activeSprintId));
-    allTasks = allTasks.concat(tasks);
-    localStorage.setItem("tasks", JSON.stringify(allTasks));
-}
-
-// Modal logic for Add Task (Enhanced)
+// Modal logic for Add Task
 const addTaskModal = document.getElementById("addTaskModal");
 
 document.getElementById("openAddTaskModal").onclick = () => {
-    // Populate assignee dropdown
-    const teamMembers = JSON.parse(localStorage.getItem("teamMembers")) || [
-        { id: "user1", name: "John Doe" },
-        { id: "user2", name: "Jane Smith" },
-        { id: "user3", name: "Mike Wilson" }
-    ];
-    
     const assigneeSelect = document.getElementById("taskAssigneeSelect");
-    assigneeSelect.innerHTML = '<option value="">Recently assigned</option>';
+    assigneeSelect.innerHTML = '<option value="">Unassigned</option>';
+    
     teamMembers.forEach(member => {
         const option = document.createElement("option");
-        option.value = member.id;
+        option.value = member._id;
         option.textContent = member.name;
         assigneeSelect.appendChild(option);
     });
     
-    // Set current project
-    const projects = JSON.parse(localStorage.getItem("projects")) || [];
-    const activeProject = projects.find(p => p.id === activeProjectId);
     if (activeProject) {
         document.getElementById("selectedProject").textContent = activeProject.name;
-    } else {
-        document.getElementById("selectedProject").textContent = "Current Project";
     }
     
-    // Set user avatar
-    const currentUser = localStorage.getItem('currentUser') || 'User';
-    document.getElementById("userAvatar").textContent = currentUser.charAt(0).toUpperCase();
+    const currentUser = getCurrentUser();
+    if (currentUser) {
+        document.getElementById("userAvatar").textContent = currentUser.name.charAt(0).toUpperCase();
+    }
     
     // Reset form
     document.getElementById("taskTitleInput").value = "";
@@ -171,10 +161,8 @@ document.getElementById("openAddTaskModal").onclick = () => {
     document.getElementById("taskStatusInput").value = "todo";
     document.getElementById("taskPriorityInput").value = "medium";
     
-    // Show modal
     addTaskModal.style.display = "flex";
     
-    // Focus on title input
     setTimeout(() => {
         document.getElementById("taskTitleInput").focus();
     }, 100);
@@ -187,11 +175,9 @@ function closeTaskModal() {
 function markComplete() {
     const checkbox = event.target;
     if (checkbox.style.backgroundColor === "rgb(16, 185, 129)") {
-        // Uncheck
         checkbox.style.backgroundColor = "";
         checkbox.innerHTML = "";
     } else {
-        // Check
         checkbox.style.backgroundColor = "#10b981";
         checkbox.innerHTML = "✓";
         checkbox.style.color = "white";
@@ -200,8 +186,8 @@ function markComplete() {
     }
 }
 
-// Enhanced form submission
-document.getElementById("addTaskForm").onsubmit = function(e) {
+// Form submission
+document.getElementById("addTaskForm").onsubmit = async function(e) {
     e.preventDefault();
     const title = document.getElementById("taskTitleInput").value.trim();
     
@@ -210,72 +196,41 @@ document.getElementById("addTaskForm").onsubmit = function(e) {
         return;
     }
     
-    if (!activeSprintId) {
+    if (!activeSprint) {
         alert("No active sprint selected");
         return;
     }
     
-    const status = document.getElementById("taskStatusInput").value;
-    const assignee = document.getElementById("taskAssigneeSelect").value;
-    const dueDate = document.getElementById("taskDueDateInput").value;
+    const assignedTo = document.getElementById("taskAssigneeSelect").value || null;
+    const dueDate = document.getElementById("taskDueDateInput").value || null;
     const priority = document.getElementById("taskPriorityInput").value;
     const description = document.getElementById("taskDescriptionInput").value.trim();
-    const comment = document.getElementById("taskCommentInput").value.trim();
     
-    const newTask = {
-        id: Date.now().toString(),
-        projectId: activeProjectId,
-        sprintId: activeSprintId,
+    try {
+      const newTask = await createTask(
         title,
-        status,
-        assignee,
-        dueDate,
-        priority,
         description,
-        createdBy: localStorage.getItem('currentUser'),
-        createdDate: new Date().toISOString().split('T')[0],
-        completedDate: null
-    };
-    
-    tasks.push(newTask);
-    saveTasks();
-    
-    // Save comment if provided
-    if (comment) {
-        const comments = JSON.parse(localStorage.getItem('taskComments')) || {};
-        if (!comments[newTask.id]) comments[newTask.id] = [];
-        comments[newTask.id].push({
-            user: localStorage.getItem('currentUser'),
-            comment: comment,
-            date: new Date().toLocaleDateString(),
-            time: new Date().toLocaleTimeString()
-        });
-        localStorage.setItem('taskComments', JSON.stringify(comments));
+        assignedTo,
+        activeSprint._id,
+        activeProject._id,
+        priority,
+        dueDate
+      );
+
+      tasks.push(newTask.task || newTask);
+      renderBoard();
+      closeTaskModal();
+      alert("Task created successfully!");
+    } catch (error) {
+      alert("Failed to create task: " + error.message);
     }
-    
-    // Add activity log
-    const activities = JSON.parse(localStorage.getItem('activities')) || [];
-    const assigneeName = assignee ? teamMembers.find(m => m.id === assignee)?.name : 'Unassigned';
-    activities.unshift({
-        type: 'assigned',
-        message: `Task "${title}" created${assignee ? ` and assigned to ${assigneeName}` : ''}`,
-        time: new Date().toLocaleString(),
-        timestamp: Date.now()
-    });
-    localStorage.setItem('activities', JSON.stringify(activities));
-    
-    renderBoard();
-    closeTaskModal();
-    alert("Task created successfully!");
 };
 
-// Auto-expand comment textarea
 document.getElementById("taskCommentInput").addEventListener('input', function() {
     this.style.height = 'auto';
     this.style.height = this.scrollHeight + 'px';
 });
 
-// Priority color coding
 document.getElementById("taskPriorityInput").addEventListener('change', function() {
     const priority = this.value;
     const statusDisplay = document.getElementById("statusDisplay");
@@ -298,12 +253,11 @@ document.getElementById("taskPriorityInput").addEventListener('change', function
     }
 });
 
-// Close modal when clicking outside
 addTaskModal.addEventListener('click', function(e) {
     if (e.target === addTaskModal) {
         closeTaskModal();
     }
 });
 
-// Initial render
-renderBoard();
+// Initialize on page load
+initializeBoard();

@@ -11,16 +11,35 @@ const taskSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["todo", "in-progress", "done"],
+      enum: ["todo", "inprogress", "done"],
       default: "todo"
     },
+    priority: {
+      type: String,
+      enum: ["low", "medium", "high"],
+      default: "medium"
+    },
     assignedTo: {
-      type: String
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User"
+    },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true
     },
     sprint: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Sprint",
       required: true
+    },
+    projectId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Project",
+      required: true
+    },
+    dueDate: {
+      type: Date
     }
   },
   {

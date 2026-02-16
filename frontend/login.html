@@ -215,7 +215,7 @@
     workerBtn.onclick = function() {
       workerBtn.classList.add('active');
       managerBtn.classList.remove('active');
-      selectedRole = 'worker';
+      selectedRole = 'member';
     };
     
     // Simple login form handling with backend
@@ -248,16 +248,15 @@
         
         if (response.ok) {
           // Save user data
+          localStorage.setItem('token', result.token);
+          localStorage.setItem('user', JSON.stringify(result.user));
           localStorage.setItem('userRole', result.user.role);
           localStorage.setItem('currentUser', result.user.name);
-          localStorage.setItem('userEmail', email);
+          localStorage.setItem('userEmail', result.user.email);
           localStorage.setItem('isLoggedIn', 'true');
-          localStorage.setItem('authToken', result.token);
           
           if (rememberMe) {
             localStorage.setItem('rememberMe', 'true');
-            localStorage.setItem('savedUser', result.user.name);
-            localStorage.setItem('savedUserRole', result.user.role);
           }
           
           showNotification('Login successful! Redirecting...', 'success');
