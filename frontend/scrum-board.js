@@ -10,13 +10,13 @@ async function initializeBoard() {
     // Check if user is logged in
     const user = getCurrentUser();
     if (!user) {
-      window.location.href = "/login.html";
+      window.location.href = "login.html";
       return;
     }
 
     // Get projects
     const projectsResponse = await getProjects();
-    const projects = projectsResponse.data || projectsResponse;
+    const projects = Array.isArray(projectsResponse) ? projectsResponse : (projectsResponse.data || []);
     
     // Find or select active project
     const activeProjectId = localStorage.getItem("activeProject");
@@ -25,7 +25,7 @@ async function initializeBoard() {
 
     if (!activeProject) {
       alert("No Scrum projects found. Please create one first.");
-      window.location.href = "/projects.html";
+      window.location.href = "projects.html";
       return;
     }
 
@@ -33,7 +33,7 @@ async function initializeBoard() {
 
     // Get sprints for this project
     const sprintsResponse = await getProjectSprints(activeProject._id);
-    const sprints = sprintsResponse.data || sprintsResponse;
+    const sprints = Array.isArray(sprintsResponse) ? sprintsResponse : (sprintsResponse.data || []);
 
     // Find active sprint or use first
     const activeSprintId = localStorage.getItem("activeSprint");
@@ -48,7 +48,7 @@ async function initializeBoard() {
 
     // Load tasks for this sprint
     const tasksResponse = await getSprintTasks(activeSprint._id, activeProject._id);
-    tasks = tasksResponse.data || tasksResponse;
+    tasks = Array.isArray(tasksResponse) ? tasksResponse : (tasksResponse.data || []);
 
     // Get team members from project
     teamMembers = activeProject.members || [];

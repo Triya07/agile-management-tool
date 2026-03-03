@@ -14,7 +14,7 @@ const createSprint = async (req, res) => {
     }
 
     const isAuthorized = project.createdBy.toString() === userId || 
-                         project.members.includes(userId);
+                         project.members.some(member => member.toString() === userId);
     if (!isAuthorized) {
       return res.status(403).json({ message: "Not authorized to access this project" });
     }
@@ -54,7 +54,7 @@ const getProjectSprints = async (req, res) => {
     }
 
     const isAuthorized = project.createdBy.toString() === userId || 
-                         project.members.includes(userId);
+                         project.members.some(member => member.toString() === userId);
     if (!isAuthorized) {
       return res.status(403).json({ message: "Not authorized to access this project" });
     }

@@ -70,10 +70,11 @@
         <span style="font-size:1.8rem;font-weight:900;background:linear-gradient(135deg,#D9ED92,#76C893,#34A0A4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">FlowBoard</span>
       </div>
       <nav class="sidebar-nav">
-        <button class="sidebar-btn" onclick="window.location.href='dashboard-team.html'">Dashboard</button>
-        <button class="sidebar-btn" onclick="window.location.href='my-tasks.html'">My Tasks</button>
+        <button class="sidebar-btn" onclick="navigateTo('dashboard-team.html')">Dashboard</button>
+        <button class="sidebar-btn" onclick="navigateTo('my-tasks.html')">My Tasks</button>
         <button class="sidebar-btn active">Sprint Overview</button>
-        <button class="sidebar-btn" onclick="window.location.href='scrum-updates.html'">Scrum Updates</button>
+        <button class="sidebar-btn" onclick="navigateTo('scrum-updates.html')">Scrum Updates</button>
+        <button class="sidebar-btn" onclick="navigateTo('user-profile.html')">Profile</button>
         <button class="sidebar-btn" onclick="logout()">Logout</button>
       </nav>
     </aside>
@@ -96,12 +97,6 @@
   </div>
   
   <script>
-    // Team member auth check
-    if (localStorage.getItem('userRole') !== 'worker') {
-      alert('Access denied. Team member login required.');
-      window.location.href = 'login.html';
-    }
-    
     const currentUser = localStorage.getItem("currentUser");
     
     function renderMySprintTasks() {
@@ -126,9 +121,12 @@
       `;
     }
     
+    function navigateTo(page) {
+      window.location.href = page;
+    }
     function logout() {
       localStorage.clear();
-      window.location.href = 'index.html';
+      window.location.href = 'login.html';
     }
     
     renderMySprintTasks();

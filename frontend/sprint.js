@@ -3,7 +3,7 @@
  ***********************/
 const STATUS = {
   TODO: "todo",
-  IN_PROGRESS: "in-progress",
+  IN_PROGRESS: "inprogress",
   DONE: "done"
 };
 
@@ -147,30 +147,23 @@ document.getElementById("addTaskForm").onsubmit = async e => {
   if (!title) return;
 
   try {
-    const res = await fetch("http://localhost:5000/api/tasks/create", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title,
-        status,
-        sprint: SPRINT_ID
-      })
-    });
-
-    const result = await res.json();
-    const task = result.task;
-
-    tasks.push({
-      id: task._id,
-      title: task.title,
-      status: task.status
-    });
+    // Use API helper with authentication
+    const result = await createTask(title, "", null, SPRINT_ID, null, "medium", null);
+    
+    if (result && result.task) {
+      const task = result.task;
+      tasks.push({
+        id: task._id,
+        title: task.title,
+        status: task.status
+      });
+    }
 
     addTaskModal.style.display = "none";
     renderBoard();
 
   } catch (err) {
-    console.error(err);
+    console.error("Error creating task:", err);
     // Backend unavailable — fallback to local-only task so UX still works
     const localTask = {
       id: Date.now().toString(),
@@ -192,12 +185,13 @@ async function loadTasks() {
   try {
     const sprintId = "696e3c093920f68d5b1d6d96"; // same sprint id
 
-    const res = await fetch(`http://localhost:5000/api/tasks?sprint=${sprintId}`);
-    const data = await res.json();
+    // Use API helper with authentication instead of direct fetch
+    const data = await getSprintTasks(sprintId, null);
+    const taskList = Array.isArray(data) ? data : (data.data || []);
 
     tasks.length = 0; // clear local array
 
-    data.forEach(task => {
+    taskList.forEach(task => {
       tasks.push({
         id: task._id,
         title: task.title,

@@ -158,7 +158,7 @@
       <input type="password" placeholder="Password" required>
       <div class="role-select">
         <button type="button" class="role-btn active" id="role-manager">Manager</button>
-        <button type="button" class="role-btn" id="role-worker">Worker</button>
+        <button type="button" class="role-btn" id="role-member">Member</button>
       </div>
       <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;margin:8px 0;">
         <input type="checkbox" id="rememberMe" style="margin:0;">
@@ -204,22 +204,24 @@
 
     // Role selection toggle
     const managerBtn = document.getElementById('role-manager');
-    const workerBtn = document.getElementById('role-worker');
+    const memberBtn = document.getElementById('role-member');
     let selectedRole = 'manager';
     
-    managerBtn.onclick = function() {
+    managerBtn.addEventListener('click', function(e) {
+      e.preventDefault();
       managerBtn.classList.add('active');
-      workerBtn.classList.remove('active');
+      memberBtn.classList.remove('active');
       selectedRole = 'manager';
-    };
-    workerBtn.onclick = function() {
-      workerBtn.classList.add('active');
+    });
+    memberBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      memberBtn.classList.add('active');
       managerBtn.classList.remove('active');
       selectedRole = 'member';
-    };
+    });
     
     // Simple login form handling with backend
-    document.querySelector('.login-form').onsubmit = async function(e) {
+    document.querySelector('.login-form').addEventListener('submit', async function(e) {
       e.preventDefault();
       
       const email = this.querySelector('input[type="email"]').value.trim();
@@ -229,6 +231,11 @@
       // Basic validation
       if (!email || !password) {
         showNotification('Please fill in all fields', 'error');
+        return;
+      }
+      
+      if (!email.includes('@')) {
+        showNotification('Please enter a valid email address', 'error');
         return;
       }
       
@@ -275,7 +282,7 @@
         console.error('Login error:', err);
         showNotification('Connection error. Make sure the backend is running on http://localhost:5000', 'error');
       }
-    };
+    });
   </script>
 </body>
 </html>

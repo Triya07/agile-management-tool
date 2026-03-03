@@ -126,7 +126,10 @@
         <button class="sidebar-btn" onclick="navigateTo('projects.html')">Projects</button>
         <button class="sidebar-btn active">Dashboard</button>
         <button class="sidebar-btn" onclick="navigateTo('sprint.html')">Sprints</button>
+        <button class="sidebar-btn" onclick="navigateTo('team.html')">Team</button>
+        <button class="sidebar-btn" onclick="navigateTo('user-profile.html')">Profile</button>
         <button class="sidebar-btn" onclick="navigateTo('settings.html')">Settings</button>
+        <button class="sidebar-btn" onclick="logout()">Logout</button>
       </nav>
     </aside>
     
@@ -178,9 +181,16 @@
   </div>
 
   <script>
-    // Navigation function
+    // Global navigation and utility functions
     function navigateTo(page) {
       window.location.href = page;
+    }
+
+    function logout() {
+      if (confirm('Are you sure you want to logout?')) {
+        localStorage.clear();
+        window.location.href = 'login.html';
+      }
     }
     
     // Sidebar functionality

@@ -1,3 +1,24 @@
+// Navigation and utility functions
+function navigateTo(page) {
+  window.location.href = page;
+}
+
+function logout() {
+  if (confirm('Are you sure you want to logout?')) {
+    localStorage.clear();
+    window.location.href = 'login.html';
+  }
+}
+
+function checkAuth() {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    window.location.href = '/login.html';
+    return false;
+  }
+  return true;
+}
+
 // Authentication check at the top
 function checkManagerAuth() {
   const isLoggedIn = localStorage.getItem('isLoggedIn');
@@ -18,13 +39,25 @@ if (!checkManagerAuth()) {
   const projectsGrid = document.getElementById("projectsGrid");
   const emptyState = document.getElementById("emptyState");
 
-  let projects = JSON.parse(localStorage.getItem("projects")) || [];
+  let projects = [];
+
+  // Load projects from API
+  async function loadProjects() {
+    try {
+      const response = await getProjects();
+      projects = response || [];
+      renderProjects("all");
+    } catch (error) {
+      console.error("Error loading projects:", error);
+      alert("Failed to load projects. Make sure you are logged in.");
+    }
+  }
 
   function renderProjects(filter = "all") {
     projectsGrid.innerHTML = "";
 
     const filtered = projects.filter(p =>
-      filter === "all" ? true : p.type === filter
+      filter === "all" || filter === "all" ? true : p.type === filter
     );
 
     if (filtered.length === 0) {
@@ -38,27 +71,27 @@ if (!checkManagerAuth()) {
       card.innerHTML = `
         <h3>${project.name}</h3>
         <p class="project-type">${project.type.toUpperCase()}</p>
-        <button class="btn add-task-btn" style="margin-top:10px;min-width:90px;" data-projectid="${project.id}">+ Add Task</button>
+        <button class="btn add-task-btn" style="margin-top:10px;min-width:90px;" data-projectid="${project._id}">+ Add Task</button>
       `;
 
       // Add Task button click
       card.querySelector(".add-task-btn").onclick = function(e) {
         e.stopPropagation();
-        showAddTaskModalForProject(project.id);
+        showAddTaskModalForProject(project._id);
       };
 
       // Project card click (excluding the add task button)
       card.addEventListener("click", function(e) {
         if (e.target.classList.contains("add-task-btn")) return;
-        localStorage.setItem("activeProject", project.id);
+        localStorage.setItem("activeProject", project._id);
         
         // Navigate based on project type
         if (project.type === "scrum") {
           // For Scrum projects, go to scrum board
           window.location.href = "scrum-board.html";
         } else {
-          // For Kanban projects, go to regular board
-          window.location.href = "board.html";
+          // For Kanban projects, go to kanban board
+          window.location.href = "kanban-board.html";
         }
       });
 
@@ -75,8 +108,8 @@ if (!checkManagerAuth()) {
     });
   });
 
-  // Only render existing projects on first load
-  renderProjects();
+  // Load projects on page load
+  loadProjects();
 
   // Modal for project creation options
   function showProjectCreateOptionsModal() {
@@ -133,23 +166,24 @@ if (!checkManagerAuth()) {
     modal.querySelectorAll('.modal-type-btn').forEach(btn => {
       btn.onclick = () => {
         modal.remove();
-        createProject(btn.dataset.type);
+        handleCreateProject(btn.dataset.type);
       };
     });
     modal.querySelector('#closeTypeModal').onclick = () => modal.remove();
   }
 
-  function createProject(type) {
+  function handleCreateProject(type) {
     const name = prompt("Enter project name:");
     if (!name) return;
-    const newProj = {
-      id: Date.now().toString(),
-      name,
-      type
-    };
-    projects.push(newProj);
-    localStorage.setItem("projects", JSON.stringify(projects));
-    renderProjects(document.querySelector('.tab.active').dataset.filter);
+    
+    // Call backend API to create project
+    createProject(name, "", type).then(response => {
+      alert("Project created successfully!");
+      loadProjects(); // Reload projects from API
+    }).catch(error => {
+      console.error("Create project error:", error);
+      alert("Error creating project: " + error.message);
+    });
   }
 
   document.getElementById("openCreate")?.addEventListener("click", showProjectCreateOptionsModal);
@@ -190,21 +224,20 @@ if (!checkManagerAuth()) {
     document.body.appendChild(modal);
 
     document.getElementById("cancelAddTaskProj").onclick = () => modal.remove();
-    document.getElementById("addTaskFormProj").onsubmit = function(e) {
+    document.getElementById("addTaskFormProj").onsubmit = async function(e) {
       e.preventDefault();
       const title = document.getElementById("taskTitleInputProj").value.trim();
       const status = document.getElementById("taskStatusInputProj").value;
+      
       if (title && projectId) {
-        let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
-        tasks.push({
-          id: Date.now(),
-          projectId: projectId,
-          title,
-          status
-        });
-        localStorage.setItem("tasks", JSON.stringify(tasks));
-        modal.remove();
-        // Optionally, show a toast or refresh tasks list if you display it here
+        try {
+          // Create task via API (no sprint for now, will be null for kanban tasks)
+          await createTask(title, "", null, null, projectId, "medium", null);
+          alert("Task created successfully!");
+          modal.remove();
+        } catch (error) {
+          alert("Error creating task: " + error.message);
+        }
       }
     };
   }

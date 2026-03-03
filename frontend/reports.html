@@ -92,12 +92,13 @@
         <span style="font-size:1.8rem;font-weight:900;background:linear-gradient(135deg,#0891b2,#22c55e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">FlowBoard</span>
       </div>
       <nav class="sidebar-nav">
-        <button class="sidebar-btn" onclick="window.location.href='dashboard.html'">Dashboard</button>
-        <button class="sidebar-btn" onclick="window.location.href='projects.html'">Projects</button>
-        <button class="sidebar-btn" onclick="window.location.href='board.html'">Kanban Board</button>
-        <button class="sidebar-btn" onclick="window.location.href='sprint.html'">Sprint Management</button>
-        <button class="sidebar-btn" onclick="window.location.href='scrum-updates.html'">Scrum Updates</button>
-        <button class="sidebar-btn" onclick="window.location.href='team.html'">Team</button>
+        <button class="sidebar-btn" onclick="navigateTo('dashboard.html')">Dashboard</button>
+        <button class="sidebar-btn" onclick="navigateTo('projects.html')">Projects</button>
+        <button class="sidebar-btn" onclick="navigateTo('board.html')">Kanban Board</button>
+        <button class="sidebar-btn" onclick="navigateTo('sprint.html')">Sprint Management</button>
+        <button class="sidebar-btn" onclick="navigateTo('scrum-updates.html')">Scrum Updates</button>
+        <button class="sidebar-btn" onclick="navigateTo('team.html')">Team</button>
+        <button class="sidebar-btn" onclick="navigateTo('user-profile.html')">Profile</button>
         <button class="sidebar-btn active">Reports</button>
         <button class="sidebar-btn" onclick="logout()">Logout</button>
       </nav>
@@ -135,18 +136,28 @@
     </main>
   </div>
   
+  <script src="api.js"></script>
   <script>
-    // Manager auth check
-    if (localStorage.getItem('userRole') !== 'manager') {
-      alert('Access denied. Manager login required.');
-      window.location.href = 'login.html';
+    async function updateStats() {
+      try {
+        // Load user's tasks from API
+        const tasks = await getUserTasks();
+        const taskList = Array.isArray(tasks) ? tasks : (tasks.data || []);
+        
+        document.getElementById('totalTasks').textContent = taskList.length;
+        document.getElementById('completedTasks').textContent = taskList.filter(t => t.status === 'done').length;
+        document.getElementById('inProgressTasks').textContent = taskList.filter(t => t.status === 'inprogress').length;
+      } catch (error) {
+        console.error('Error loading task stats:', error);
+        // Fallback: show zeros if API fails
+        document.getElementById('totalTasks').textContent = '0';
+        document.getElementById('completedTasks').textContent = '0';
+        document.getElementById('inProgressTasks').textContent = '0';
+      }
     }
     
-    function updateStats() {
-      const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-      document.getElementById('totalTasks').textContent = tasks.length;
-      document.getElementById('completedTasks').textContent = tasks.filter(t => t.status === 'done').length;
-      document.getElementById('inProgressTasks').textContent = tasks.filter(t => t.status === 'inprogress').length;
+    function navigateTo(page) {
+      window.location.href = page;
     }
     
     function logout() {
@@ -154,7 +165,10 @@
       window.location.href = 'index.html';
     }
     
-    updateStats();
+    // Call updateStats async on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      updateStats();
+    });
   </script>
 </body>
 </html>

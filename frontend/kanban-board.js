@@ -9,13 +9,13 @@ async function initializeBoard() {
     // Check if user is logged in
     const user = getCurrentUser();
     if (!user) {
-      window.location.href = "/login.html";
+      window.location.href = "login.html";
       return;
     }
 
     // Get projects
     const projectsResponse = await getProjects();
-    const projects = projectsResponse.data || projectsResponse;
+    const projects = Array.isArray(projectsResponse) ? projectsResponse : (projectsResponse.data || []);
     
     // Find or select active project (kanban type)
     const activeProjectId = localStorage.getItem("activeProject");
@@ -24,7 +24,7 @@ async function initializeBoard() {
 
     if (!activeProject) {
       alert("No Kanban projects found. Please create one first.");
-      window.location.href = "/projects.html";
+      window.location.href = "projects.html";
       return;
     }
 
@@ -32,7 +32,7 @@ async function initializeBoard() {
 
     // Get all tasks for this project (not sprint-scoped for kanban)
     const tasksResponse = await getProjectTasks(activeProject._id);
-    tasks = tasksResponse.data || tasksResponse;
+    tasks = Array.isArray(tasksResponse) ? tasksResponse : (tasksResponse.data || []);
 
     // Update title
     document.querySelector('.kanban-title').textContent = `${activeProject.name} - Kanban Board`;

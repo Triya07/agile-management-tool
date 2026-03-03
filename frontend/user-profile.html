@@ -470,14 +470,18 @@
     let currentUser = null;
     let dashboardData = null;
 
+    // Check authentication first
+    function checkAuth() {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        window.location.href = '/login.html';
+        return false;
+      }
+      return true;
+    }
+
     async function loadUserProfile() {
       try {
-        const user = getCurrentUser();
-        if (!user) {
-          window.location.href = "/login.html";
-          return;
-        }
-
         // Load profile
         const profileResponse = await getUserProfile();
         currentUser = profileResponse.user;
@@ -493,6 +497,10 @@
       } catch (error) {
         showAlert("Error loading profile: " + error.message, "error");
         console.error("Error:", error);
+        // If 401, redirect to login
+        if (error.message.includes("401")) {
+          window.location.href = "/login.html";
+        }
       }
     }
 
@@ -706,6 +714,30 @@
       window.location.href = "/projects.html";
     }
 
+    function navigateToDashboard() {
+      const userRole = currentUser?.role || 'member';
+      if (userRole === 'manager') {
+        window.location.href = '/dashboard.html';
+      } else {
+        window.location.href = '/dashboard-team.html';
+      }
+    }
+
+    function navigateToTasks() {
+      window.location.href = '/my-tasks.html';
+    }
+
+    function navigateToProjects() {
+      window.location.href = '/projects.html';
+    }
+
+    function logout() {
+      if (confirm('Are you sure you want to logout?')) {
+        localStorage.clear();
+        window.location.href = '/login.html';
+      }
+    }
+
     function showAlert(message, type) {
       const alertContainer = document.getElementById("alertContainer");
       const className = type === "error" ? "error" : "success";
@@ -718,7 +750,11 @@
     }
 
     // Load on page load
-    loadUserProfile();
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', loadUserProfile);
+    } else {
+      loadUserProfile();
+    }
   </script>
 </body>
 </html>
@@ -903,9 +939,9 @@
         <span style="font-size:1.8rem;font-weight:900;background:linear-gradient(135deg,#76C893,#52B69A);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">FlowBoard</span>
       </div>
       <nav class="sidebar-nav">
-        <button class="sidebar-btn" onclick="goToDashboard()">Dashboard</button>
-        <button class="sidebar-btn" onclick="window.location.href='my-tasks.html'">My Tasks</button>
-        <button class="sidebar-btn" onclick="window.location.href='projects.html'">Projects</button>
+        <button class="sidebar-btn" onclick="navigateToDashboard()">Dashboard</button>
+        <button class="sidebar-btn" onclick="navigateToTasks()">My Tasks</button>
+        <button class="sidebar-btn" onclick="navigateToProjects()">Projects</button>
         <button class="sidebar-btn active">Profile</button>
         <button class="sidebar-btn" onclick="logout()">Logout</button>
       </nav>

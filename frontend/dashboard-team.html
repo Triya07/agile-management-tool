@@ -158,9 +158,10 @@
       </div>
       <nav class="sidebar-nav">
         <button class="sidebar-btn active">Dashboard</button>
-        <button class="sidebar-btn" onclick="window.location.href='my-tasks.html'">My Tasks</button>
-        <button class="sidebar-btn" onclick="window.location.href='sprint-overview.html'">Sprint Overview</button>
-        <button class="sidebar-btn" onclick="window.location.href='scrum-updates.html'">Scrum Updates</button>
+        <button class="sidebar-btn" onclick="navigateTo('my-tasks.html')">My Tasks</button>
+        <button class="sidebar-btn" onclick="navigateTo('sprint-overview.html')">Sprint Overview</button>
+        <button class="sidebar-btn" onclick="navigateTo('scrum-updates.html')">Scrum Updates</button>
+        <button class="sidebar-btn" onclick="navigateTo('user-profile.html')">Profile</button>
         <button class="sidebar-btn" onclick="logout()">Logout</button>
       </nav>
     </aside>
@@ -215,12 +216,23 @@
     </div>
   </div>
   <script>
+    // Global utility functions
+    function navigateTo(page) {
+      window.location.href = page;
+    }
+    function logout() {
+      if (confirm('Are you sure you want to logout?')) {
+        localStorage.clear();
+        window.location.href = 'login.html';
+      }
+    }
+
     // Authentication check - only team members allowed
     function checkAuth() {
       const isLoggedIn = localStorage.getItem('isLoggedIn');
       const userRole = localStorage.getItem('userRole');
       
-      if (!isLoggedIn || userRole !== 'worker') {
+      if (!isLoggedIn || userRole !== 'member') {
         alert('Access denied. Team member login required.');
         window.location.href = 'login.html';
         return false;
@@ -228,9 +240,6 @@
       return true;
     }
     
-    // Check auth on page load
-    if (!checkAuth()) return;
-
     // Get current user info
     const currentUser = localStorage.getItem("currentUser");
     document.querySelector('.dashboard-title').textContent = `Welcome back, ${currentUser}!`;

@@ -31,11 +31,12 @@ exports.register = async (req, res) => {
       user: {
         id: user._id,
         name: user.name,
+        email: user.email,
         role: user.role
       }
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ message: err.message });
   }
 };
 
@@ -62,10 +63,11 @@ exports.login = async (req, res) => {
       user: {
         id: user._id,
         name: user.name,
+        email: user.email,
         role: user.role
       }
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ message: err.message });
   }
 };

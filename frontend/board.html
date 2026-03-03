@@ -107,10 +107,14 @@
       </div>
 
       <nav class="sidebar-nav">
-        <button class="sidebar-btn active" id="nav-board">Kanban Board</button>
-        <button class="sidebar-btn" id="nav-projects">Projects</button>
-        <button class="sidebar-btn" id="nav-dashboard">Dashboard</button>
-        <button class="sidebar-btn" id="nav-settings">Settings</button>
+        <button class="sidebar-btn active" id="nav-board" onclick="navigateTo('kanban-board.html')">Kanban Board</button>
+        <button class="sidebar-btn" id="nav-projects" onclick="navigateTo('projects.html')">Projects</button>
+        <button class="sidebar-btn" id="nav-dashboard" onclick="navigateTo('dashboard.html')">Dashboard</button>
+        <button class="sidebar-btn" onclick="navigateTo('sprint.html')">Sprints</button>
+        <button class="sidebar-btn" onclick="navigateTo('team.html')">Team</button>
+        <button class="sidebar-btn" onclick="navigateTo('user-profile.html')">Profile</button>
+        <button class="sidebar-btn" id="nav-settings" onclick="navigateTo('settings.html')">Settings</button>
+        <button class="sidebar-btn" onclick="logout()">Logout</button>
       </nav>
     </aside>
 
@@ -189,6 +193,19 @@
     </div>
   </div>
 
+  <script>
+    // Global navigation and utility functions
+    function navigateTo(page) {
+      window.location.href = page;
+    }
+
+    function logout() {
+      if (confirm('Are you sure you want to logout?')) {
+        localStorage.clear();
+        window.location.href = 'login.html';
+      }
+    }
+  </script>
   <script src="script.js"></script>
 </body>
 </html>

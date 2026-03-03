@@ -194,6 +194,7 @@
         <button class="sidebar-btn" onclick="navigateTo('my-tasks.html')">My Tasks</button>
         <button class="sidebar-btn" onclick="navigateTo('sprint-overview.html')">Sprint Overview</button>
         <button class="sidebar-btn active">Scrum Updates</button>
+        <button class="sidebar-btn" onclick="navigateTo('user-profile.html')">Profile</button>
         <button class="sidebar-btn" onclick="logout()">Logout</button>
       </nav>
     </aside>
@@ -247,6 +248,11 @@
   </div>
 
   <script>
+    // Global navigation and utility functions
+    function navigateTo(page) {
+      window.location.href = page;
+    }
+
     // Initialize sidebar functionality
     const root = document.documentElement;
     const sidebar = document.getElementById('sidebar');
@@ -290,11 +296,6 @@
       });
     }
     
-    // Navigation function
-    function navigateTo(page) {
-      window.location.href = page;
-    }
-    
     // Modal functionality
     function openAddUpdateModal() {
       document.getElementById('addUpdateModal').style.display = 'flex';
@@ -310,7 +311,7 @@
       e.preventDefault();
       
       const currentUser = localStorage.getItem('currentUser') || 'Anonymous';
-      const userRole = localStorage.getItem('userRole') || 'worker';
+      const userRole = localStorage.getItem('userRole') || 'member';
       const now = new Date().toLocaleString();
       
       const yesterday = document.getElementById('yesterdayWork').value.trim();

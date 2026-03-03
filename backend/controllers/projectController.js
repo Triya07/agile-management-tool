@@ -95,7 +95,7 @@ exports.addMember = async (req, res) => {
       return res.status(403).json({ message: "Only project creator can add members" });
     }
 
-    if (!project.members.includes(userId)) {
+    if (!project.members.some(member => member.toString() === userId)) {
       project.members.push(userId);
       await project.save();
     }

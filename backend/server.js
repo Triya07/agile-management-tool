@@ -4,6 +4,7 @@ const projectRoutes = require("./routes/projectRoutes");
 const taskRoutes = require("./routes/taskRoutes");
 const sprintRoutes = require("./routes/sprintRoutes");
 const userRoutes = require("./routes/userRoutes");
+const User = require("./models/User");
 
 
 require("dotenv").config();
@@ -23,13 +24,36 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// MongoDB connection
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log("📊 Database connected successfully"))
-  .catch(err => {
+// MongoDB connection with index cleanup
+async function connectDatabase() {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI);
+    console.log("📊 Database connected successfully");
+    
+    // Clean up stale indexes on User collection
+    try {
+      const indexes = await User.collection.getIndexes();
+      for (const indexName of Object.keys(indexes)) {
+        if (indexName.includes('username')) {
+          await User.collection.dropIndex(indexName);
+          console.log(`✅ Dropped stale index: ${indexName}`);
+        }
+      }
+    } catch (err) {
+      // Index might not exist, that's okay
+    }
+    
+  } catch (err) {
     console.error("❌ MongoDB connection failed:", err.message);
     process.exit(1);
-  });
+  }
+}
+
+connectDatabase();
+
+// Serve static frontend files
+const path = require('path');
+app.use(express.static(path.join(__dirname, '../frontend')));
 
 // Routes
 app.get("/", (req, res) => {

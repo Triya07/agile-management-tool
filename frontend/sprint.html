@@ -204,11 +204,14 @@
         <button class="sidebar-resize-btn" id="sidebarResizeBtn" title="Toggle sidebar size">⟷</button>
       </div>
       <nav class="sidebar-nav">
-        <button class="sidebar-btn" id="nav-board">Kanban Board</button>
-        <button class="sidebar-btn" id="nav-projects">Projects</button>
-        <button class="sidebar-btn" id="nav-dashboard">Dashboard</button>
+        <button class="sidebar-btn" id="nav-board" onclick="navigateTo('kanban-board.html')">Kanban Board</button>
+        <button class="sidebar-btn" id="nav-projects" onclick="navigateTo('projects.html')">Projects</button>
+        <button class="sidebar-btn" id="nav-dashboard" onclick="navigateTo('dashboard.html')">Dashboard</button>
         <button class="sidebar-btn active" id="nav-sprints">Sprints</button>
-        <button class="sidebar-btn" id="nav-settings">Settings</button>
+        <button class="sidebar-btn" onclick="navigateTo('team.html')">Team</button>
+        <button class="sidebar-btn" onclick="navigateTo('user-profile.html')">Profile</button>
+        <button class="sidebar-btn" id="nav-settings" onclick="navigateTo('settings.html')">Settings</button>
+        <button class="sidebar-btn" onclick="logout()">Logout</button>
       </nav>
     </aside>
 
@@ -260,7 +263,7 @@
             <label style="font-size:1rem;">Status</label>
             <select id="taskStatusInput" style="width:100%;margin-bottom:18px;padding:9px 10px;border-radius:7px;border:1px solid #e2e8f0;font-size:1rem;background:#f7fafc;">
               <option value="todo">To Do</option>
-              <option value="in-progress">In Progress</option>
+              <option value="inprogress">In Progress</option>
               <option value="done">Done</option>
             </select>
             <div style="display:flex;justify-content:flex-end;gap:10px;">
@@ -283,7 +286,7 @@
         </div>
         <div class="column">
           <div class="column-title">In Progress</div>
-          <div id="in-progress" class="column-tasks">
+          <div id="inprogress" class="column-tasks">
             <div class="column-placeholder" style="color: #6b7280; font-style: italic; text-align: center; padding: 20px 16px; background: rgba(118, 200, 147, 0.03); border-radius: 8px; border: 2px dashed rgba(118, 200, 147, 0.2);">
               🚀 Drag tasks here when work starts
             </div>
@@ -320,6 +323,18 @@
   </div>
   
   <script>
+    // Global navigation functions
+    function navigateTo(page) {
+      window.location.href = page;
+    }
+
+    function logout() {
+      if (confirm('Are you sure you want to logout?')) {
+        localStorage.clear();
+        window.location.href = 'login.html';
+      }
+    }
+
     // Initialize CSS variables and resize functionality first
     const root = document.documentElement;
     const sidebar = document.getElementById('sidebar');
@@ -395,7 +410,7 @@
       const placeholders = document.querySelectorAll('.column-placeholder');
       
       // Hide placeholders if there are tasks, show if no tasks
-      ['todo', 'in-progress', 'done'].forEach(status => {
+      ['todo', 'inprogress', 'done'].forEach(status => {
         const column = document.getElementById(status);
         const placeholder = column.querySelector('.column-placeholder');
         const tasksInColumn = column.querySelectorAll('.task-card');
@@ -416,6 +431,7 @@
     // Call updateTaskCount initially and whenever tasks change
     updateTaskCount();
   </script>
+  <script src="api.js"></script>
   <script src="sprint.js"></script>
 </body>
 </html>

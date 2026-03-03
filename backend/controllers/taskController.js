@@ -15,7 +15,7 @@ exports.createTask = async (req, res) => {
     }
 
     const isAuthorized = project.createdBy.toString() === userId || 
-                         project.members.includes(userId);
+                         project.members.some(member => member.toString() === userId);
     if (!isAuthorized) {
       return res.status(403).json({ message: "Not authorized to create tasks in this project" });
     }
@@ -57,7 +57,7 @@ exports.getTasks = async (req, res) => {
     }
 
     const isAuthorized = project.createdBy.toString() === userId || 
-                         project.members.includes(userId);
+                         project.members.some(member => member.toString() === userId);
     if (!isAuthorized) {
       return res.status(403).json({ message: "Not authorized to access this project" });
     }
@@ -86,7 +86,7 @@ exports.getProjectTasks = async (req, res) => {
     }
 
     const isAuthorized = project.createdBy.toString() === userId || 
-                         project.members.includes(userId);
+                         project.members.some(member => member.toString() === userId);
     if (!isAuthorized) {
       return res.status(403).json({ message: "Not authorized to access this project" });
     }
@@ -134,7 +134,7 @@ exports.updateTaskStatus = async (req, res) => {
     // Verify project access
     const project = await Project.findById(task.projectId);
     const isAuthorized = project.createdBy.toString() === userId || 
-                         project.members.includes(userId);
+                         project.members.some(member => member.toString() === userId);
     if (!isAuthorized) {
       return res.status(403).json({ message: "Not authorized to update this task" });
     }
@@ -165,7 +165,7 @@ exports.deleteTask = async (req, res) => {
     // Verify project access
     const project = await Project.findById(task.projectId);
     const isAuthorized = project.createdBy.toString() === userId || 
-                         project.members.includes(userId);
+                         project.members.some(member => member.toString() === userId);
     if (!isAuthorized) {
       return res.status(403).json({ message: "Not authorized to delete this task" });
     }

@@ -93,7 +93,10 @@
         <button class="sidebar-btn active" id="nav-projects">Projects</button>
         <button class="sidebar-btn" onclick="navigateTo('dashboard.html')" id="nav-dashboard">Dashboard</button>
         <button class="sidebar-btn" onclick="navigateTo('sprint.html')" id="nav-sprints">Sprints</button>
+        <button class="sidebar-btn" onclick="navigateTo('team.html')">Team</button>
+        <button class="sidebar-btn" onclick="navigateTo('user-profile.html')">Profile</button>
         <button class="sidebar-btn" onclick="navigateTo('settings.html')" id="nav-settings">Settings</button>
+        <button class="sidebar-btn" onclick="logout()">Logout</button>
       </nav>
     </aside>
 
@@ -217,6 +220,7 @@
     </div>
   </div>
 
+  <script src="api.js"></script>
   <script>
     // Initialize CSS variables first
     const root = document.documentElement;
@@ -437,43 +441,33 @@
       }
     });
 
-    // Handle form submission - save to localStorage only
-    // Helper function to get user-specific storage key
-    function getUserProjectsKey() {
-      const userEmail = localStorage.getItem('userEmail') || 'default';
-      return `projects_${userEmail}`;
-    }
-
-    createProjectForm.addEventListener('submit', (e) => {
+    // Handle form submission - save to API
+    createProjectForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       
-      const formData = {
-        name: document.getElementById('projectName').value,
-        type: document.querySelector('input[name="projectType"]:checked').value,
-        description: document.getElementById('projectDescription').value,
-        tags: Array.from(document.getElementById('projectTags').selectedOptions).map(opt => opt.value),
-        group: document.getElementById('projectGroup').value,
-        prefix: document.getElementById('projectPrefix').value,
-        owner: localStorage.getItem('currentUser') || 'Me',
-        createdAt: new Date().toISOString(),
-        id: Date.now().toString()
-      };
+      const name = document.getElementById('projectName').value;
+      const type = document.querySelector('input[name="projectType"]:checked').value;
+      const description = document.getElementById('projectDescription').value;
 
-      // Save to localStorage with user-specific key
-      let projects = JSON.parse(localStorage.getItem(getUserProjectsKey()) || '[]');
-      projects.push(formData);
-      localStorage.setItem(getUserProjectsKey(), JSON.stringify(projects));
-
-      // Show success notification and close modal
-      showNotification(`✅ Project "${formData.name}" created successfully!`, 'success');
-      closeModal();
-      loadProjects();
+      try {
+        // Call API to create project
+        const response = await createProject(name, description, type);
+        showNotification(`✅ Project "${name}" created successfully!`, 'success');
+        closeModal();
+        await loadProjects();
+      } catch (error) {
+        console.error('Create project error:', error);
+        showNotification(`❌ Error creating project: ${error.message}`, 'error');
+      }
     });
 
-    function loadProjects() {
-      const projects = JSON.parse(localStorage.getItem(getUserProjectsKey()) || '[]');
-      const grid = document.getElementById('projectsGrid');
-      const emptyState = document.getElementById('emptyState');
+    async function loadProjects() {
+      try {
+        // Load projects from API
+        const response = await getProjects();
+        const projects = Array.isArray(response) ? response : (response.data || []);
+        const grid = document.getElementById('projectsGrid');
+        const emptyState = document.getElementById('emptyState');
 
       // Read current filter and search
       const activeTab = document.querySelector('.tab.active');
@@ -515,6 +509,10 @@
 
         grid.appendChild(card);
       });
+      } catch (error) {
+        console.error('Error loading projects:', error);
+        showNotification('❌ Error loading projects from server', 'error');
+      }
     }
     // Handle radio button styling
     document.querySelectorAll('input[name="projectType"]').forEach(radio => {

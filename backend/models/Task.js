@@ -30,8 +30,7 @@ const taskSchema = new mongoose.Schema(
     },
     sprint: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Sprint",
-      required: true
+      ref: "Sprint"
     },
     projectId: {
       type: mongoose.Schema.Types.ObjectId,

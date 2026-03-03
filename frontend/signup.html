@@ -162,32 +162,90 @@
       <input type="password" placeholder="Password" required>
       <div class="role-select">
         <button type="button" class="role-btn active" id="role-manager">Manager</button>
-        <button type="button" class="role-btn" id="role-worker">Worker</button>
+        <button type="button" class="role-btn" id="role-member">Member</button>
       </div>
       <button type="submit" class="signup-btn">Sign Up</button>
     </form>
     <span class="login-link" onclick="window.location.href='login.html'">Already have an account? Login</span>
   </div>
   <script>
+    // Notification system - MUST be defined first
+    function showNotification(message, type = 'info') {
+      const notification = document.createElement('div');
+      const colors = {
+        success: { bg: '#22c55e', color: '#fff' },
+        error: { bg: '#ef4444', color: '#fff' },
+        info: { bg: '#3b82f6', color: '#fff' }
+      };
+      
+      const colorScheme = colors[type] || colors.info;
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${colorScheme.bg};
+        color: ${colorScheme.color};
+        padding: 15px 20px;
+        border-radius: 8px;
+        z-index: 10000;
+        animation: slideInDown 0.3s ease;
+        max-width: 400px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        font-weight: 500;
+        font-size: 1rem;
+      `;
+      notification.textContent = message;
+      
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.style.animation = 'slideOutUp 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+      }, 4000);
+    }
+    
+    // Add CSS animations
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideInDown {
+        from { transform: translateY(-100%); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+      @keyframes slideOutUp {
+        from { transform: translateY(0); opacity: 1; }
+        to { transform: translateY(-100%); opacity: 0; }
+      }
+      .fade-in {
+        animation: fadeIn 0.6s ease;
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+    `;
+    document.head.appendChild(style);
+
     // Role selection toggle
     const managerBtn = document.getElementById('role-manager');
-    const workerBtn = document.getElementById('role-worker');
+    const memberBtn = document.getElementById('role-member');
     let selectedRole = 'manager';
     
-    managerBtn.onclick = function() {
+    managerBtn.onclick = function(e) {
+      e.preventDefault();
       managerBtn.classList.add('active');
-      workerBtn.classList.remove('active');
+      memberBtn.classList.remove('active');
       selectedRole = 'manager';
     };
     
-    workerBtn.onclick = function() {
-      workerBtn.classList.add('active');
+    memberBtn.onclick = function(e) {
+      e.preventDefault();
+      memberBtn.classList.add('active');
       managerBtn.classList.remove('active');
       selectedRole = 'member';
     };
     
     // Signup form handling with backend
-    document.querySelector('.signup-form').onsubmit = async function(e) {
+    document.querySelector('.signup-form').addEventListener('submit', async function(e) {
       e.preventDefault();
       
       const username = this.querySelector('input[type="text"]').value.trim();
@@ -202,6 +260,11 @@
       
       if (password.length < 6) {
         showNotification('Password must be at least 6 characters long', 'error');
+        return;
+      }
+      
+      if (!email.includes('@')) {
+        showNotification('Please enter a valid email address', 'error');
         return;
       }
       
@@ -247,63 +310,7 @@
         console.error('Signup error:', err);
         showNotification('Connection error. Make sure the backend is running on http://localhost:5000', 'error');
       }
-    };
-    
-    // Notification system
-    function showNotification(message, type = 'info') {
-      const notification = document.createElement('div');
-      const colors = {
-        success: { bg: '#d4edda', color: '#155724', border: '#c3e6cb' },
-        error: { bg: '#f8d7da', color: '#721c24', border: '#f5c6cb' },
-        info: { bg: '#d1ecf1', color: '#0c5460', border: '#bee5eb' }
-      };
-      
-      const colorScheme = colors[type];
-      notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: ${colorScheme.bg};
-        color: ${colorScheme.color};
-        padding: 12px 20px;
-        border-radius: 8px;
-        border: 1px solid ${colorScheme.border};
-        z-index: 1001;
-        animation: slideInDown 0.3s ease;
-        max-width: 350px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        font-weight: 500;
-      `;
-      notification.textContent = message;
-      
-      document.body.appendChild(notification);
-      
-      setTimeout(() => {
-        notification.style.animation = 'slideOutUp 0.3s ease';
-        setTimeout(() => notification.remove(), 300);
-      }, 3000);
-    }
-    
-    // Add CSS animations
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes slideInDown {
-        from { transform: translateY(-100%); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
-      }
-      @keyframes slideOutUp {
-        from { transform: translateY(0); opacity: 1; }
-        to { transform: translateY(-100%); opacity: 0; }
-      }
-      .fade-in {
-        animation: fadeIn 0.6s ease;
-      }
-      @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-    `;
-    document.head.appendChild(style);
+    });
   </script>
 </body>
 </html>
