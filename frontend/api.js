@@ -36,7 +36,7 @@ async function apiCall(endpoint, options = {}) {
     if (response.status === 401) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      window.location.href = "/login.html";
+      window.location.href = "login.html";
       return null;
     }
 
@@ -105,7 +105,7 @@ async function getUserTasks() {
   return apiCall("/tasks/user/tasks");
 }
 
-async function createTask(title, description, assignedTo, sprint, projectId, priority = "medium", dueDate = null) {
+async function createTask(title, description, assignedTo, sprint, projectId, priority = "medium", dueDate = null, status = "todo") {
   return apiCall("/tasks/create", {
     method: "POST",
     body: JSON.stringify({
@@ -116,7 +116,7 @@ async function createTask(title, description, assignedTo, sprint, projectId, pri
       projectId,
       priority,
       dueDate,
-      status: "todo"
+      status
     })
   });
 }

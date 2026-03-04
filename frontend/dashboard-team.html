@@ -215,6 +215,7 @@
       </form>
     </div>
   </div>
+  <script src="api.js"></script>
   <script>
     // Global utility functions
     function navigateTo(page) {
@@ -245,18 +246,28 @@
     document.querySelector('.dashboard-title').textContent = `Welcome back, ${currentUser}!`;
 
     // Load tasks for this specific user
-    function getUserTasks() {
-      return (JSON.parse(localStorage.getItem("tasks")) || []).filter(
-        t => t.assignee === currentUser
-      );
+    async function loadUserTasks() {
+      try {
+        const tasks = await getUserTasks();
+        return Array.isArray(tasks) ? tasks : (tasks.data || []);
+      } catch (error) {
+        console.error('Error loading tasks:', error);
+        return [];
+      }
     }
 
     // Update summary cards with user-specific data
-    function updateSummaryCards() {
-      const myTasks = getUserTasks();
+    async function updateSummaryCards() {
+      const myTasks = await loadUserTasks();
       document.getElementById("myTasksCount").textContent = myTasks.length;
       document.getElementById("completedCount").textContent = myTasks.filter(t => t.status === "done").length;
       document.getElementById("inProgressCount").textContent = myTasks.filter(t => t.status === "inprogress").length;
+    }
+    
+    // Navigate to task detail page
+    function openTaskModal(taskId) {
+      localStorage.setItem('viewTaskId', taskId);
+      window.location.href = 'task-details.html';
     }
 
     function groupTasksByStatus(tasks) {
@@ -429,6 +440,16 @@
       }
     `;
     document.head.appendChild(style);
+    
+    // Initialize page on load
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!checkAuth()) {
+        return; // Auth failed, user redirected
+      }
+      renderTasks();
+      updateSummaryCards();
+    });
+
   </script>
   
   <!-- Sidebar Resize Functionality -->

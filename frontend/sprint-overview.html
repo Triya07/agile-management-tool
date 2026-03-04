@@ -96,11 +96,23 @@
     </main>
   </div>
   
+  <script src="api.js"></script>
   <script>
     const currentUser = localStorage.getItem("currentUser");
     
-    function renderMySprintTasks() {
-      const tasks = (JSON.parse(localStorage.getItem('tasks')) || []).filter(t => t.assignee === currentUser);
+    // Load sprint tasks from API
+    async function loadSprintTasks() {
+      try {
+        const tasks = await getUserTasks();
+        return Array.isArray(tasks) ? tasks : (tasks.data || []);
+      } catch (error) {
+        console.error('Error loading tasks:', error);
+        return [];
+      }
+    }
+    
+    async function renderMySprintTasks() {
+      const tasks = await loadSprintTasks();
       const container = document.getElementById('mySprintTasks');
       
       if (tasks.length === 0) {
@@ -129,7 +141,10 @@
       window.location.href = 'login.html';
     }
     
-    renderMySprintTasks();
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      renderMySprintTasks();
+    });
   </script>
 </body>
 </html>

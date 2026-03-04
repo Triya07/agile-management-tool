@@ -142,6 +142,7 @@
       </div>
     </main>
   </div>
+  <script src="api.js"></script>
   <script>
     // Global navigation and utility functions
     function navigateTo(page) {
@@ -234,8 +235,19 @@
 
     const currentUser = localStorage.getItem("currentUser") || "user1";
 
-    function renderMyTasks() {
-      const tasks = (JSON.parse(localStorage.getItem("tasks")) || []).filter(t => t.assignee === currentUser);
+    // Load user tasks from API
+    async function loadUserTasks() {
+      try {
+        const tasks = await getUserTasks();
+        return Array.isArray(tasks) ? tasks : (tasks.data || []);
+      } catch (error) {
+        console.error('Error loading tasks:', error);
+        return [];
+      }
+    }
+
+    async function renderMyTasks() {
+      const tasks = await loadUserTasks();
       const container = document.getElementById("myTasksList");
       container.innerHTML = "";
       
@@ -446,7 +458,26 @@
       }, 3000);
     }
 
-    renderMyTasks();
+    // Authentication check
+    function checkAuth() {
+      const isLoggedIn = localStorage.getItem('isLoggedIn');
+      const userRole = localStorage.getItem('userRole');
+      
+      if (!isLoggedIn || userRole !== 'member') {
+        alert('Access denied. Team member login required.');
+        window.location.href = 'login.html';
+        return false;
+      }
+      return true;
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!checkAuth()) {
+        return;
+      }
+      renderMyTasks();
+    });
   </script>
 </body>
 </html>

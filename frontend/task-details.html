@@ -40,15 +40,27 @@
     </main>
   </div>
   
+  <script src="api.js"></script>
   <script>
     const currentUser = localStorage.getItem("currentUser");
     const taskId = localStorage.getItem("viewTaskId");
     
-    function renderTaskDetails() {
-      const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-      const task = tasks.find(t => t.id === taskId);
+    // Load task from API
+    async function loadTaskDetails() {
+      try {
+        const tasks = await getUserTasks();
+        const taskList = Array.isArray(tasks) ? tasks : (tasks.data || []);
+        return taskList.find(t => t._id === taskId);
+      } catch (error) {
+        console.error('Error loading task:', error);
+        return null;
+      }
+    }
+    
+    async function renderTaskDetails() {
+      const task = await loadTaskDetails();
       
-      if (!task || task.assignee !== currentUser) {
+      if (!task) {
         alert('Task not found or not assigned to you.');
         window.location.href = 'my-tasks.html';
         return;
@@ -140,7 +152,10 @@
       window.location.href = 'index.html';
     }
     
-    renderTaskDetails();
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      renderTaskDetails();
+    });
   </script>
 </body>
 </html>

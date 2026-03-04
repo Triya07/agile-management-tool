@@ -1,7 +1,7 @@
 // Initialize kanban board with API data
 let activeProject = null;
 let tasks = [];
-const columns = ['todo', 'inprogress', 'review', 'done'];
+const columns = ['todo', 'inprogress', 'done'];
 
 // Load data from API
 async function initializeBoard() {

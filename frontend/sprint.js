@@ -9,9 +9,17 @@ const STATUS = {
 
 const tasks = [];
 let draggedTaskId = null;
+let SPRINT_ID = null;
 
-// ⚠️ TEMP sprintId (replace later dynamically)
-const SPRINT_ID = "696e3c093920f68d5b1d6d96";
+// Get sprintId from URL parameter or localStorage
+function getSprintId() {
+  const params = new URLSearchParams(window.location.search);
+  SPRINT_ID = params.get('sprintId') || localStorage.getItem('currentSprintId');
+  if (!SPRINT_ID) {
+    console.warn('No sprint ID provided. Tasks will not persist to database.');
+  }
+  return SPRINT_ID;
+}
 
 /***********************
  * RENDER BOARD
@@ -147,8 +155,17 @@ document.getElementById("addTaskForm").onsubmit = async e => {
   if (!title) return;
 
   try {
+    const sprintId = getSprintId();
+    if (!sprintId) {
+      console.error('Cannot create task: no sprint ID available');
+      alert('Sprint ID is missing. Please navigate to a sprint.');
+      return;
+    }
+    
+    const projectId = localStorage.getItem('currentProjectId');
+    
     // Use API helper with authentication
-    const result = await createTask(title, "", null, SPRINT_ID, null, "medium", null);
+    const result = await createTask(title, "", null, sprintId, projectId, "medium", null, status);
     
     if (result && result.task) {
       const task = result.task;
@@ -183,10 +200,17 @@ document.getElementById("addTaskForm").onsubmit = async e => {
  ***********************/
 async function loadTasks() {
   try {
-    const sprintId = "696e3c093920f68d5b1d6d96"; // same sprint id
+    const sprintId = getSprintId();
+    if (!sprintId) {
+      console.error('Cannot load tasks: no sprint ID available');
+      return;
+    }
 
+    // Get the current project ID (needed for auth)
+    const projectId = localStorage.getItem('currentProjectId');
+    
     // Use API helper with authentication instead of direct fetch
-    const data = await getSprintTasks(sprintId, null);
+    const data = await getSprintTasks(sprintId, projectId);
     const taskList = Array.isArray(data) ? data : (data.data || []);
 
     tasks.length = 0; // clear local array
@@ -205,5 +229,9 @@ async function loadTasks() {
   }
 }
 
-loadTasks();
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', () => {
+  getSprintId();
+  loadTasks();
+});
 

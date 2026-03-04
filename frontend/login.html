@@ -264,6 +264,8 @@
           
           if (rememberMe) {
             localStorage.setItem('rememberMe', 'true');
+            localStorage.setItem('savedUserRole', result.user.role);
+            localStorage.setItem('savedUser', result.user.name);
           }
           
           showNotification('Login successful! Redirecting...', 'success');
