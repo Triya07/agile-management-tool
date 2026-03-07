@@ -222,6 +222,26 @@
 
   <script src="api.js"></script>
   <script>
+    // Check authentication and load user data
+    async function initializeUserSession() {
+      const token = localStorage.getItem('token');
+      const isLoggedIn = localStorage.getItem('isLoggedIn');
+      
+      if (!token || !isLoggedIn) {
+        window.location.href = 'login.html';
+        return;
+      }
+      
+      // Get current user info
+      const currentUserObj = localStorage.getItem('user');
+      const currentUserName = localStorage.getItem('currentUser');
+      const userRole = localStorage.getItem('userRole');
+      
+      console.log('Current User:', currentUserName, 'Role:', userRole);
+      
+      // Load projects after verifying authentication
+      await loadProjects();
+    }
     // Initialize CSS variables first
     const root = document.documentElement;
     if (!root.style.getPropertyValue('--sidebar-width')) {
@@ -463,56 +483,192 @@
 
     async function loadProjects() {
       try {
-        // Load projects from API
+        // Get current user info
+        const currentUserName = localStorage.getItem('currentUser');
+        const userRole = localStorage.getItem('userRole');
+        
+        // Fetch projects from backend API
         const response = await getProjects();
-        const projects = Array.isArray(response) ? response : (response.data || []);
+        const projects = Array.isArray(response) ? response : (response.data || response.projects || []);
+        
+        console.log('Fetched projects:', projects);
         const grid = document.getElementById('projectsGrid');
         const emptyState = document.getElementById('emptyState');
 
-      // Read current filter and search
-      const activeTab = document.querySelector('.tab.active');
-      const filter = activeTab ? activeTab.dataset.filter : 'all';
-      const query = (document.getElementById('searchInput')?.value || '').trim().toLowerCase();
+        // Read current filter and search
+        const activeTab = document.querySelector('.tab.active');
+        const filter = activeTab ? activeTab.dataset.filter : 'all';
+        const query = (document.getElementById('searchInput')?.value || '').trim().toLowerCase();
 
-      // Clear existing project cards (keep empty state container if needed)
-      grid.querySelectorAll('.project-card').forEach(n => n.remove());
+        // Clear existing project cards
+        grid.querySelectorAll('.project-card').forEach(n => n.remove());
 
-      const filtered = projects.filter(p => {
-        if (filter !== 'all' && p.type !== filter) return false;
-        if (query) {
-          return (p.name || '').toLowerCase().includes(query) || (p.description || '').toLowerCase().includes(query);
+        const filtered = projects.filter(p => {
+          if (filter !== 'all' && p.type !== filter) return false;
+          if (query) {
+            return (p.name || '').toLowerCase().includes(query) || (p.description || '').toLowerCase().includes(query);
+          }
+          return true;
+        });
+
+        if (!filtered.length) {
+          emptyState.style.display = 'block';
+          return;
         }
-        return true;
-      });
 
-      if (!filtered.length) {
-        emptyState.style.display = 'block';
-        return;
+        emptyState.style.display = 'none';
+
+        filtered.forEach(p => {
+          const card = document.createElement('div');
+          card.className = 'project-card';
+          card.style.cssText = 'background: rgba(255,255,255,0.9); padding:16px; border-radius:12px; margin:12px; box-shadow:0 6px 18px rgba(0,0,0,0.06); width:300px; display:inline-block; vertical-align:top; cursor:pointer; transition:all 0.3s;';
+          
+          // Project type badge
+          const typeBadge = p.type === 'scrum' ? '🔄' : '📋';
+          
+          // Calculate project stats
+          const sprintCount = p.sprints ? p.sprints.length : 0;
+          const taskCount = p.tasks ? p.tasks.length : 0;
+          
+          card.innerHTML = `
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+              <span style="font-size:1.2rem;">${typeBadge}</span>
+              <span style="font-weight:600; color:#34A0A4; font-size:0.85rem;">${p.type.toUpperCase()}</span>
+            </div>
+            <h4 style="margin:0 0 8px 0; font-size:1.1rem; color:#083344;">${p.name}</h4>
+            <p style="margin:0 0 12px 0; color:#666; font-size:0.95rem;">${p.description || 'No description'}</p>
+            <div style="display:flex; gap:12px; margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid #e6eef2;">
+              <div style="text-align:center;">
+                <div style="font-size:1.2rem; font-weight:700; color:#0891b2;">${sprintCount}</div>
+                <div style="font-size:0.75rem; color:#666;">Sprints</div>
+              </div>
+              <div style="text-align:center;">
+                <div style="font-size:1.2rem; font-weight:700; color:#0891b2;">${taskCount}</div>
+                <div style="font-size:0.75rem; color:#666;">Tasks</div>
+              </div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; color:#666;">
+              <small>Owner: ${p.owner ? p.owner.name || p.owner : 'Unknown'}</small>
+              <small>${new Date(p.createdAt).toLocaleDateString()}</small>
+            </div>
+          `;
+          
+          // Add click handler to navigate to project
+          card.addEventListener('click', () => {
+            window.location.href = `sprint.html?projectId=${p._id}`;
+          });
+          
+          // Add hover effect
+          card.addEventListener('mouseenter', () => {
+            card.style.transform = 'translateY(-4px)';
+            card.style.boxShadow = '0 12px 28px rgba(0,0,0,0.12)';
+          });
+          
+          card.addEventListener('mouseleave', () => {
+            card.style.transform = 'translateY(0)';
+            card.style.boxShadow = '0 6px 18px rgba(0,0,0,0.06)';
+          });
+
+          grid.appendChild(card);
+        });
+      } catch (error) {
+        console.error('Error loading projects:', error);
+        
+        // If unauthorized, redirect to login
+        if (error.message && error.message.includes('401')) {
+          window.location.href = 'login.html';
+        } else {
+          // Show local demo data if API fails
+          console.log('Using demo data...');
+          loadDemoProjects();
+        }
       }
-
+    }
+    
+    // Fallback demo data
+    function loadDemoProjects() {
+      const grid = document.getElementById('projectsGrid');
+      const emptyState = document.getElementById('emptyState');
+      const currentUserName = localStorage.getItem('currentUser') || 'User';
+      
+      const demoProjects = [
+        {
+          _id: '1',
+          name: 'E-commerce Platform',
+          description: 'Building a modern e-commerce platform with microservices',
+          type: 'scrum',
+          owner: { name: currentUserName },
+          sprints: [{}, {}, {}],
+          tasks: [{}, {}, {}, {}, {}],
+          createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+        },
+        {
+          _id: '2',
+          name: 'Mobile App Redesign',
+          description: 'Complete UI/UX redesign for the mobile application',
+          type: 'kanban',
+          owner: { name: currentUserName },
+          sprints: [{}, {}],
+          tasks: [{}, {}, {}],
+          createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000)
+        },
+        {
+          _id: '3',
+          name: 'API Documentation',
+          description: 'Comprehensive API documentation and integration guides',
+          type: 'kanban',
+          owner: { name: currentUserName },
+          sprints: [{}],
+          tasks: [{}, {}],
+          createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+        }
+      ];
+      
       emptyState.style.display = 'none';
-
-      filtered.forEach(p => {
+      grid.innerHTML = '';
+      
+      demoProjects.forEach(p => {
         const card = document.createElement('div');
         card.className = 'project-card';
-        card.style.cssText = 'background: rgba(255,255,255,0.9); padding:16px; border-radius:12px; margin:12px; box-shadow:0 6px 18px rgba(0,0,0,0.06); width:300px; display:inline-block; vertical-align:top;';
+        card.style.cssText = 'background: rgba(255,255,255,0.9); padding:16px; border-radius:12px; margin:12px; box-shadow:0 6px 18px rgba(0,0,0,0.06); width:300px; display:inline-block; vertical-align:top; cursor:pointer; transition:all 0.3s;';
+        
+        const typeBadge = p.type === 'scrum' ? '🔄' : '📋';
+        
         card.innerHTML = `
-          <h4 style="margin:0 0 8px 0; font-size:1.1rem;">${p.name}</h4>
-          <div style="font-size:0.85rem;color:#066; margin-bottom:8px;">Type: ${p.type}</div>
-          <p style="margin:0 0 8px 0; color:#334; font-size:0.95rem;">${p.description || ''}</p>
-          <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;">${(p.tags||[]).map(t=>`<span style=\"background:#eef; padding:4px 8px; border-radius:8px; font-size:0.8rem;\">${t}</span>`).join('')}</div>
-          <div style="font-size:0.8rem; color:#666; display:flex; justify-content:space-between; align-items:center;">
-            <small>Owner: ${p.owner || 'Me'}</small>
-            <small>${new Date(p.createdAt).toLocaleDateString()}</small>
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+            <span style="font-size:1.2rem;">${typeBadge}</span>
+            <span style="font-weight:600; color:#34A0A4; font-size:0.85rem;">${p.type.toUpperCase()}</span>
+          </div>
+          <h4 style="margin:0 0 8px 0; font-size:1.1rem; color:#083344;">${p.name}</h4>
+          <p style="margin:0 0 12px 0; color:#666; font-size:0.95rem;">${p.description}</p>
+          <div style="display:flex; gap:12px; margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid #e6eef2;">
+            <div style="text-align:center;">
+              <div style="font-size:1.2rem; font-weight:700; color:#0891b2;">${p.sprints.length}</div>
+              <div style="font-size:0.75rem; color:#666;">Sprints</div>
+            </div>
+            <div style="text-align:center;">
+              <div style="font-size:1.2rem; font-weight:700; color:#0891b2;">${p.tasks.length}</div>
+              <div style="font-size:0.75rem; color:#666;">Tasks</div>
+            </div>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; color:#666;">
+            <small>Owner: ${p.owner.name}</small>
+            <small>${p.createdAt.toLocaleDateString()}</small>
           </div>
         `;
+        
+        card.addEventListener('mouseenter', () => {
+          card.style.transform = 'translateY(-4px)';
+          card.style.boxShadow = '0 12px 28px rgba(0,0,0,0.12)';
+        });
+        
+        card.addEventListener('mouseleave', () => {
+          card.style.transform = 'translateY(0)';
+          card.style.boxShadow = '0 6px 18px rgba(0,0,0,0.06)';
+        });
 
         grid.appendChild(card);
       });
-      } catch (error) {
-        console.error('Error loading projects:', error);
-        showNotification('❌ Error loading projects from server', 'error');
-      }
     }
     // Handle radio button styling
     document.querySelectorAll('input[name="projectType"]').forEach(radio => {
@@ -576,9 +732,11 @@
 
     // Load projects on page load and ensure modal is hidden
     document.addEventListener('DOMContentLoaded', () => {
-      // Ensure create modal is hidden on initial load (override any CSS !important)
+      // Initialize user session and load projects
+      initializeUserSession();
+      
+      // Ensure create modal is hidden on initial load
       if (createProjectModal) createProjectModal.setAttribute('style', 'display: none !important;');
-      loadProjects();
     });
 
     // Notification function
