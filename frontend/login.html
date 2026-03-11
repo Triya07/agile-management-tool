@@ -6,13 +6,232 @@
   <link rel="stylesheet" href="style.css">
   <style>
     body {
-      background: linear-gradient(135deg, #0891b2 0%, #0e7490 50%, #083344 100%);
+      background: #0f172a;
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
       font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      position: relative;
     }
+    
+    /* Animated Wave Background */
+    .animated-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -2;
+      background: linear-gradient(135deg, #0891b2 0%, #0e7490 25%, #155e75 50%, #164e63 75%, #083344 100%);
+      background-size: 400% 400%;
+      animation: gradientFlow 15s ease infinite;
+    }
+    
+    @keyframes gradientFlow {
+      0%, 100% { background-position: 0% 50%; }
+      25% { background-position: 100% 50%; }
+      50% { background-position: 100% 100%; }
+      75% { background-position: 0% 100%; }
+    }
+    
+    /* Particle Wave System */
+    .wave-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      z-index: -1;
+    }
+    
+    .particle-wave {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: rgba(6, 182, 212, 0.8);
+      border-radius: 50%;
+      animation: waveMotion 8s ease-in-out infinite;
+      box-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+    }
+    
+    @keyframes waveMotion {
+      0%, 100% {
+        transform: translateY(100vh) translateX(0px);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      50% {
+        transform: translateY(50vh) translateX(100px);
+        opacity: 1;
+      }
+      90% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-10vh) translateX(-50px);
+        opacity: 0;
+      }
+    }
+    
+    /* Floating Geometric Network */
+    .geometric-network {
+      position: absolute;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      z-index: -1;
+    }
+    
+    .network-node {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: rgba(34, 197, 94, 0.6);
+      border-radius: 50%;
+      animation: nodeFloat 20s linear infinite;
+    }
+    
+    @keyframes nodeFloat {
+      0% {
+        transform: translate(0, 100vh) scale(0);
+        opacity: 0;
+      }
+      5% {
+        transform: translate(0, 95vh) scale(1);
+        opacity: 1;
+      }
+      95% {
+        transform: translate(0, 5vh) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(0, 0vh) scale(0);
+        opacity: 0;
+      }
+    }
+    
+    /* Orbital Rings */
+    .orbital-container {
+      position: absolute;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      z-index: -1;
+    }
+    
+    .orbital-ring {
+      position: absolute;
+      border: 1px solid rgba(6, 182, 212, 0.2);
+      border-radius: 50%;
+      animation: orbitalRotate 30s linear infinite;
+    }
+    
+    .ring-1 { 
+      width: 200px; 
+      height: 200px; 
+      top: 20%; 
+      left: 10%; 
+      animation-duration: 25s;
+    }
+    .ring-2 { 
+      width: 150px; 
+      height: 150px; 
+      top: 60%; 
+      right: 15%; 
+      animation-duration: 35s; 
+      animation-direction: reverse;
+    }
+    .ring-3 { 
+      width: 300px; 
+      height: 300px; 
+      bottom: 10%; 
+      left: 50%; 
+      animation-duration: 40s;
+    }
+    
+    @keyframes orbitalRotate {
+      0% { transform: rotate(0deg) scale(0.8); opacity: 0.3; }
+      50% { transform: rotate(180deg) scale(1.2); opacity: 0.8; }
+      100% { transform: rotate(360deg) scale(0.8); opacity: 0.3; }
+    }
+    
+    .orbital-ring::before {
+      content: '';
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background: rgba(34, 197, 94, 0.8);
+      border-radius: 50%;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      box-shadow: 0 0 15px rgba(34, 197, 94, 0.6);
+    }
+    
+    /* Energy Pulses */
+    .energy-pulse {
+      position: absolute;
+      width: 100px;
+      height: 100px;
+      border: 2px solid rgba(6, 182, 212, 0.3);
+      border-radius: 50%;
+      animation: energyExpand 4s ease-out infinite;
+    }
+    
+    @keyframes energyExpand {
+      0% {
+        transform: scale(0);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(4);
+        opacity: 0;
+      }
+    }
+    
+    /* Matrix Rain Effect */
+    .matrix-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      z-index: -1;
+    }
+    
+    .matrix-column {
+      position: absolute;
+      color: rgba(34, 197, 94, 0.2);
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      animation: matrixFall 10s linear infinite;
+    }
+    
+    @keyframes matrixFall {
+      0% {
+        transform: translateY(-100vh);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      90% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(100vh);
+        opacity: 0;
+      }
+    }
+
     .login-container {
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(20px);
@@ -23,6 +242,8 @@
       max-width: 380px;
       text-align: center;
       border: 1px solid rgba(6, 182, 212, 0.2);
+      position: relative;
+      z-index: 10;
     }
     .login-logo {
       display: flex;
@@ -148,6 +369,15 @@
   </style>
 </head>
 <body>
+  <!-- Animated Background -->
+  <div class="animated-bg"></div>
+  
+  <!-- Multi-layer Animation System -->
+  <div class="wave-container" id="waveContainer"></div>
+  <div class="geometric-network" id="geometricNetwork"></div>
+  <div class="orbital-container" id="orbitalContainer"></div>
+  <div class="matrix-container" id="matrixContainer"></div>
+
   <div class="login-container fade-in">
     <div class="login-logo">
       <span class="login-logo-text">FlowBoard</span>
@@ -169,6 +399,92 @@
     <span class="signup-link" onclick="window.location.href='signup.html'">Don't have an account? Sign up</span>
   </div>
   <script>
+    // Create Wave Particle System
+    function createWaveSystem() {
+      const container = document.getElementById('waveContainer');
+      
+      for (let i = 0; i < 60; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle-wave';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 0.3 + 's';
+        particle.style.animationDuration = (5 + Math.random() * 3) + 's';
+        
+        // Updated color palette
+        const colors = ['rgba(6,182,212,0.8)', 'rgba(34,197,94,0.6)', 'rgba(16,185,129,0.6)', 'rgba(5,150,105,0.6)'];
+        particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+        
+        container.appendChild(particle);
+      }
+    }
+    
+    // Create Geometric Network
+    function createGeometricNetwork() {
+      const container = document.getElementById('geometricNetwork');
+      
+      for (let i = 0; i < 25; i++) {
+        const node = document.createElement('div');
+        node.className = 'network-node';
+        node.style.left = Math.random() * 100 + '%';
+        node.style.animationDelay = Math.random() * 0.5 + 's';
+        node.style.animationDuration = (8 + Math.random() * 6) + 's';
+        
+        container.appendChild(node);
+      }
+    }
+    
+    // Create Orbital Rings
+    function createOrbitalSystem() {
+      const container = document.getElementById('orbitalContainer');
+      
+      // Create energy pulses
+      for (let i = 0; i < 8; i++) {
+        const pulse = document.createElement('div');
+        pulse.className = 'energy-pulse';
+        pulse.style.top = Math.random() * 100 + '%';
+        pulse.style.left = Math.random() * 100 + '%';
+        pulse.style.animationDelay = Math.random() * 0.3 + 's';
+        
+        container.appendChild(pulse);
+      }
+      
+      // Add orbital rings
+      const rings = ['ring-1', 'ring-2', 'ring-3'];
+      rings.forEach(ringClass => {
+        const ring = document.createElement('div');
+        ring.className = `orbital-ring ${ringClass}`;
+        container.appendChild(ring);
+      });
+    }
+    
+    // Create Matrix Rain
+    function createMatrixRain() {
+      const container = document.getElementById('matrixContainer');
+      const chars = '01ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      
+      for (let i = 0; i < 20; i++) {
+        const column = document.createElement('div');
+        column.className = 'matrix-column';
+        column.style.left = Math.random() * 100 + '%';
+        column.style.animationDelay = Math.random() * 0.1 + 's';
+        column.style.animationDuration = (5 + Math.random() * 2) + 's';
+        
+        let text = '';
+        for (let j = 0; j < 20; j++) {
+          text += chars[Math.floor(Math.random() * chars.length)] + '<br>';
+        }
+        column.innerHTML = text;
+        
+        container.appendChild(column);
+      }
+    }
+    
+    // Initialize all animation systems
+    createWaveSystem();
+    createGeometricNetwork();
+    createOrbitalSystem();
+    createMatrixRain();
+    
     // Notification function
     function showNotification(message, type) {
       const notification = document.createElement('div');

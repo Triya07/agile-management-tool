@@ -22,7 +22,7 @@
       top: 0;
       left: 0;
       width: 100vw;
-      height: 100vh;
+      height: 200vh;
       z-index: -2;
       background: linear-gradient(135deg, #0891b2 0%, #0e7490 25%, #155e75 50%, #164e63 75%, #083344 100%);
       background-size: 400% 400%;
@@ -38,9 +38,11 @@
     
     /* Particle Wave System */
     .wave-container {
-      position: absolute;
+      position: fixed;
+      top: 0;
+      left: 0;
       width: 100%;
-      height: 100%;
+      height: 200vh; /* cover viewport so particles remain visible on scroll */
       overflow: hidden;
       z-index: -1;
     }
@@ -80,7 +82,7 @@
     .geometric-network {
       position: absolute;
       width: 100%;
-      height: 100%;
+      height: 200vh;
       overflow: hidden;
       z-index: -1;
     }
@@ -117,7 +119,7 @@
     .orbital-container {
       position: absolute;
       width: 100%;
-      height: 100%;
+      height: 200vh;
       overflow: hidden;
       z-index: -1;
     }
@@ -194,9 +196,11 @@
     
     /* Matrix Rain Effect */
     .matrix-container {
-      position: absolute;
+      position: fixed;
+      top: 0;
+      left: 0;
       width: 100%;
-      height: 100%;
+      height: 200vh; /* cover viewport ensuring rain effect visible at bottom */
       overflow: hidden;
       z-index: -1;
     }
@@ -462,7 +466,6 @@
       justify-content: center;
       align-items: center;
       padding: 80px 20px;
-      background: rgba(6, 182, 212, 0.05);
       backdrop-filter: blur(10px);
     }
     
@@ -519,7 +522,6 @@
     
     /* Footer */
     .footer {
-      background: rgba(8, 51, 68, 0.6);
       backdrop-filter: blur(20px);
       padding: 30px 20px;
       text-align: center;
@@ -660,8 +662,8 @@
         const particle = document.createElement('div');
         particle.className = 'particle-wave';
         particle.style.left = Math.random() * 100 + '%';
-        particle.style.animationDelay = Math.random() * 8 + 's';
-        particle.style.animationDuration = (8 + Math.random() * 4) + 's';
+        particle.style.animationDelay = Math.random() * 0.3 + 's';
+        particle.style.animationDuration = (5 + Math.random() * 3) + 's';
         
         // Updated color palette
         const colors = ['rgba(6,182,212,0.8)', 'rgba(34,197,94,0.6)', 'rgba(16,185,129,0.6)', 'rgba(5,150,105,0.6)'];
@@ -679,8 +681,8 @@
         const node = document.createElement('div');
         node.className = 'network-node';
         node.style.left = Math.random() * 100 + '%';
-        node.style.animationDelay = Math.random() * 20 + 's';
-        node.style.animationDuration = (15 + Math.random() * 10) + 's';
+        node.style.animationDelay = Math.random() * 0.5 + 's';
+        node.style.animationDuration = (8 + Math.random() * 6) + 's';
         
         container.appendChild(node);
       }
@@ -696,7 +698,7 @@
         pulse.className = 'energy-pulse';
         pulse.style.top = Math.random() * 100 + '%';
         pulse.style.left = Math.random() * 100 + '%';
-        pulse.style.animationDelay = Math.random() * 4 + 's';
+        pulse.style.animationDelay = Math.random() * 0.3 + 's';
         
         container.appendChild(pulse);
       }
@@ -715,11 +717,12 @@
       const container = document.getElementById('matrixContainer');
       const chars = '01ABCDEFGHIJKLMNOPQRSTUVWXYZ';
       
-      for (let i = 0; i < 15; i++) {
+      for (let i = 0; i < 20; i++) {
         const column = document.createElement('div');
         column.className = 'matrix-column';
         column.style.left = Math.random() * 100 + '%';
-        column.style.animationDelay = Math.random() * 10 + 's';
+        column.style.animationDelay = Math.random() * 0.1 + 's';
+        column.style.animationDuration = (5 + Math.random() * 2) + 's';
         
         let text = '';
         for (let j = 0; j < 20; j++) {
