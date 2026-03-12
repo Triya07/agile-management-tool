@@ -179,61 +179,163 @@
       </div>
     </main>
   </div>
+ 
 
-  <script>
-    // Global navigation and utility functions
-    function navigateTo(page) {
-      window.location.href = page;
+  <script src="api.js"></script>
+<script>
+   // AUTH GUARD — paste at top of every protected page
+(function() {
+  const token = localStorage.getItem('token');
+  const user  = JSON.parse(localStorage.getItem('user') || 'null');
+  if (!token || !user) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  // Role-based protection
+  // On manager-only pages (dashboard.html, team.html, reports.html):
+  if (user.role !== 'manager') window.location.href = 'dashboard-team.html';
+
+  // On worker-only pages (dashboard-team.html, my-tasks.html):
+  // if (user.role !== 'worker') window.location.href = 'dashboard.html';
+})();
+  // ── AUTH GUARD ──────────────────────────────────────────────
+  const token = localStorage.getItem('token');
+  const user  = JSON.parse(localStorage.getItem('user') || 'null');
+
+  if (!token || !user) {
+    window.location.href = 'login.html';
+  }
+
+  // Redirect workers away from manager dashboard
+  if (user && user.role !== 'manager') {
+    window.location.href = 'dashboard-team.html';
+  }
+
+  // ── LOAD REAL DATA ──────────────────────────────────────────
+  async function loadDashboard() {
+    try {
+      // Show user's name
+      document.querySelector('.dashboard-title').textContent =
+        `Welcome, ${user.name} 👋`;
+
+      // Fetch real data in parallel
+      const [projects, tasks] = await Promise.all([
+        getProjects(),
+        getProjectTasks_all()
+      ]);
+
+      // Update stat cards with real numbers
+      document.getElementById('totalProjects').textContent =
+        projects.length;
+
+      document.getElementById('totalTasks').textContent =
+        tasks.length;
+
+      // Count unique members across all projects
+      const allMembers = new Set();
+      projects.forEach(p => p.members?.forEach(m => allMembers.add(m._id || m)));
+      document.getElementById('teamMembers').textContent = allMembers.size;
+
+      // Count active sprints
+      let sprintCount = 0;
+      for (const project of projects) {
+        const sprints = await getProjectSprints(project._id);
+        sprintCount += sprints?.length || 0;
+      }
+      document.getElementById('totalSprints').textContent = sprintCount;
+
+      // Render recent projects as activity
+      renderRecentActivity(projects, tasks);
+
+    } catch (err) {
+      console.error('Dashboard load error:', err);
+    }
+  }
+
+  // Helper — get tasks across all projects
+  async function getProjectTasks_all() {
+    const projects = await getProjects();
+    const allTasks = [];
+    for (const project of projects) {
+      const tasks = await getProjectTasks(project._id);
+      if (tasks) allTasks.push(...tasks);
+    }
+    return allTasks;
+  }
+
+  function renderRecentActivity(projects, tasks) {
+    const container = document.getElementById('recentActivity');
+    container.innerHTML = '';
+
+    if (projects.length === 0 && tasks.length === 0) {
+      container.innerHTML = '<p style="color:#34A0A4;">No recent activity yet.</p>';
+      return;
     }
 
-    function logout() {
-      if (confirm('Are you sure you want to logout?')) {
-        localStorage.clear();
-        window.location.href = 'login.html';
-      }
+    // Show 3 most recent projects
+    projects.slice(0, 3).forEach(p => {
+      const date = new Date(p.createdAt).toLocaleDateString();
+      container.innerHTML += `
+        <div style="padding:12px 0;border-bottom:1px solid rgba(118,200,147,0.2);">
+          <strong>Project "${p.name}"</strong> created on ${date}
+          <span style="margin-left:8px;color:#52B69A;">(${p.members?.length || 1} members)</span>
+        </div>`;
+    });
+
+    // Show 3 most recent tasks
+    tasks.slice(0, 3).forEach(t => {
+      const assignee = t.assignedTo?.name || 'Unassigned';
+      container.innerHTML += `
+        <div style="padding:12px 0;border-bottom:1px solid rgba(118,200,147,0.2);">
+          <strong>Task "${t.title}"</strong> → assigned to ${assignee}
+          <span style="margin-left:8px;padding:2px 8px;border-radius:10px;
+            background:rgba(118,200,147,0.2);font-size:0.85rem;">${t.status}</span>
+        </div>`;
+    });
+  }
+
+  // ── NAVIGATION & SIDEBAR ────────────────────────────────────
+  function navigateTo(page) {
+    window.location.href = page;
+  }
+
+  function logout() {
+    if (confirm('Are you sure you want to logout?')) {
+      localStorage.clear();
+      window.location.href = 'login.html';
     }
-    
-    // Sidebar functionality
-    const root = document.documentElement;
-    const sidebar = document.getElementById('sidebar');
-    const resizeBtn = document.getElementById('sidebarResizeBtn');
-    
-    let sidebarState = 'normal';
-    
-    function setSidebarWidth(width) {
-      root.style.setProperty('--sidebar-width', width + 'px');
-      localStorage.setItem('sidebarWidth', width);
-      
-      if (sidebar) {
-        sidebar.classList.remove('compact', 'wide');
-        if (width <= 250) {
-          sidebar.classList.add('compact');
-          sidebarState = 'compact';
-        } else if (width >= 380) {
-          sidebar.classList.add('wide');
-          sidebarState = 'wide';
-        } else {
-          sidebarState = 'normal';
-        }
-      }
+  }
+
+  const root    = document.documentElement;
+  const sidebar = document.getElementById('sidebar');
+  const resizeBtn = document.getElementById('sidebarResizeBtn');
+  let sidebarState = 'normal';
+
+  function setSidebarWidth(width) {
+    root.style.setProperty('--sidebar-width', width + 'px');
+    localStorage.setItem('sidebarWidth', width);
+    if (sidebar) {
+      sidebar.classList.remove('compact', 'wide');
+      if (width <= 250)      { sidebar.classList.add('compact'); sidebarState = 'compact'; }
+      else if (width >= 380) { sidebar.classList.add('wide');    sidebarState = 'wide'; }
+      else                   { sidebarState = 'normal'; }
     }
-    
-    const savedWidth = localStorage.getItem('sidebarWidth');
-    if (savedWidth) {
-      setSidebarWidth(parseInt(savedWidth));
-    }
-    
-    if (resizeBtn) {
-      resizeBtn.addEventListener('click', () => {
-        if (sidebarState === 'compact') {
-          setSidebarWidth(300);
-        } else if (sidebarState === 'normal') {
-          setSidebarWidth(400);
-        } else {
-          setSidebarWidth(220);
-        }
-      });
-    }
-  </script>
+  }
+
+  const savedWidth = localStorage.getItem('sidebarWidth');
+  if (savedWidth) setSidebarWidth(parseInt(savedWidth));
+
+  if (resizeBtn) {
+    resizeBtn.addEventListener('click', () => {
+      if (sidebarState === 'compact')     setSidebarWidth(300);
+      else if (sidebarState === 'normal') setSidebarWidth(400);
+      else                                setSidebarWidth(220);
+    });
+  }
+
+  // ── INIT ────────────────────────────────────────────────────
+  loadDashboard();
+</script>
 </body>
 </html>

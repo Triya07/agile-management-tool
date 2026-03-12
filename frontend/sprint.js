@@ -11,15 +11,87 @@ const tasks = [];
 let draggedTaskId = null;
 let SPRINT_ID = null;
 
-// Get sprintId from URL parameter or localStorage
-function getSprintId() {
+// Get projectId from URL parameter or localStorage
+function getProjectId() {
   const params = new URLSearchParams(window.location.search);
-  SPRINT_ID = params.get('sprintId') || localStorage.getItem('currentSprintId');
-  if (!SPRINT_ID) {
-    console.warn('No sprint ID provided. Tasks will not persist to database.');
+  const projectIdFromUrl = params.get('projectId');
+  
+  if (projectIdFromUrl) {
+    // Store the project ID from URL in localStorage for future use
+    localStorage.setItem('currentProjectId', projectIdFromUrl);
+    return projectIdFromUrl;
   }
-  return SPRINT_ID;
+  
+  return localStorage.getItem('currentProjectId');
 }
+
+// Show sprint selection modal
+window.showSprintSelection = async function() {
+  const modal = document.getElementById('sprintSelectionModal');
+  const sprintList = document.getElementById('sprintList');
+  
+  try {
+    const projectId = getProjectId();
+    if (!projectId) {
+      alert('No project selected. Please select a project first.');
+      window.location.href = 'projects.html';
+      return;
+    }
+    
+    const sprints = await getProjectSprints(projectId);
+    
+    if (!sprints || sprints.length === 0) {
+      sprintList.innerHTML = '<p style="color:#666;text-align:center;">No sprints found for this project. Create a sprint first.</p>';
+    } else {
+      sprintList.innerHTML = sprints.map(sprint => `
+        <div style="padding:12px;border:1px solid #e2e8f0;border-radius:6px;margin-bottom:8px;cursor:pointer;background:#f8fafc;" 
+             data-sprint-id="${sprint._id}" 
+             data-sprint-name="${(sprint.sprintName || '').replace(/"/g, '&quot;')}" 
+             data-start-date="${sprint.startDate || ''}" 
+             data-end-date="${sprint.endDate || ''}"
+             onclick="handleSprintClick(this)">
+          <div style="font-weight:600;color:#1a202c;">${sprint.sprintName || 'Unnamed Sprint'}</div>
+          <div style="font-size:0.9rem;color:#666;">${sprint.startDate && sprint.endDate ? `${new Date(sprint.startDate).toLocaleDateString()} - ${new Date(sprint.endDate).toLocaleDateString()}` : 'No dates set'}</div>
+        </div>
+      `).join('');
+    }
+    
+    modal.style.display = 'flex';
+  } catch (error) {
+    console.error('Error loading sprints:', error);
+    alert('Error loading sprints. Please try again.');
+  }
+};
+
+// Handle sprint selection
+window.selectSprint = function(sprintId, sprintName, startDate, endDate) {
+  localStorage.setItem('currentSprintId', sprintId);
+  SPRINT_ID = sprintId;
+  
+  // Update sprint info display
+  document.getElementById('sprintName').textContent = sprintName || 'Sprint Selected';
+  document.getElementById('sprintDates').textContent = startDate && endDate ? 
+    `${new Date(startDate).toLocaleDateString()} - ${new Date(endDate).toLocaleDateString()}` : 
+    'Dates not available';
+  
+  // Show the add task button and board
+  document.getElementById('addTaskBtnRow').style.display = 'block';
+  document.getElementById('sprintBoard').style.display = 'flex';
+  
+  // Hide modal and load tasks
+  document.getElementById('sprintSelectionModal').style.display = 'none';
+  loadTasks();
+};
+
+// Handle sprint click from data attributes
+window.handleSprintClick = function(element) {
+  const sprintId = element.getAttribute('data-sprint-id');
+  const sprintName = element.getAttribute('data-sprint-name');
+  const startDate = element.getAttribute('data-start-date');
+  const endDate = element.getAttribute('data-end-date');
+  
+  selectSprint(sprintId, sprintName, startDate, endDate);
+};
 
 /***********************
  * RENDER BOARD
@@ -134,6 +206,11 @@ document.getElementById("saveRetro").onclick = () => {
 const addTaskModal = document.getElementById("addTaskModal");
 
 document.getElementById("openAddTaskModal").onclick = () => {
+  if (!SPRINT_ID) {
+    alert('Please select a sprint first.');
+    showSprintSelection();
+    return;
+  }
   addTaskModal.style.display = "flex";
   document.getElementById("taskTitleInput").value = "";
   document.getElementById("taskStatusInput").value = STATUS.TODO;
@@ -155,17 +232,16 @@ document.getElementById("addTaskForm").onsubmit = async e => {
   if (!title) return;
 
   try {
-    const sprintId = getSprintId();
-    if (!sprintId) {
-      console.error('Cannot create task: no sprint ID available');
-      alert('Sprint ID is missing. Please navigate to a sprint.');
+    if (!SPRINT_ID) {
+      alert('Please select a sprint first.');
+      showSprintSelection();
       return;
     }
     
-    const projectId = localStorage.getItem('currentProjectId');
+    const projectId = getProjectId();
     
     // Use API helper with authentication
-    const result = await createTask(title, "", null, sprintId, projectId, "medium", null, status);
+    const result = await createTask(title, "", null, SPRINT_ID, projectId, "medium", null, status);
     
     if (result && result.task) {
       const task = result.task;
@@ -200,17 +276,16 @@ document.getElementById("addTaskForm").onsubmit = async e => {
  ***********************/
 async function loadTasks() {
   try {
-    const sprintId = getSprintId();
-    if (!sprintId) {
-      console.error('Cannot load tasks: no sprint ID available');
+    if (!SPRINT_ID) {
+      console.warn('No sprint selected, cannot load tasks');
       return;
     }
 
     // Get the current project ID (needed for auth)
-    const projectId = localStorage.getItem('currentProjectId');
+    const projectId = getProjectId();
     
     // Use API helper with authentication instead of direct fetch
-    const data = await getSprintTasks(sprintId, projectId);
+    const data = await getSprintTasks(SPRINT_ID, projectId);
     const taskList = Array.isArray(data) ? data : (data.data || []);
 
     tasks.length = 0; // clear local array
@@ -231,7 +306,17 @@ async function loadTasks() {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
-  getSprintId();
-  loadTasks();
+  // Ensure project ID is available from URL if present
+  getProjectId();
+  
+  const sprintId = getSprintId();
+  if (!sprintId) {
+    showSprintSelection();
+  } else {
+    // Sprint already selected, show the UI
+    document.getElementById('addTaskBtnRow').style.display = 'block';
+    document.getElementById('sprintBoard').style.display = 'flex';
+    loadTasks();
+  }
 });
 
