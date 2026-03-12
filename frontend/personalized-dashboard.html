@@ -342,10 +342,57 @@
       </div>
     </div>
 
+    <!-- Manager-Only Section -->
+    <div id="managerSection" style="display:none;">
+      <div class="dashboard-section">
+        <div class="section-title">
+          <span>👥</span>
+          <span>Team Overview</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;" id="teamOverview">
+          <div class="empty-state">Loading team data...</div>
+        </div>
+      </div>
+
+      <div class="dashboard-section">
+        <div class="section-title">
+          <span>📈</span>
+          <span>Project Health</span>
+        </div>
+        <ul class="tasks-list" id="projectHealthList">
+          <div class="empty-state">No data available</div>
+        </ul>
+      </div>
+
+      <div class="dashboard-section">
+        <div class="section-title">
+          <span>⏱️</span>
+          <span>Sprint Progress</span>
+        </div>
+        <div id="sprintProgress">
+          <div class="empty-state">No active sprints</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Team Member Section -->
+    <div id="memberSection" style="display:none;">
+      <div class="dashboard-section">
+        <div class="section-title">
+          <span>🎯</span>
+          <span>My Current Sprint</span>
+        </div>
+        <div id="currentSprintInfo">
+          <div class="empty-state">No active sprint assigned</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Common Projects Section -->
     <div class="dashboard-section">
       <div class="section-title">
         <span>📋</span>
-        <span>My Projects</span>
+        <span id="projectsTitle">My Projects</span>
       </div>
       <a href="/projects.html" class="btn-create">+ Create New Project</a>
       <div class="projects-grid" id="projectsList">
@@ -353,6 +400,7 @@
       </div>
     </div>
 
+    <!-- Common Tasks Section -->
     <div class="dashboard-section">
       <div class="section-title">
         <span>✅</span>
@@ -400,6 +448,7 @@
         dashboardData = await getUserDashboard();
 
         updateUI();
+        updateRoleBasedView();
         loadProjects();
         loadTasks();
       } catch (error) {
@@ -408,10 +457,33 @@
       }
     }
 
+    function updateRoleBasedView() {
+      const isManager = currentUser.role === 'manager' || currentUser.role === 'admin';
+      const managerSection = document.getElementById('managerSection');
+      const memberSection = document.getElementById('memberSection');
+
+      if (isManager) {
+        // Show manager-specific content
+        managerSection.style.display = 'block';
+        memberSection.style.display = 'none';
+        document.getElementById('projectsTitle').textContent = 'All Projects';
+        loadTeamOverview();
+        loadProjectHealth();
+        loadSprintProgress();
+      } else {
+        // Show team member-specific content
+        managerSection.style.display = 'none';
+        memberSection.style.display = 'block';
+        document.getElementById('projectsTitle').textContent = 'My Projects';
+        loadCurrentSprint();
+      }
+    }
+
     function updateUI() {
       // Update user info
       document.getElementById("userName").textContent = currentUser.name;
-      document.getElementById("userRole").textContent = currentUser.role === "manager" ? "Manager" : "Team Member";
+      const roleText = currentUser.role === "manager" || currentUser.role === "admin" ? "Manager" : "Team Member";
+      document.getElementById("userRole").textContent = roleText;
       document.getElementById("userAvatar").textContent = currentUser.name.charAt(0).toUpperCase();
 
       // Update stats
@@ -426,6 +498,125 @@
         const activeSprints = dashboardData.sprints.filter(s => s.status === 'active').length;
         document.getElementById("activeSprints").textContent = activeSprints;
       }
+    }
+
+    function loadTeamOverview() {
+      // Load team member info for managers
+      if (!dashboardData || !dashboardData.teamMembers) {
+        document.getElementById("teamOverview").innerHTML = '<div class="empty-state" style="grid-column:1/-1;">No team members</div>';
+        return;
+      }
+
+      let html = '';
+      (dashboardData.teamMembers || []).forEach(member => {
+        html += `
+          <div style="background:rgba(255,255,255,0.8);padding:16px;border-radius:10px;border:1px solid rgba(8,145,178,0.2);">
+            <div style="font-weight:600;margin-bottom:8px;">${member.name}</div>
+            <div style="font-size:0.85rem;color:#666;margin-bottom:8px;">${member.role}</div>
+            <div style="font-size:0.8rem;color:#999;">Tasks: ${member.taskCount || 0}</div>
+          </div>
+        `;
+      });
+
+      document.getElementById("teamOverview").innerHTML = html || '<div class="empty-state" style="grid-column:1/-1;">No team members</div>';
+    }
+
+    function loadProjectHealth() {
+      // Load project health metrics for managers
+      if (!dashboardData || !dashboardData.projects) {
+        document.getElementById("projectHealthList").innerHTML = '<div class="empty-state">No projects to analyze</div>';
+        return;
+      }
+
+      let html = '';
+      (dashboardData.projects || []).forEach(project => {
+        const health = project.stats || {};
+        const onTrack = (health.tasksCompleted || 0) / (health.totalTasks || 1);
+        const healthStatus = onTrack >= 0.75 ? '✅ On Track' : onTrack >= 0.5 ? '⚠️ At Risk' : '🔴 Behind';
+        
+        html += `
+          <li class="task-item">
+            <div class="task-info">
+              <div class="task-title">${project.name}</div>
+              <div class="task-meta">${health.totalTasks || 0} tasks • ${health.tasksCompleted || 0} completed</div>
+            </div>
+            <span class="task-status" style="background:${onTrack >= 0.75 ? 'rgba(16,185,129,0.2)' : onTrack >= 0.5 ? 'rgba(245,158,11,0.2)' : 'rgba(239,68,68,0.2)'}color:${onTrack >= 0.75 ? '#065f46' : onTrack >= 0.5 ? '#92400e' : '#7f1d1d'};">${healthStatus}</span>
+          </li>
+        `;
+      });
+
+      document.getElementById("projectHealthList").innerHTML = html || '<div class="empty-state">No project health data</div>';
+    }
+
+    function loadSprintProgress() {
+      // Load sprint progress for managers
+      if (!dashboardData || !dashboardData.sprints || dashboardData.sprints.length === 0) {
+        document.getElementById("sprintProgress").innerHTML = '<div class="empty-state">No active sprints</div>';
+        return;
+      }
+
+      let html = '';
+      (dashboardData.sprints || []).forEach(sprint => {
+        if (sprint.status === 'active') {
+          const progress = sprint.totalTasks ? (sprint.completedTasks / sprint.totalTasks * 100).toFixed(0) : 0;
+          html += `
+            <div style="background:rgba(255,255,255,0.8);padding:16px;border-radius:10px;border-left:4px solid #0891b2;margin-bottom:12px;">
+              <div style="font-weight:600;margin-bottom:8px;">${sprint.name}</div>
+              <div style="font-size:0.85rem;color:#666;margin-bottom:8px;">${sprint.completedTasks || 0}/${sprint.totalTasks || 0} tasks completed</div>
+              <div style="width:100%;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                <div style="width:${progress}%;height:100%;background:linear-gradient(135deg,#0891b2,#22c55e);transition:width 0.3s;"></div>
+              </div>
+            </div>
+          `;
+        }
+      });
+
+      document.getElementById("sprintProgress").innerHTML = html || '<div class="empty-state">No active sprints</div>';
+    }
+
+    function loadCurrentSprint() {
+      // Load current sprint for team members
+      if (!dashboardData || !dashboardData.sprints || dashboardData.sprints.length === 0) {
+        document.getElementById("currentSprintInfo").innerHTML = '<div class="empty-state">No sprint assigned</div>';
+        return;
+      }
+
+      const activeSprint = (dashboardData.sprints || []).find(s => s.status === 'active');
+      if (!activeSprint) {
+        document.getElementById("currentSprintInfo").innerHTML = '<div class="empty-state">No active sprint assigned</div>';
+        return;
+      }
+
+      const progress = activeSprint.totalTasks ? (activeSprint.completedTasks / activeSprint.totalTasks * 100).toFixed(0) : 0;
+      const html = `
+        <div style="background:rgba(255,255,255,0.8);padding:20px;border-radius:12px;border:2px solid rgba(8,145,178,0.2);">
+          <h3 style="margin:0 0 12px 0;color:#083344;">${activeSprint.name}</h3>
+          <p style="margin:0 0 16px 0;color:#666;">
+            Dates: ${new Date(activeSprint.startDate).toLocaleDateString()} - ${new Date(activeSprint.endDate).toLocaleDateString()}
+          </p>
+          <div style="margin-bottom:12px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+              <span style="color:#666;">Progress</span>
+              <strong style="color:#0891b2;">${progress}%</strong>
+            </div>
+            <div style="width:100%;height:10px;background:#e5e7eb;border-radius:5px;overflow:hidden;">
+              <div style="width:${progress}%;height:100%;background:linear-gradient(135deg,#0891b2,#22c55e);transition:width 0.3s;"></div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;">
+            <div>
+              <div style="font-size:0.85rem;color:#666;">Your Tasks</div>
+              <strong style="font-size:1.4rem;color:#0891b2;">${activeSprint.userTaskCount || 0}</strong>
+            </div>
+            <div>
+              <div style="font-size:0.85rem;color:#666;">Completed</div>
+              <strong style="font-size:1.4rem;color:#22c55e;">${activeSprint.userCompletedCount || 0}</strong>
+            </div>
+          </div>
+        </div>
+      `;
+
+      document.getElementById("currentSprintInfo").innerHTML = html;
     }
 
     function loadProjects() {
@@ -499,7 +690,7 @@
       localStorage.setItem("activeProject", projectId);
       
       if (projectType === "scrum") {
-        window.location.href = "/scrum-board.html";
+        window.location.href = "/sprint-scrum-board.html";
       } else {
         window.location.href = "/kanban-board.html";
       }
