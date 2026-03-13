@@ -180,6 +180,7 @@
     </main>
   </div>
 
+  <script src="api.js"></script>
   <script>
     // Global navigation and utility functions
     function navigateTo(page) {
@@ -192,6 +193,157 @@
         window.location.href = 'login.html';
       }
     }
+    
+    // Load dashboard data from API
+    async function loadDashboardData() {
+      try {
+        // Check if user is authenticated
+        const token = localStorage.getItem('token');
+        if (!token) {
+          console.warn('User not authenticated, showing demo data');
+          loadDemoDashboardData();
+          return;
+        }
+
+        console.log('Loading dashboard data from API...');
+        console.log('Token exists:', !!token);
+        console.log('API Base URL: http://localhost:5000/api');
+        
+        // Get all projects
+        let projects = [];
+        try {
+          console.log('Fetching /projects endpoint...');
+          const projectsData = await getProjects();
+          console.log('Raw projects response:', projectsData);
+          projects = Array.isArray(projectsData) ? projectsData : (projectsData?.data || projectsData?.projects || []);
+          console.log('Projects loaded:', projects.length);
+        } catch (e) {
+          console.error("Could not fetch projects:", e);
+          projects = [];
+        }
+        
+        // Get all sprints
+        let sprints = [];
+        try {
+          const sprintsData = await getAllSprints();
+          sprints = Array.isArray(sprintsData) ? sprintsData : (sprintsData?.data || sprintsData?.sprints || []);
+          console.log('Sprints loaded:', sprints.length);
+        } catch (e) {
+          console.error("Could not fetch sprints:", e);
+          sprints = [];
+        }
+        
+        // Get all tasks
+        let allTasks = [];
+        for (const project of projects) {
+          try {
+            const tasksData = await getProjectTasks(project._id);
+            const tasks = Array.isArray(tasksData) ? tasksData : (tasksData?.data || []);
+            allTasks = allTasks.concat(tasks || []);
+          } catch (e) {
+            console.log("Could not fetch tasks for project", project._id, e);
+          }
+        }
+        console.log('Total tasks loaded:', allTasks.length);
+        
+        // Update dashboard stats
+        document.getElementById('totalProjects').textContent = projects.length;
+        document.getElementById('totalSprints').textContent = sprints.length;
+        document.getElementById('totalTasks').textContent = allTasks.length;
+        
+        // Calculate team members (unique members across all projects)
+        const memberSet = new Set();
+        projects.forEach(p => {
+          if (p.members && Array.isArray(p.members)) {
+            p.members.forEach(m => {
+              const memberId = typeof m === 'object' ? (m._id || m.id) : m;
+              if (memberId) memberSet.add(memberId);
+            });
+          }
+        });
+        document.getElementById('teamMembers').textContent = memberSet.size;
+        
+        console.log('Dashboard stats updated');
+        
+        // Load recent activity
+        await loadRecentActivity(projects, sprints, allTasks);
+      } catch (error) {
+        console.error('Error loading dashboard data:', error);
+        console.log('Falling back to demo data');
+        loadDemoDashboardData();
+      }
+    }
+    
+    // Show empty state (no demo data)
+    function loadDemoDashboardData() {
+      document.getElementById('totalProjects').textContent = '0';
+      document.getElementById('totalSprints').textContent = '0';
+      document.getElementById('totalTasks').textContent = '0';
+      document.getElementById('teamMembers').textContent = '0';
+      
+      const activityDiv = document.getElementById('recentActivity');
+      activityDiv.innerHTML = '<div style="padding: 12px 0; color: #999;">No data yet. Create a project to get started.</div>';
+    }
+    
+    // Load recent activity
+    async function loadRecentActivity(projects, sprints, tasks) {
+      const activityDiv = document.getElementById('recentActivity');
+      const activities = [];
+      
+      // Add recent projects (last 3)
+      projects.slice(0, 3).forEach(p => {
+        const date = new Date(p.createdAt);
+        activities.push({
+          text: `Project "${p.name}" was created ${getTimeAgo(date)}`,
+          time: date
+        });
+      });
+      
+      // Add recent sprints (last 2)
+      sprints.slice(0, 2).forEach(s => {
+        if (s.status === 'completed') {
+          const date = new Date(s.completedAt || s.updatedAt);
+          activities.push({
+            text: `Sprint "${s.sprintName}" completed ${getTimeAgo(date)}`,
+            time: date
+          });
+        }
+      });
+      
+      // Sort by time and take last 5
+      activities.sort((a, b) => b.time - a.time);
+      
+      if (activities.length === 0) {
+        activityDiv.innerHTML = '<p style="color: #999;">No recent activity</p>';
+        return;
+      }
+      
+      activityDiv.innerHTML = activities
+        .slice(0, 5)
+        .map(activity => `
+          <div style="padding: 12px 0; border-bottom: 1px solid rgba(118, 200, 147, 0.2);">
+            <strong>${activity.text}</strong>
+          </div>
+        `)
+        .join('');
+    }
+    
+    // Helper function to format time ago
+    function getTimeAgo(date) {
+      const now = new Date();
+      const seconds = Math.floor((now - date) / 1000);
+      
+      if (seconds < 60) return 'just now';
+      if (seconds < 3600) return Math.floor(seconds / 60) + ' minutes ago';
+      if (seconds < 86400) return Math.floor(seconds / 3600) + ' hours ago';
+      if (seconds < 604800) return Math.floor(seconds / 86400) + ' days ago';
+      return 'a while ago';
+    }
+    
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      loadDashboardData();
+    });
     
     // Sidebar functionality
     const root = document.documentElement;
@@ -234,6 +386,5 @@
         }
       });
     }
-  </script>
 </body>
 </html>

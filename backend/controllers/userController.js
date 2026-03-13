@@ -2,6 +2,7 @@ const User = require("../models/User");
 const Project = require("../models/Project");
 const Sprint = require("../models/Sprint");
 const Task = require("../models/Task");
+const mongoose = require("mongoose");
 
 // Get current user profile
 exports.getUserProfile = async (req, res) => {
@@ -76,10 +77,10 @@ exports.getUserDashboard = async (req, res) => {
       {
         $match: {
           $or: [
-            { assignedTo: require("mongoose").Types.ObjectId(userId) },
-            { createdBy: require("mongoose").Types.ObjectId(userId) }
+            { assignedTo: new mongoose.Types.ObjectId(userId) },
+            { createdBy: new mongoose.Types.ObjectId(userId) }
           ],
-          projectId: { $in: projectIds.map(id => require("mongoose").Types.ObjectId(id)) }
+          projectId: { $in: projectIds.map(id => new mongoose.Types.ObjectId(id)) }
         }
       },
       {
@@ -129,7 +130,9 @@ exports.getUserDashboard = async (req, res) => {
 exports.updateUserProfile = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { name, email } = req.body;
+    const { 
+      name, email, phone, jobTitle, department, bio, skills, startDate, avatar
+    } = req.body;
 
     // Check if email is already taken by another user
     if (email) {
@@ -139,12 +142,21 @@ exports.updateUserProfile = async (req, res) => {
       }
     }
 
+    // Build update object
+    const updateData = {};
+    if (name !== undefined) updateData.name = name;
+    if (email !== undefined) updateData.email = email;
+    if (phone !== undefined) updateData.phone = phone;
+    if (jobTitle !== undefined) updateData.jobTitle = jobTitle;
+    if (department !== undefined) updateData.department = department;
+    if (bio !== undefined) updateData.bio = bio;
+    if (skills !== undefined) updateData.skills = skills;
+    if (startDate !== undefined) updateData.startDate = startDate;
+    if (avatar !== undefined) updateData.avatar = avatar;
+
     const user = await User.findByIdAndUpdate(
       userId,
-      { 
-        ...(name && { name }),
-        ...(email && { email })
-      },
+      updateData,
       { new: true, runValidators: true }
     ).select("-password");
 

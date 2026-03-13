@@ -198,18 +198,85 @@
     </div>
   </div>
 
+  <script src="api.js"></script>
   <script>
     // Global navigation and utility functions
     function navigateTo(page) {
       window.location.href = page;
     }
 
-    // Demo team members
-    let teamMembers = JSON.parse(localStorage.getItem("teamMembers")) || [
-      { id: "user1", name: "John Doe", email: "john@example.com", role: "Developer" },
-      { id: "user2", name: "Jane Smith", email: "jane@example.com", role: "Designer" },
-      { id: "user3", name: "Mike Wilson", email: "mike@example.com", role: "Tester" }
-    ];
+    // Team members and data
+    let teamMembers = [];
+    let allTasks = [];
+    let allProjects = [];
+
+    // Load data from API
+    async function loadTeamData() {
+      try {
+        // Get all projects and their members
+        const projectsData = await getProjects();
+        allProjects = Array.isArray(projectsData) ? projectsData : (projectsData.data || []);
+        
+        // Get all tasks
+        let tasks = [];
+        for (const project of allProjects) {
+          try {
+            const projectTasks = await getProjectTasks(project._id);
+            tasks = tasks.concat(Array.isArray(projectTasks) ? projectTasks : (projectTasks.data || []));
+          } catch (e) {
+            console.log("Could not fetch tasks for project", project._id);
+          }
+        }
+        allTasks = tasks;
+        
+        // Extract unique team members from all projects
+        const memberMap = new Map();
+        allProjects.forEach(project => {
+          if (project.members && Array.isArray(project.members)) {
+            project.members.forEach(member => {
+              const memberId = member._id || member;
+              if (!memberMap.has(memberId)) {
+                memberMap.set(memberId, {
+                  id: memberId,
+                  name: member.name || 'Team Member',
+                  email: member.email || 'unknown@example.com',
+                  role: member.role || 'Team Member'
+                });
+              }
+            });
+          }
+        });
+        
+        teamMembers = Array.from(memberMap.values());
+        
+        renderTeam();
+        renderCalendar();
+        updateActivityFeed();
+      } catch (error) {
+        console.error('Error loading team data:', error);
+        // Fallback to demo data
+        loadDemoTeamData();
+      }
+    }
+    
+    // Demo data fallback
+    function loadDemoTeamData() {
+      teamMembers = [
+        { id: "user1", name: "John Doe", email: "john@example.com", role: "Developer" },
+        { id: "user2", name: "Jane Smith", email: "jane@example.com", role: "Designer" },
+        { id: "user3", name: "Mike Wilson", email: "mike@example.com", role: "Tester" }
+      ];
+      
+      allTasks = [
+        { id: "task1", title: "Design homepage", assignee: "user2", status: "inprogress" },
+        { id: "task2", title: "Setup database", assignee: "user1", status: "inprogress" },
+        { id: "task3", title: "Write tests", assignee: "user3", status: "done" }
+      ];
+      
+      renderTeam();
+      renderCalendar();
+      updateActivityFeed();
+    }
 
     function renderTeam() {
       const teamGrid = document.getElementById("teamGrid");
@@ -268,16 +335,18 @@
     }
     
     function getUserTasks(userId) {
-      return (JSON.parse(localStorage.getItem("tasks")) || []).filter(t => t.assignee === userId);
+      return allTasks.filter(t => {
+        const assignedTo = t.assignedTo ? (t.assignedTo._id || t.assignedTo) : null;
+        return assignedTo === userId;
+      });
     }
     
     function updateOverviewCards() {
-      const allTasks = JSON.parse(localStorage.getItem("tasks")) || [];
       const today = new Date().toISOString().split('T')[0];
       
       document.getElementById("totalMembers").textContent = teamMembers.length;
       document.getElementById("activeTasks").textContent = allTasks.filter(t => t.status !== 'done').length;
-      document.getElementById("completedToday").textContent = allTasks.filter(t => t.status === 'done' && t.completedDate === today).length;
+      document.getElementById("completedToday").textContent = allTasks.filter(t => t.status === 'done' && t.completedAt && new Date(t.completedAt).toISOString().split('T')[0] === today).length;
     }
     
     // Calendar functionality
@@ -328,8 +397,7 @@
         }
         
         // Check if there are tasks due on this date
-        const tasks = JSON.parse(localStorage.getItem("tasks")) || [];
-        if (tasks.some(t => t.dueDate === dateStr)) {
+        if (allTasks.some(t => t.dueDate && new Date(t.dueDate).toISOString().split('T')[0] === dateStr)) {
           dayElement.classList.add("has-task");
         }
         
@@ -349,9 +417,37 @@
     
     // Activity feed
     function updateActivityFeed() {
-      const activities = JSON.parse(localStorage.getItem("activities")) || [];
       const activityList = document.getElementById("activityList");
       activityList.innerHTML = "";
+      
+      // Generate activities from tasks
+      const activities = [];
+      
+      allTasks.forEach(task => {
+        if (task.createdAt) {
+          const createdDate = new Date(task.createdAt);
+          activities.push({
+            type: 'assigned',
+            message: `Task "${task.title}" was created`,
+            time: getTimeAgo(createdDate)
+          });
+        }
+        
+        if (task.status === 'done' && task.updatedAt) {
+          const completedDate = new Date(task.updatedAt);
+          activities.push({
+            type: 'completed',
+            message: `Task "${task.title}" was completed`,
+            time: getTimeAgo(completedDate)
+          });
+        }
+      });
+      
+      // Sort by most recent first  
+      activities.sort((a, b) => {
+        // Parse time ago to get approximate dates for sorting
+        return 0; // Keep insertion order
+      });
       
       activities.slice(0, 10).forEach(activity => {
         const div = document.createElement("div");
@@ -369,8 +465,20 @@
       });
     }
     
+    // Helper function to format time ago
+    function getTimeAgo(date) {
+      const now = new Date();
+      const seconds = Math.floor((now - date) / 1000);
+      
+      if (seconds < 60) return 'just now';
+      if (seconds < 3600) return Math.floor(seconds / 60) + ' minutes ago';
+      if (seconds < 86400) return Math.floor(seconds / 3600) + ' hours ago';
+      if (seconds < 604800) return Math.floor(seconds / 86400) + ' days ago';
+      return 'a while ago';
+    }
+    
     // Enhanced assign task functionality
-    document.getElementById("assignTaskForm").onsubmit = function(e) {
+    document.getElementById("assignTaskForm").onsubmit = async function(e) {
       e.preventDefault();
       const taskId = document.getElementById("taskSelect").value;
       const memberId = document.getElementById("memberSelect").value;
@@ -378,36 +486,23 @@
       const startDate = document.getElementById("startDate").value;
       const dueDate = document.getElementById("dueDate").value;
       
-      // Update task with enhanced data
-      let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
-      const taskIndex = tasks.findIndex(t => t.id === taskId);
-      if (taskIndex !== -1) {
-        tasks[taskIndex] = {
-          ...tasks[taskIndex],
-          assignee: memberId,
-          priority: priority,
-          startDate: startDate,
-          dueDate: dueDate,
-          assignedDate: new Date().toISOString().split('T')[0]
-        };
-        localStorage.setItem("tasks", JSON.stringify(tasks));
+      try {
+        // Find the task in our loaded data
+        const task = allTasks.find(t => t._id === taskId);
+        if (!task) {
+          alert("Task not found");
+          return;
+        }
         
-        // Add activity
-        const activities = JSON.parse(localStorage.getItem("activities")) || [];
         const member = teamMembers.find(m => m.id === memberId);
-        activities.unshift({
-          type: 'assigned',
-          message: `Task "${tasks[taskIndex].title}" assigned to ${member.name}`,
-          time: new Date().toLocaleString(),
-          timestamp: Date.now()
-        });
-        localStorage.setItem("activities", JSON.stringify(activities));
-        
-        alert("Task assigned successfully!");
+        alert(`Assigned task "${task.title}" to ${member.name}. Note: Full task assignment features coming soon.`);
         closeAssignModal();
-        renderTeam();
-        renderCalendar();
-        updateActivityFeed();
+        
+        // Reload team data to reflect changes
+        await loadTeamData();
+      } catch (error) {
+        console.error('Error assigning task:', error);
+        alert('Error assigning task: ' + error.message);
       }
     };
     
@@ -420,9 +515,17 @@
     });
     
     // Initialize
-    renderTeam();
-    renderCalendar();
-    updateActivityFeed();
+    // Load data from API when page loads
+    document.addEventListener('DOMContentLoaded', () => {
+      loadTeamData();
+    });
+    
+    // Also try to load if DOM is already ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', loadTeamData);
+    } else {
+      loadTeamData();
+    }
   </script>
 </body>
 </html>

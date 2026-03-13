@@ -159,11 +159,12 @@ async function addTaskToColumn(title, description, status) {
     const newTask = await createTask(
       title,
       description,
-      null,  // no sprint for kanban
+      null,  // no assigned user for kanban
       null,  // no sprint ID
       activeProject._id,
       'medium',
-      null
+      null,  // no due date
+      status  // IMPORTANT: pass the selected column status here!
     );
 
     tasks.push(newTask.task || newTask);

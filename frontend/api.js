@@ -85,11 +85,33 @@ async function getAllSprints() {
   return apiCall("/sprints");
 }
 
-async function createSprint(sprintName, startDate, endDate, projectId) {
+async function createSprint(sprintName, sprintGoal, startDate, endDate, projectId) {
   return apiCall("/sprints/create", {
     method: "POST",
-    body: JSON.stringify({ sprintName, startDate, endDate, projectId })
+    body: JSON.stringify({ sprintName, sprintGoal, startDate, endDate, projectId })
   });
+}
+
+async function getSprint(sprintId) {
+  return apiCall(`/sprints/${sprintId}`);
+}
+
+async function updateSprint(sprintId, sprintName, sprintGoal, startDate, endDate, status) {
+  return apiCall(`/sprints/${sprintId}`, {
+    method: "PUT",
+    body: JSON.stringify({ sprintName, sprintGoal, startDate, endDate, status })
+  });
+}
+
+async function saveSprintRetrospective(sprintId, good, bad, improve, feedback) {
+  return apiCall(`/sprints/${sprintId}/retrospective`, {
+    method: "POST",
+    body: JSON.stringify({ good, bad, improve, feedback })
+  });
+}
+
+async function getSprintSummary(sprintId) {
+  return apiCall(`/sprints/${sprintId}/summary`);
 }
 
 // TASK ENDPOINTS
@@ -128,6 +150,13 @@ async function updateTaskStatus(taskId, status) {
   });
 }
 
+async function updateTask(taskId, title, description, assignedTo, priority, dueDate, status) {
+  return apiCall(`/tasks/${taskId}`, {
+    method: "PUT",
+    body: JSON.stringify({ title, description, assignedTo, priority, dueDate, status })
+  });
+}
+
 async function deleteTask(taskId) {
   return apiCall(`/tasks/${taskId}`, {
     method: "DELETE"
@@ -143,10 +172,12 @@ async function getUserDashboard() {
   return apiCall("/users/dashboard");
 }
 
-async function updateUserProfile(name, email) {
+async function updateUserProfile(
+  name, email, phone, jobTitle, department, bio, skills, startDate, avatar
+) {
   return apiCall("/users/profile", {
     method: "PATCH",
-    body: JSON.stringify({ name, email })
+    body: JSON.stringify({ name, email, phone, jobTitle, department, bio, skills, startDate, avatar })
   });
 }
 

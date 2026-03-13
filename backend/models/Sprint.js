@@ -6,6 +6,10 @@ const sprintSchema = new mongoose.Schema(
       type: String,
       required: true
     },
+    sprintGoal: {
+      type: String,
+      default: ""
+    },
     startDate: {
       type: Date,
       required: true
@@ -23,6 +27,12 @@ const sprintSchema = new mongoose.Schema(
       type: String,
       enum: ["planning", "active", "completed"],
       default: "planning"
+    },
+    retrospective: {
+      good: String,
+      bad: String,
+      improve: String,
+      feedback: String
     }
   },
   {

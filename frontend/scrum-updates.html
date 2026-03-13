@@ -106,7 +106,7 @@
     
     /* Modal styles */
     .modal {
-      display: none;
+      display: none !important;
       position: fixed;
       top: 0;
       left: 0;
@@ -114,6 +114,10 @@
       height: 100vh;
       background: rgba(0, 0, 0, 0.5);
       z-index: 1000;
+    }
+    
+    .modal.show {
+      display: flex !important;
       align-items: center;
       justify-content: center;
     }
@@ -298,57 +302,91 @@
     
     // Modal functionality
     function openAddUpdateModal() {
-      document.getElementById('addUpdateModal').style.display = 'flex';
+      const modal = document.getElementById('addUpdateModal');
+      if (modal) {
+        modal.classList.add('show');
+      }
     }
     
     function closeAddUpdateModal() {
-      document.getElementById('addUpdateModal').style.display = 'none';
-      document.getElementById('addUpdateForm').reset();
+      const modal = document.getElementById('addUpdateModal');
+      if (modal) {
+        modal.classList.remove('show');
+      }
+      
+      const form = document.getElementById('addUpdateForm');
+      if (form) {
+        form.reset();
+      }
     }
     
-    // Handle form submission
-    document.getElementById('addUpdateForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      
-      const currentUser = localStorage.getItem('currentUser') || 'Anonymous';
-      const userRole = localStorage.getItem('userRole') || 'member';
-      const now = new Date().toLocaleString();
-      
-      const yesterday = document.getElementById('yesterdayWork').value.trim();
-      const today = document.getElementById('todayWork').value.trim();
-      const blockers = document.getElementById('blockers').value.trim();
-      
-      const updateText = `Yesterday: ${yesterday}\nToday: ${today}${blockers ? `\nBlockers: ${blockers}` : ''}`;
-      
-      // Create update card
-      const updateCard = document.createElement('div');
-      updateCard.className = 'update-card';
-      updateCard.innerHTML = `
-        <div class="update-header">
-          <div>
-            <span class="update-user">${currentUser}</span>
-            <span class="update-role">(${userRole})</span>
-          </div>
-          <span class="update-time">${now}</span>
-        </div>
-        <div class="update-content">${updateText.replace(/\n/g, '<br>')}</div>
-      `;
-      
-      // Add to top of updates list
-      const updatesList = document.getElementById('updatesList');
-      updatesList.insertBefore(updateCard, updatesList.firstChild);
-      
-      // Close modal and show success
-      closeAddUpdateModal();
-      showNotification('Update posted successfully!', 'success');
-    });
+    // Wait for DOM to be fully loaded before attaching event listeners
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', attachFormListener);
+    } else {
+      attachFormListener();
+    }
     
-    // Close modal when clicking outside
-    document.getElementById('addUpdateModal').addEventListener('click', function(e) {
-      if (e.target === this) {
-        closeAddUpdateModal();
+    function attachFormListener() {
+      // Handle form submission
+      const addUpdateForm = document.getElementById('addUpdateForm');
+      if (addUpdateForm) {
+        addUpdateForm.addEventListener('submit', function(e) {
+          console.log('Form submitted');
+          e.preventDefault();
+          
+          const currentUser = localStorage.getItem('currentUser') || 'Anonymous';
+          const userRole = localStorage.getItem('userRole') || 'member';
+          const now = new Date().toLocaleString();
+          
+          const yesterday = document.getElementById('yesterdayWork').value.trim();
+          const today = document.getElementById('todayWork').value.trim();
+          const blockers = document.getElementById('blockers').value.trim();
+          
+          const updateText = `Yesterday: ${yesterday}\nToday: ${today}${blockers ? `\nBlockers: ${blockers}` : ''}`;
+          
+          // Create update card
+          const updateCard = document.createElement('div');
+          updateCard.className = 'update-card';
+          updateCard.innerHTML = `
+            <div class="update-header">
+              <div>
+                <span class="update-user">${currentUser}</span>
+                <span class="update-role">(${userRole})</span>
+              </div>
+              <span class="update-time">${now}</span>
+            </div>
+            <div class="update-content">${updateText.replace(/\n/g, '<br>')}</div>
+          `;
+          
+          // Add to top of updates list
+          const updatesList = document.getElementById('updatesList');
+          if (updatesList) {
+            updatesList.insertBefore(updateCard, updatesList.firstChild);
+          }
+          
+          // Reset form
+          addUpdateForm.reset();
+          
+          // Close modal
+          console.log('Closing modal...');
+          closeAddUpdateModal();
+          
+          // Show success message
+          showNotification('Update posted successfully!', 'success');
+        });
       }
-    });
+      
+      // Close modal when clicking outside
+      const addUpdateModal = document.getElementById('addUpdateModal');
+      if (addUpdateModal) {
+        addUpdateModal.addEventListener('click', function(e) {
+          if (e.target === this) {
+            closeAddUpdateModal();
+          }
+        });
+      }
+    }
     
     // Notification system
     function showNotification(message, type = 'info') {
