@@ -227,15 +227,15 @@
       </div>
 
       <!-- Sprint Info & Progress Tracking -->
-      <section class="sprint-info" style="background: linear-gradient(135deg, rgba(118, 200, 147, 0.1), rgba(82, 182, 154, 0.05)); border-radius: 12px; padding: 18px 28px; margin-bottom: 28px; border: 1px solid rgba(118, 200, 147, 0.2); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+      <section class="sprint-info" id="sprintInfoSection" style="background: linear-gradient(135deg, rgba(118, 200, 147, 0.1), rgba(82, 182, 154, 0.05)); border-radius: 12px; padding: 18px 28px; margin-bottom: 28px; border: 1px solid rgba(118, 200, 147, 0.2); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
         <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
           <div>
             <strong style="color: #34A0A4;">Sprint Name:</strong> 
-            <span style="color: #083344;" id="sprintName">Sprint 1 - Development Phase</span>
+            <span style="color: #083344;" id="sprintName">No sprint selected</span>
           </div>
           <div>
             <strong style="color: #34A0A4;">Dates:</strong> 
-            <span style="color: #083344;" id="sprintDates">Jan 22 - Feb 5</span>
+            <span style="color: #083344;" id="sprintDates">Please select a sprint</span>
           </div>
           <div>
             <strong style="color: #34A0A4;">Team:</strong> 
@@ -249,7 +249,7 @@
       </section>
 
       <!-- Add Task Button (Sprint Board) -->
-      <div style="display:flex;justify-content:flex-end;margin-bottom:18px;">
+      <div id="addTaskBtnRow" style="display:none;justify-content:center;margin-bottom:18px;">
         <button class="btn" id="openAddTaskModal" style="min-width:120px; background: linear-gradient(135deg, #76C893, #52B69A); color: #fff; border: none; border-radius: 8px; padding: 12px 24px; font-size: 1rem; font-weight: 600; cursor: pointer;">+ Add Task</button>
       </div>
 
@@ -266,16 +266,60 @@
               <option value="inprogress">In Progress</option>
               <option value="done">Done</option>
             </select>
-            <div style="display:flex;justify-content:flex-end;gap:10px;">
-              <button type="button" class="btn" id="cancelAddTask" style="background:#e2e8f0;color:#222;">Cancel</button>
-              <button type="submit" class="btn">Add</button>
-            </div>
+            <!-- Create Sprint Form (hidden by default, shown for managers) -->
+<div id="createSprintForm" style="display:none; margin-bottom:18px; padding:16px; background:rgba(118,200,147,0.08); border-radius:8px; border:1px solid rgba(118,200,147,0.3);">
+  <h4 style="margin:0 0 12px 0; color:#34A0A4;">Create New Sprint</h4>
+  <label style="font-size:0.9rem; color:#083344; font-weight:600;">Sprint Name</label>
+  <input id="newSprintName" type="text" placeholder="e.g. Sprint 1"
+    style="width:100%;padding:9px 10px;border-radius:7px;border:1px solid #e2e8f0;font-size:1rem;background:#fff;margin:6px 0 12px 0;box-sizing:border-box;">
+  <div style="display:flex;gap:12px;">
+    <div style="flex:1;">
+      <label style="font-size:0.9rem;color:#083344;font-weight:600;">Start Date</label>
+      <input id="newSprintStart" type="date"
+        style="width:100%;padding:9px 10px;border-radius:7px;border:1px solid #e2e8f0;font-size:1rem;background:#fff;margin-top:6px;box-sizing:border-box;">
+    </div>
+    <div style="flex:1;">
+      <label style="font-size:0.9rem;color:#083344;font-weight:600;">End Date</label>
+      <input id="newSprintEnd" type="date"
+        style="width:100%;padding:9px 10px;border-radius:7px;border:1px solid #e2e8f0;font-size:1rem;background:#fff;margin-top:6px;box-sizing:border-box;">
+    </div>
+  </div>
+  <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:14px;">
+    <button type="button" onclick="document.getElementById('createSprintForm').style.display='none'"
+      style="background:#e2e8f0;color:#222;border:none;border-radius:7px;padding:9px 18px;cursor:pointer;font-size:0.95rem;">Cancel</button>
+    <button type="button" onclick="submitCreateSprint()"
+      style="background:linear-gradient(135deg,#76C893,#52B69A);color:#fff;border:none;border-radius:7px;padding:9px 18px;cursor:pointer;font-size:0.95rem;font-weight:600;">Create Sprint</button>
+  </div>
+</div>
+
+<div style="display:flex;justify-content:flex-end;gap:10px;">
+  <button type="button" class="btn" onclick="window.location.href='projects.html'"
+    style="background:#e2e8f0;color:#222;">Back to Projects</button>
+  <button type="button" id="showCreateSprintBtn" class="btn"
+    style="display:none; background:linear-gradient(135deg,#76C893,#52B69A);color:#fff;">
+    + Create Sprint
+  </button>
+</div>
           </form>
         </div>
       </div>
 
+      <!-- Sprint Selection Modal -->
+      <div id="sprintSelectionModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.18);z-index:1000;align-items:center;justify-content:center;">
+        <div style="background:#fff;padding:32px 28px 24px 28px;border-radius:10px;box-shadow:0 2px 16px rgba(0,0,0,0.12);width:400px;max-width:90vw;position:relative;">
+          <h3 style="margin-top:0;margin-bottom:18px;font-size:1.15rem;font-weight:600;color:#1a202c;">Select a Sprint</h3>
+          <p style="margin-bottom:18px;color:#666;">Please select a sprint to work with:</p>
+          <div id="sprintList" style="max-height:200px;overflow-y:auto;margin-bottom:18px;">
+            <!-- Sprint options will be populated here -->
+          </div>
+          <div style="display:flex;justify-content:flex-end;gap:10px;">
+            <button type="button" class="btn" onclick="window.location.href='projects.html'" style="background:#e2e8f0;color:#222;">Back to Projects</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Sprint Kanban Board -->
-      <div class="board fade-in" id="sprintBoard">
+      <div class="board fade-in" id="sprintBoard" style="display:none;">
         <div class="column">
           <div class="column-title">To Do</div>
           <div id="todo" class="column-tasks">
@@ -320,13 +364,24 @@
         <button class="btn" id="saveRetro">Save Retrospective</button>
       </section>
     </main>
-  </div>
-  
+ </div> <!-- end .main-container -->
+
+  <script src="api.js"></script>
   <script>
-    // Global navigation functions
-    function navigateTo(page) {
-      window.location.href = page;
-    }
+    // ── AUTH GUARD ─────────────────────────────────────────────
+    (function() {
+      const token = localStorage.getItem('token');
+      const user  = JSON.parse(localStorage.getItem('user') || 'null');
+      if (!token || !user) {
+        window.location.href = 'login.html';
+        return;
+      }
+      // Sprint page is accessible by both managers AND workers
+      // so no role redirect needed here
+    })();
+
+    // ── NAVIGATION & SIDEBAR ───────────────────────────────────
+    function navigateTo(page) { window.location.href = page; }
 
     function logout() {
       if (confirm('Are you sure you want to logout?')) {
@@ -335,51 +390,34 @@
       }
     }
 
-    // Initialize CSS variables and resize functionality first
-    const root = document.documentElement;
-    const sidebar = document.getElementById('sidebar');
+    const root      = document.documentElement;
+    const sidebar   = document.getElementById('sidebar');
     const resizeBtn = document.getElementById('sidebarResizeBtn');
-    
     let sidebarState = 'normal';
-    
+
     function setSidebarWidth(width) {
       root.style.setProperty('--sidebar-width', width + 'px');
       localStorage.setItem('sidebarWidth', width);
-      
       if (sidebar) {
         sidebar.classList.remove('compact', 'wide');
-        if (width <= 250) {
-          sidebar.classList.add('compact');
-          sidebarState = 'compact';
-        } else if (width >= 380) {
-          sidebar.classList.add('wide');
-          sidebarState = 'wide';
-        } else {
-          sidebarState = 'normal';
-        }
+        if (width <= 250)      { sidebar.classList.add('compact'); sidebarState = 'compact'; }
+        else if (width >= 380) { sidebar.classList.add('wide');    sidebarState = 'wide'; }
+        else                   { sidebarState = 'normal'; }
       }
     }
-    
-    // Load saved width first
+
     const savedWidth = localStorage.getItem('sidebarWidth');
-    if (savedWidth) {
-      setSidebarWidth(parseInt(savedWidth));
-    }
-    
+    if (savedWidth) setSidebarWidth(parseInt(savedWidth));
+
     if (resizeBtn) {
       resizeBtn.addEventListener('click', () => {
-        if (sidebarState === 'compact') {
-          setSidebarWidth(300);
-        } else if (sidebarState === 'normal') {
-          setSidebarWidth(400);
-        } else {
-          setSidebarWidth(220);
-        }
+        if (sidebarState === 'compact')     setSidebarWidth(300);
+        else if (sidebarState === 'normal') setSidebarWidth(400);
+        else                                setSidebarWidth(220);
       });
     }
-    
+
     let isResizing = false;
-    
     if (sidebar) {
       sidebar.addEventListener('mousedown', (e) => {
         if (e.offsetX > sidebar.offsetWidth - 10) {
@@ -389,49 +427,277 @@
         }
       });
     }
-    
     document.addEventListener('mousemove', (e) => {
-      if (isResizing) {
-        const newWidth = Math.min(Math.max(e.clientX, 220), 450);
-        setSidebarWidth(newWidth);
-      }
+      if (isResizing) setSidebarWidth(Math.min(Math.max(e.clientX, 220), 450));
     });
-    
     document.addEventListener('mouseup', () => {
-      if (isResizing) {
-        isResizing = false;
-        document.body.style.cursor = 'default';
-      }
+      if (isResizing) { isResizing = false; document.body.style.cursor = 'default'; }
     });
-    
-    // Update task count when tasks change
-    function updateTaskCount() {
-      const tasks = document.querySelectorAll('.task-card');
-      const placeholders = document.querySelectorAll('.column-placeholder');
-      
-      // Hide placeholders if there are tasks, show if no tasks
+
+    // ── SPRINT & TASK LOGIC ────────────────────────────────────
+    const user        = JSON.parse(localStorage.getItem('user') || 'null');
+    const userRole    = user?.role;
+
+    // Get projectId and sprintId passed from projects.html
+    const params      = new URLSearchParams(window.location.search);
+    let currentProjectId = params.get('projectId') || localStorage.getItem('currentProjectId');
+    let currentSprintId  = params.get('sprintId')  || localStorage.getItem('currentSprintId');
+
+    if (currentProjectId) localStorage.setItem('currentProjectId', currentProjectId);
+    if (currentSprintId)  localStorage.setItem('currentSprintId',  currentSprintId);
+
+    // Show/hide Add Task button based on role
+    const addTaskBtnRow = document.getElementById('addTaskBtnRow');
+    if (userRole === 'manager') {
+      addTaskBtnRow.style.display = 'flex';
+    }
+    // ── CREATE SPRINT ──────────────────────────────────────────
+// Show "Create Sprint" button only for managers
+if (userRole === 'manager') {
+  const showBtn = document.getElementById('showCreateSprintBtn');
+  if (showBtn) showBtn.style.display = 'inline-block';
+}
+
+document.getElementById('showCreateSprintBtn')?.addEventListener('click', () => {
+  document.getElementById('createSprintForm').style.display = 'block';
+  // Pre-fill today's date
+  const today = new Date().toISOString().split('T')[0];
+  const twoWeeks = new Date(Date.now() + 14*24*60*60*1000).toISOString().split('T')[0];
+  document.getElementById('newSprintStart').value = today;
+  document.getElementById('newSprintEnd').value   = twoWeeks;
+});
+
+async function submitCreateSprint() {
+  const name  = document.getElementById('newSprintName').value.trim();
+  const start = document.getElementById('newSprintStart').value;
+  const end   = document.getElementById('newSprintEnd').value;
+
+  if (!name || !start || !end) {
+    alert('Please fill in all fields.');
+    return;
+  }
+  if (!currentProjectId) {
+    alert('No project selected.');
+    return;
+  }
+
+  try {
+    await createSprint(name, start, end, currentProjectId);
+    // Hide form and reload sprints
+    document.getElementById('createSprintForm').style.display = 'none';
+    document.getElementById('newSprintName').value = '';
+    document.getElementById('sprintSelectionModal').style.display = 'none';
+    await loadSprint(); // will now find the new sprint and load it
+  } catch (err) {
+    console.error('Error creating sprint:', err);
+    alert('Failed to create sprint: ' + err.message);
+  }
+}
+
+    // ── LOAD SPRINT DATA ───────────────────────────────────────
+    async function loadSprint() {
+      if (!currentProjectId) {
+        showSprintSelectionModal();
+        return;
+      }
+
+      try {
+        // Load sprints for this project
+        const sprints = await getProjectSprints(currentProjectId);
+
+        if (!sprints || sprints.length === 0) {
+          document.getElementById('sprintName').textContent  = 'No sprints found';
+          document.getElementById('sprintDates').textContent = 'Create a sprint first';
+          showSprintSelectionModal(sprints);
+          return;
+        }
+
+        // If no sprintId in URL, show selection modal
+        if (!currentSprintId) {
+          showSprintSelectionModal(sprints);
+          return;
+        }
+
+        const sprint = sprints.find(s => s._id === currentSprintId) || sprints[0];
+        currentSprintId = sprint._id;
+        localStorage.setItem('currentSprintId', currentSprintId);
+
+        // Update sprint header
+        document.getElementById('sprintName').textContent =
+          sprint.sprintName || sprint.name || 'Sprint';
+        document.getElementById('sprintDates').textContent =
+          `${new Date(sprint.startDate).toLocaleDateString()} → ${new Date(sprint.endDate).toLocaleDateString()}`;
+
+        // Load tasks for this sprint
+        await loadTasks();
+
+        document.getElementById('sprintBoard').style.display = 'flex';
+
+      } catch (err) {
+        console.error('Error loading sprint:', err);
+      }
+    }
+
+    async function loadTasks() {
+      try {
+        const tasks = await getSprintTasks(currentSprintId, currentProjectId);
+        renderTasks(tasks || []);
+      } catch (err) {
+        console.error('Error loading tasks:', err);
+      }
+    }
+
+    function renderTasks(tasks) {
+      // Clear columns
       ['todo', 'inprogress', 'done'].forEach(status => {
-        const column = document.getElementById(status);
-        const placeholder = column.querySelector('.column-placeholder');
-        const tasksInColumn = column.querySelectorAll('.task-card');
-        
-        if (tasksInColumn.length > 0) {
-          placeholder.style.display = 'none';
-        } else {
-          placeholder.style.display = 'block';
+        const col = document.getElementById(status);
+        col.innerHTML = `<div class="column-placeholder" style="color:#6b7280;font-style:italic;text-align:center;padding:20px 16px;background:rgba(118,200,147,0.03);border-radius:8px;border:2px dashed rgba(118,200,147,0.2);">
+          ${status === 'todo' ? '📝 No tasks yet.' : status === 'inprogress' ? '🚀 Drag tasks here' : '✅ Completed tasks'}
+        </div>`;
+      });
+
+      tasks.forEach(task => {
+        const colId = task.status === 'inprogress' ? 'inprogress'
+                    : task.status === 'done'       ? 'done'
+                    : 'todo';
+        addTaskCard(task, colId);
+      });
+
+      updateTaskCount();
+    }
+
+    function addTaskCard(task, colId) {
+      const col         = document.getElementById(colId);
+      const placeholder = col.querySelector('.column-placeholder');
+      if (placeholder) placeholder.style.display = 'none';
+
+      const card = document.createElement('div');
+      card.className      = 'task-card';
+      card.draggable      = true;
+      card.dataset.taskId = task._id;
+      card.innerHTML = `
+        <div style="font-weight:600;margin-bottom:4px;">${task.title}</div>
+        ${task.assignedTo ? `<div style="font-size:0.85rem;color:#52B69A;">👤 ${task.assignedTo.name || task.assignedTo}</div>` : ''}
+        <div style="font-size:0.8rem;color:#888;margin-top:4px;">
+          <span style="padding:2px 8px;border-radius:10px;background:rgba(118,200,147,0.2);">${task.priority || 'medium'}</span>
+        </div>
+      `;
+
+      // Drag events
+      card.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('taskId', task._id);
+        card.style.opacity = '0.5';
+      });
+      card.addEventListener('dragend', () => { card.style.opacity = '1'; });
+
+      col.appendChild(card);
+    }
+
+    // ── DRAG AND DROP ──────────────────────────────────────────
+    ['todo', 'inprogress', 'done'].forEach(colId => {
+      const col = document.getElementById(colId);
+
+      col.addEventListener('dragover', e => { e.preventDefault(); col.style.background = 'rgba(118,200,147,0.1)'; });
+      col.addEventListener('dragleave', ()  => { col.style.background = ''; });
+      col.addEventListener('drop', async e => {
+        e.preventDefault();
+        col.style.background = '';
+        const taskId = e.dataTransfer.getData('taskId');
+        if (!taskId) return;
+
+        try {
+          await updateTaskStatus(taskId, colId);
+          await loadTasks(); // reload to reflect new status
+        } catch (err) {
+          console.error('Error updating task status:', err);
         }
       });
-      
-      // Update progress counter
-      const totalTasks = tasks.length;
-      const completedTasks = document.querySelectorAll('#done .task-card').length;
-      document.getElementById('sprintProgress').textContent = `${completedTasks}/${totalTasks} tasks completed`;
+    });
+
+    // ── ADD TASK MODAL ─────────────────────────────────────────
+    document.getElementById('openAddTaskModal').addEventListener('click', () => {
+      document.getElementById('addTaskModal').style.display = 'flex';
+    });
+    document.getElementById('cancelAddTask').addEventListener('click', () => {
+      document.getElementById('addTaskModal').style.display = 'none';
+    });
+
+    document.getElementById('addTaskForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const title  = document.getElementById('taskTitleInput').value.trim();
+      const status = document.getElementById('taskStatusInput').value;
+
+      if (!title) return;
+
+      try {
+        await createTask(
+          title,
+          '',               // description
+          null,             // assignedTo (optional, can extend later)
+          currentSprintId,
+          currentProjectId,
+          'medium',
+          null,
+          status
+        );
+
+        document.getElementById('taskTitleInput').value = '';
+        document.getElementById('addTaskModal').style.display = 'none';
+        await loadTasks(); // refresh board
+      } catch (err) {
+        console.error('Error creating task:', err);
+        alert('Failed to create task. Make sure you have manager access to this project.');
+      }
+    });
+
+    // ── SPRINT SELECTION MODAL ─────────────────────────────────
+    function showSprintSelectionModal(sprints = []) {
+      const modal    = document.getElementById('sprintSelectionModal');
+      const listEl   = document.getElementById('sprintList');
+      modal.style.display = 'flex';
+
+      if (!sprints.length) {
+        listEl.innerHTML = '<p style="color:#666;">No sprints available. Create one from the Projects page.</p>';
+        return;
+      }
+
+      listEl.innerHTML = sprints.map(s => `
+        <div onclick="selectSprint('${s._id}')"
+          style="padding:12px 16px;border-radius:8px;cursor:pointer;margin-bottom:8px;
+                 background:rgba(118,200,147,0.1);border:1px solid rgba(118,200,147,0.3);
+                 transition:background 0.2s;"
+          onmouseover="this.style.background='rgba(118,200,147,0.25)'"
+          onmouseout="this.style.background='rgba(118,200,147,0.1)'">
+          <strong>${s.sprintName || s.name}</strong>
+          <div style="font-size:0.85rem;color:#666;">
+            ${new Date(s.startDate).toLocaleDateString()} → ${new Date(s.endDate).toLocaleDateString()}
+          </div>
+        </div>
+      `).join('');
     }
-    
-    // Call updateTaskCount initially and whenever tasks change
-    updateTaskCount();
+
+    function selectSprint(sprintId) {
+      currentSprintId = sprintId;
+      localStorage.setItem('currentSprintId', sprintId);
+      document.getElementById('sprintSelectionModal').style.display = 'none';
+      loadSprint();
+    }
+
+    // ── TASK COUNT ─────────────────────────────────────────────
+    function updateTaskCount() {
+      const total     = document.querySelectorAll('.task-card').length;
+      const completed = document.querySelectorAll('#done .task-card').length;
+      document.getElementById('sprintProgress').textContent = `${completed}/${total} tasks completed`;
+    }
+
+    // ── RETROSPECTIVE ──────────────────────────────────────────
+    document.getElementById('saveRetro').addEventListener('click', () => {
+      alert('Retrospective saved!');
+      // You can extend this to POST to your backend later
+    });
+
+    // ── INIT ───────────────────────────────────────────────────
+    loadSprint();
   </script>
-  <script src="api.js"></script>
-  <script src="sprint.js"></script>
 </body>
 </html>

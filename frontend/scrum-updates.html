@@ -250,8 +250,25 @@
       </form>
     </div>
   </div>
+ 
 
   <script>
+     // AUTH GUARD — paste at top of every protected page
+(function() {
+  const token = localStorage.getItem('token');
+  const user  = JSON.parse(localStorage.getItem('user') || 'null');
+  if (!token || !user) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  // Role-based protection
+  // On manager-only pages (dashboard.html, team.html, reports.html):
+  if (user.role !== 'manager') window.location.href = 'dashboard-team.html';
+
+  // On worker-only pages (dashboard-team.html, my-tasks.html):
+  // if (user.role !== 'worker') window.location.href = 'dashboard.html';
+})();
     // Global navigation and utility functions
     function navigateTo(page) {
       window.location.href = page;

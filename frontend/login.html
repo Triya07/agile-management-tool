@@ -587,11 +587,7 @@
           showNotification('Login successful! Redirecting...', 'success');
           
           setTimeout(() => {
-            if (result.user.role === 'manager') {
-              window.location.href = 'projects.html';
-            } else {
-              window.location.href = 'dashboard-team.html';
-            }
+            window.location.href = 'dashboard.html';
           }, 1000);
         } else {
           showNotification(result.message || 'Invalid email or password', 'error');

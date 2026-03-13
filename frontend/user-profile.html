@@ -423,6 +423,335 @@
   </style>
 </head>
 <body>
+<<<<<<< HEAD
+=======
+  
+
+  <script src="api.js"></script>
+  <script>
+    // AUTH GUARD — paste at top of every protected page
+(function() {
+  const token = localStorage.getItem('token');
+  const user  = JSON.parse(localStorage.getItem('user') || 'null');
+  if (!token || !user) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  // Role-based protection
+  // On manager-only pages (dashboard.html, team.html, reports.html):
+  if (user.role !== 'manager') window.location.href = 'dashboard-team.html';
+
+  // On worker-only pages (dashboard-team.html, my-tasks.html):
+  // if (user.role !== 'worker') window.location.href = 'dashboard.html';
+})();
+    let currentUser = null;
+    let dashboardData = null;
+
+    // Check authentication first
+    function checkAuth() {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        window.location.href = '/login.html';
+        return false;
+      }
+      return true;
+    }
+
+    async function loadUserProfile() {
+      try {
+        // Load profile
+        const profileResponse = await getUserProfile();
+        currentUser = profileResponse.user;
+
+        // Load dashboard data
+        dashboardData = await getUserDashboard();
+
+        // Update UI
+        updateProfileUI();
+        loadProjects();
+        loadTasks();
+        loadActivity();
+      } catch (error) {
+        showAlert("Error loading profile: " + error.message, "error");
+        console.error("Error:", error);
+        // If 401, redirect to login
+        if (error.message.includes("401")) {
+          window.location.href = "/login.html";
+        }
+      }
+    }
+
+    function updateProfileUI() {
+      if (!currentUser) return;
+
+      document.getElementById("userName").textContent = currentUser.name;
+      document.getElementById("userEmail").textContent = currentUser.email;
+      document.getElementById("userRole").textContent = currentUser.role === "manager" ? "Manager" : "Team Member";
+      document.getElementById("profileAvatar").textContent = currentUser.name.charAt(0).toUpperCase();
+
+      // Update form
+      document.getElementById("nameInput").value = currentUser.name;
+      document.getElementById("emailInput").value = currentUser.email;
+
+      // Update stats
+      if (dashboardData && dashboardData.stats) {
+        document.getElementById("statProjects").textContent = dashboardData.stats.totalProjects;
+        document.getElementById("statScrumProjects").textContent = dashboardData.stats.scrumProjects;
+        document.getElementById("statKanbanProjects").textContent = dashboardData.stats.kanbanProjects;
+        document.getElementById("statTasksDone").textContent = dashboardData.stats.tasksByStatus.done || 0;
+      }
+    }
+
+    async function loadProjects() {
+      try {
+        const response = await getUserProjects();
+        const projects = response.projects || [];
+
+        let html = '';
+        if (projects.length === 0) {
+          html = '<div class="loading">No projects yet. Create one to get started!</div>';
+        } else {
+          projects.forEach(project => {
+            const badge = project.type === "scrum" ? "🔄 Scrum" : "📋 Kanban";
+            html += `
+              <div class="project-card" onclick="navigateToProject('${project._id}')">
+                <div>${badge}</div>
+                <h3>${project.name}</h3>
+                ${project.description ? `<p style="color: #666; font-size: 0.9rem; margin-bottom: 12px;">${project.description}</p>` : ''}
+                <div class="project-stats">
+                  <div class="project-stat">
+                    <div class="project-stat-value">${project.stats?.sprints || 0}</div>
+                    <div>Sprints</div>
+                  </div>
+                  <div class="project-stat">
+                    <div class="project-stat-value">${project.stats?.tasks || 0}</div>
+                    <div>Tasks</div>
+                  </div>
+                  <div class="project-stat">
+                    <div class="project-stat-value">${project.stats?.tasksAssignedToUser || 0}</div>
+                    <div>Assigned</div>
+                  </div>
+                </div>
+              </div>
+            `;
+          });
+        }
+
+        document.getElementById("projectsList").innerHTML = html;
+      } catch (error) {
+        console.error("Error loading projects:", error);
+        document.getElementById("projectsList").innerHTML = `<div class="error">Error loading projects</div>`;
+      }
+    }
+
+    async function loadTasks() {
+      try {
+        if (!dashboardData || !dashboardData.assignedTasks) {
+          document.getElementById("tasksList").innerHTML = '<div class="loading">No tasks assigned</div>';
+          return;
+        }
+
+        const tasks = dashboardData.assignedTasks || [];
+        
+        let html = '';
+        if (tasks.length === 0) {
+          html = '<div class="loading">No tasks assigned to you</div>';
+        } else {
+          html = '<ul class="activity-list">';
+          tasks.forEach(task => {
+            const statusColor = task.status === 'done' ? '#10b981' : task.status === 'inprogress' ? '#f59e0b' : '#6b7280';
+            html += `
+              <li class="activity-item">
+                <div>
+                  <div class="activity-title">${task.title}</div>
+                  <div class="activity-meta">
+                    <strong>${task.projectId?.name || 'N/A'}</strong> • 
+                    Status: <span style="color: ${statusColor}; font-weight: 600;">${task.status.toUpperCase()}</span>
+                  </div>
+                </div>
+              </li>
+            `;
+          });
+          html += '</ul>';
+        }
+
+        document.getElementById("tasksList").innerHTML = html;
+      } catch (error) {
+        console.error("Error loading tasks:", error);
+        document.getElementById("tasksList").innerHTML = `<div class="error">Error loading tasks</div>`;
+      }
+    }
+
+    async function loadActivity() {
+      try {
+        const response = await getUserActivity();
+        
+        let html = '<ul class="activity-list">';
+
+        if (response.recentAssignedTasks && response.recentAssignedTasks.length > 0) {
+          html += '<li style="margin: 16px 0; font-weight: 600; color: #0891b2;">Recent Assigned Tasks:</li>';
+          response.recentAssignedTasks.forEach(task => {
+            html += `
+              <li class="activity-item">
+                <div>
+                  <div class="activity-title">${task.title}</div>
+                  <div class="activity-meta">Assigned by ${task.createdBy?.name || 'Someone'} in ${task.projectId?.name || 'N/A'}</div>
+                </div>
+              </li>
+            `;
+          });
+        }
+
+        if (response.recentCreatedTasks && response.recentCreatedTasks.length > 0) {
+          html += '<li style="margin: 16px 0; font-weight: 600; color: #0891b2;">Tasks You Created:</li>';
+          response.recentCreatedTasks.forEach(task => {
+            html += `
+              <li class="activity-item">
+                <div>
+                  <div class="activity-title">${task.title}</div>
+                  <div class="activity-meta">Created in ${task.projectId?.name || 'N/A'}</div>
+                </div>
+              </li>
+            `;
+          });
+        }
+
+        if (response.activeSprints && response.activeSprints.length > 0) {
+          html += '<li style="margin: 16px 0; font-weight: 600; color: #0891b2;">Active Sprints:</li>';
+          response.activeSprints.forEach(sprint => {
+            html += `
+              <li class="activity-item">
+                <div>
+                  <div class="activity-title">${sprint.sprintName}</div>
+                  <div class="activity-meta">In ${sprint.projectId?.name || 'N/A'}</div>
+                </div>
+              </li>
+            `;
+          });
+        }
+
+        html += '</ul>';
+        if (html === '<ul class="activity-list"></ul>') {
+          html = '<div class="loading">No activity yet</div>';
+        }
+
+        document.getElementById("activityList").innerHTML = html;
+      } catch (error) {
+        console.error("Error loading activity:", error);
+        document.getElementById("activityList").innerHTML = `<div class="error">Error loading activity</div>`;
+      }
+    }
+
+    function switchTab(tabName) {
+      // Hide all tabs
+      document.querySelectorAll(".tab-content").forEach(tab => {
+        tab.classList.remove("active");
+      });
+
+      // Remove active from all buttons
+      document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.classList.remove("active");
+      });
+
+      // Show selected tab
+      document.getElementById(tabName).classList.add("active");
+      event.target.classList.add("active");
+    }
+
+    document.getElementById("profileForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById("nameInput").value.trim();
+      const email = document.getElementById("emailInput").value.trim();
+
+      if (!name || !email) {
+        showAlert("Please fill in all fields", "error");
+        return;
+      }
+
+      try {
+        const response = await updateUserProfile(name, email);
+        currentUser = response.user;
+        updateProfileUI();
+        showAlert("Profile updated successfully!", "success");
+      } catch (error) {
+        showAlert("Error updating profile: " + error.message, "error");
+      }
+    });
+
+    function resetForm() {
+      if (currentUser) {
+        document.getElementById("nameInput").value = currentUser.name;
+        document.getElementById("emailInput").value = currentUser.email;
+      }
+    }
+
+    function navigateToProject(projectId) {
+      localStorage.setItem("activeProject", projectId);
+      window.location.href = "/projects.html";
+    }
+
+    function navigateToDashboard() {
+      const userRole = currentUser?.role || 'member';
+      if (userRole === 'manager') {
+        window.location.href = '/dashboard.html';
+      } else {
+        window.location.href = '/dashboard-team.html';
+      }
+    }
+
+    function navigateToTasks() {
+      window.location.href = '/my-tasks.html';
+    }
+
+    function navigateToProjects() {
+      window.location.href = '/projects.html';
+    }
+
+    function logout() {
+      if (confirm('Are you sure you want to logout?')) {
+        localStorage.clear();
+        window.location.href = '/login.html';
+      }
+    }
+
+    function showAlert(message, type) {
+      const alertContainer = document.getElementById("alertContainer");
+      const className = type === "error" ? "error" : "success";
+      const html = `<div class="${className}" style="margin-bottom: 20px;">${message}</div>`;
+      alertContainer.innerHTML = html;
+
+      setTimeout(() => {
+        alertContainer.innerHTML = "";
+      }, 4000);
+    }
+
+    // Load on page load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', loadUserProfile);
+    } else {
+      loadUserProfile();
+    }
+
+    // Navigation functions
+    function navigateTo(page) {
+      window.location.href = page;
+    }
+
+    function logout() {
+      if (confirm('Are you sure you want to logout?')) {
+        localStorage.clear();
+        window.location.href = 'index.html';
+      }
+    }
+
+    function navigateToProject(projectId) {
+      window.location.href = `sprint.html?projectId=${projectId}`;
+    }
+  </script>
+
+>>>>>>> 7daa70b62fe5667570c56f9421d22c2ff6bc2620
   <div class="main-container">
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-logo">
