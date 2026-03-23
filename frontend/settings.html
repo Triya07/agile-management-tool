@@ -195,17 +195,38 @@
     document.getElementById('notifyPush').addEventListener('change',(e)=>{ localStorage.setItem('notifyPush', e.target.checked); showAlert('Notification preference saved'); });
 
     document.getElementById('changePasswordBtn').addEventListener('click', ()=>{
-      // If backend supports password change, it would be called here. For now show guidance.
-      alert('To change your password, please use the password reset flow or contact your administrator.');
+      const currentPassword = prompt('Enter your current password:');
+      if (!currentPassword) return;
+
+      const newPassword = prompt('Enter your new password (min 6 chars):');
+      if (!newPassword) return;
+
+      if (newPassword.length < 6) {
+        showAlert('New password must be at least 6 characters', 'error');
+        return;
+      }
+
+      changePassword(currentPassword, newPassword)
+        .then(() => {
+          showAlert('Password changed successfully');
+        })
+        .catch((err) => {
+          showAlert(err.message || 'Unable to change password', 'error');
+        });
     });
 
     document.getElementById('deleteAccountBtn').addEventListener('click', ()=>{
       if(!confirm('Delete your account permanently? This cannot be undone.')) return;
-      // No backend delete endpoint implemented — perform client-side cleanup and sign out.
-      // If backend delete exists, call it here. For now simulate deletion by logging out.
-      localStorage.clear();
-      showAlert('Account deletion simulated. You are logged out.');
-      setTimeout(()=> window.location.href='index.html',1200);
+
+      deleteMyAccount()
+        .then(() => {
+          localStorage.clear();
+          showAlert('Account deleted. Redirecting...');
+          setTimeout(()=> window.location.href='index.html',1200);
+        })
+        .catch((err) => {
+          showAlert(err.message || 'Unable to delete account', 'error');
+        });
     });
 
     document.getElementById('signOutAllBtn').addEventListener('click', ()=>{

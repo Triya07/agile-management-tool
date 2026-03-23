@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Backlog | Agile Management Tool</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, #f7fceb 0%, #ecfdf0 50%, #d1fae5 100%);
+      font-family: 'Segoe UI', Arial, sans-serif;
+      color: #083344;
+    }
+    .main-container {
+      display: flex;
+      min-height: 100vh;
+      margin-left: var(--sidebar-width, 300px);
+      width: calc(100% - var(--sidebar-width, 300px));
+    }
+    #main-content {
+      flex: 1;
+      padding: 30px 36px;
+    }
+    .page-title {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 18px;
+      background: linear-gradient(135deg, #76c893, #34a0a4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .panel {
+      background: rgba(255, 255, 255, 0.88);
+      border: 1px solid rgba(118, 200, 147, 0.2);
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(8, 51, 68, 0.08);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .row input, .row select {
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(118, 200, 147, 0.35);
+      background: #fff;
+    }
+    .btn {
+      background: linear-gradient(135deg, #76c893, #52b69a);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn.secondary {
+      background: #e2e8f0;
+      color: #124;
+    }
+    .backlog-list {
+      display: grid;
+      gap: 12px;
+    }
+    .item {
+      display: grid;
+      grid-template-columns: 64px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      border: 1px solid rgba(118, 200, 147, 0.2);
+      border-radius: 10px;
+      padding: 12px;
+      background: #fff;
+    }
+    .rank {
+      font-size: 1.25rem;
+      font-weight: 700;
+      text-align: center;
+      color: #2c7a7b;
+    }
+    .meta {
+      color: #466;
+      font-size: 0.9rem;
+      margin-top: 4px;
+    }
+    .item-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .hint {
+      color: #4a5568;
+      font-size: 0.9rem;
+    }
+    .empty {
+      color: #64748b;
+      text-align: center;
+      padding: 20px;
+      border: 2px dashed rgba(118, 200, 147, 0.2);
+      border-radius: 10px;
+      background: rgba(118, 200, 147, 0.04);
+    }
+    @media (max-width: 900px) {
+      .main-container {
+        margin-left: 0;
+        width: 100%;
+      }
+      .item {
+        grid-template-columns: 1fr;
+      }
+      .rank {
+        text-align: left;
+      }
+      .item-actions {
+        justify-content: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <span style="font-size:1.8rem;font-weight:900;background:linear-gradient(135deg,#D9ED92,#76C893,#34A0A4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">FlowBoard</span>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="sidebar-btn" onclick="navigateTo('kanban-board.html')">Kanban Board</button>
+        <button class="sidebar-btn" onclick="navigateTo('projects.html')">Projects</button>
+        <button class="sidebar-btn" onclick="navigateTo('dashboard.html')">Dashboard</button>
+        <button class="sidebar-btn" onclick="navigateTo('sprint.html')">Sprints</button>
+        <button class="sidebar-btn active">Backlog</button>
+        <button class="sidebar-btn" onclick="navigateTo('reports.html')">Reports</button>
+        <button class="sidebar-btn" onclick="logout()">Logout</button>
+      </nav>
+    </aside>
+
+    <main id="main-content">
+      <h1 class="page-title">Product Backlog</h1>
+
+      <section class="panel">
+        <div class="row">
+          <label for="projectSelect"><strong>Project</strong></label>
+          <select id="projectSelect"></select>
+          <span class="hint">Rank is strict priority order. Top = most important.</span>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3 style="margin-top:0;">Add Backlog Item</h3>
+        <div class="row">
+          <input id="newTitle" type="text" placeholder="Story title" style="flex:2; min-width: 220px;">
+          <select id="newPriority" title="Priority" aria-label="Priority">
+            <option value="low">Low</option>
+            <option value="medium" selected>Medium</option>
+            <option value="high">High</option>
+            <option value="critical">Critical</option>
+          </select>
+          <input id="newPoints" type="number" min="1" value="1" style="width:96px;" title="Story points">
+          <button class="btn" id="addBacklogBtn">Add to Backlog</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3 style="margin-top:0;">Ranked Backlog</h3>
+        <div id="backlogList" class="backlog-list"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="api.js"></script>
+  <script>
+    (function () {
+      const token = localStorage.getItem('token');
+      const user = JSON.parse(localStorage.getItem('user') || 'null');
+      if (!token || !user) {
+        window.location.href = 'login.html';
+        return;
+      }
+      if (user.role !== 'manager') {
+        window.location.href = 'dashboard-team.html';
+      }
+    })();
+
+    const projectSelect = document.getElementById('projectSelect');
+    const backlogList = document.getElementById('backlogList');
+
+    let selectedProjectId = '';
+    let cachedBacklog = [];
+    let projectSprints = [];
+
+    function navigateTo(page) {
+      window.location.href = page;
+    }
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = 'login.html';
+    }
+
+    async function init() {
+      await loadProjects();
+      bindEvents();
+    }
+
+    function bindEvents() {
+      projectSelect.addEventListener('change', async () => {
+        selectedProjectId = projectSelect.value;
+        await Promise.all([loadBacklog(), loadSprints()]);
+      });
+
+      document.getElementById('addBacklogBtn').addEventListener('click', addBacklogItem);
+    }
+
+    async function loadProjects() {
+      const projects = await getProjects();
+      const list = Array.isArray(projects) ? projects : [];
+
+      if (!list.length) {
+        projectSelect.innerHTML = '<option value="">No projects</option>';
+        backlogList.innerHTML = '<div class="empty">Create a project first.</div>';
+        return;
+      }
+
+      projectSelect.innerHTML = list
+        .map(project => `<option value="${project._id}">${project.name}</option>`)
+        .join('');
+
+      selectedProjectId = projectSelect.value;
+      await Promise.all([loadBacklog(), loadSprints()]);
+    }
+
+    async function loadSprints() {
+      if (!selectedProjectId) {
+        projectSprints = [];
+        return;
+      }
+      const sprintResponse = await getProjectSprints(selectedProjectId);
+      projectSprints = Array.isArray(sprintResponse) ? sprintResponse : [];
+    }
+
+    async function loadBacklog() {
+      if (!selectedProjectId) {
+        backlogList.innerHTML = '<div class="empty">Choose a project.</div>';
+        return;
+      }
+
+      const backlog = await getBacklogTasks(selectedProjectId);
+      cachedBacklog = Array.isArray(backlog) ? backlog : [];
+      renderBacklog();
+    }
+
+    function renderBacklog() {
+      if (!cachedBacklog.length) {
+        backlogList.innerHTML = '<div class="empty">No backlog items yet. Add the first story above.</div>';
+        return;
+      }
+
+      backlogList.innerHTML = cachedBacklog.map((task, index) => {
+        const sprintOptions = projectSprints.map(s => `<option value="${s._id}">${s.sprintName}</option>`).join('');
+        return `
+          <article class="item">
+            <div class="rank">#${index + 1}</div>
+            <div>
+              <div><strong>${escapeHtml(task.title)}</strong></div>
+              <div class="meta">Priority: ${task.priority || 'medium'} | Points: ${task.storyPoints || 1}</div>
+            </div>
+            <div class="item-actions">
+              <button class="btn secondary" onclick="moveRank('${task._id}', -1)">Up</button>
+              <button class="btn secondary" onclick="moveRank('${task._id}', 1)">Down</button>
+              <select id="sprint-${task._id}" title="Move to sprint" aria-label="Move to sprint">
+                <option value="">Move to sprint...</option>
+                ${sprintOptions}
+              </select>
+              <button class="btn" onclick="sendToSprint('${task._id}')">Send</button>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    async function addBacklogItem() {
+      const title = document.getElementById('newTitle').value.trim();
+      const priority = document.getElementById('newPriority').value;
+      const storyPoints = Number(document.getElementById('newPoints').value || 1);
+
+      if (!title || !selectedProjectId) {
+        alert('Title and project are required.');
+        return;
+      }
+
+      await apiCall('/tasks/create', {
+        method: 'POST',
+        body: JSON.stringify({
+          title,
+          description: '',
+          assignedTo: null,
+          sprint: null,
+          projectId: selectedProjectId,
+          priority,
+          dueDate: null,
+          status: 'todo',
+          storyPoints,
+          taskType: 'story'
+        })
+      });
+
+      document.getElementById('newTitle').value = '';
+      document.getElementById('newPoints').value = '1';
+      await loadBacklog();
+    }
+
+    async function sendToSprint(taskId) {
+      const sprintId = document.getElementById(`sprint-${taskId}`).value;
+      if (!sprintId) {
+        alert('Select a sprint first.');
+        return;
+      }
+      await moveTask(taskId, sprintId);
+      await loadBacklog();
+    }
+
+    async function moveRank(taskId, direction) {
+      const currentIndex = cachedBacklog.findIndex(task => task._id === taskId);
+      if (currentIndex === -1) return;
+
+      const nextIndex = currentIndex + direction;
+      if (nextIndex < 0 || nextIndex >= cachedBacklog.length) return;
+
+      const reordered = [...cachedBacklog];
+      const [moved] = reordered.splice(currentIndex, 1);
+      reordered.splice(nextIndex, 0, moved);
+
+      await reorderBacklog(selectedProjectId, reordered.map(task => task._id));
+      cachedBacklog = reordered;
+      renderBacklog();
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    init().catch(error => {
+      console.error('Backlog page failed to initialize', error);
+      backlogList.innerHTML = '<div class="empty">Unable to load backlog data right now.</div>';
+    });
+
+    window.moveRank = moveRank;
+    window.sendToSprint = sendToSprint;
+  </script>
+</body>
+</html>

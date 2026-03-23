@@ -1,7 +1,7 @@
 // Initialize kanban board with API data
 let activeProject = null;
 let tasks = [];
-const columns = ['todo', 'inprogress', 'done'];
+const columns = ['todo', 'inprogress', 'review', 'blocked', 'done'];
 
 // Load data from API
 async function initializeBoard() {
@@ -18,7 +18,7 @@ async function initializeBoard() {
     const projects = Array.isArray(projectsResponse) ? projectsResponse : (projectsResponse.data || []);
     
     // Find or select active project (kanban type)
-    const activeProjectId = localStorage.getItem("activeProject");
+    const { projectId: activeProjectId } = getActiveContext();
     activeProject = projects.find(p => p._id === activeProjectId && p.type === "kanban") || 
                     projects.find(p => p.type === "kanban");
 
@@ -28,7 +28,7 @@ async function initializeBoard() {
       return;
     }
 
-    localStorage.setItem("activeProject", activeProject._id);
+    setActiveContext({ projectId: activeProject._id, projectType: "kanban" });
 
     // Get all tasks for this project (not sprint-scoped for kanban)
     const tasksResponse = await getProjectTasks(activeProject._id);
@@ -53,6 +53,7 @@ function renderBoard() {
     'todo': 'To Do',
     'inprogress': 'In Progress',
     'review': 'Review',
+    'blocked': 'Blocked',
     'done': 'Done'
   };
 
@@ -128,9 +129,9 @@ async function onDrop(e, toStatus) {
 
   try {
     // Update task status in API
-    await updateTaskStatus(draggedTaskId, toStatus);
+    const response = await updateTaskStatus(draggedTaskId, toStatus);
     
-    // Update local tasks
+    // Update local tasks - handle both direct response and .task property
     const task = tasks.find(t => t._id === draggedTaskId);
     if (task) {
       task.status = toStatus;
@@ -140,7 +141,11 @@ async function onDrop(e, toStatus) {
     draggedFromStatus = null;
     renderBoard();
   } catch (error) {
+    console.error("API Error:", error);
     alert("Failed to update task: " + error.message);
+    // Reset drag state on error
+    draggedTaskId = null;
+    draggedFromStatus = null;
   }
 }
 

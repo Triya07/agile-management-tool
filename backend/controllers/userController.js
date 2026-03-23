@@ -54,6 +54,41 @@ exports.getUserDashboard = async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(10);
 
+    // Compute sprint statistics for each sprint
+    const sprintsWithStats = await Promise.all(
+      sprints.map(async (sprint) => {
+        // Get total tasks in this sprint
+        const totalTasks = await Task.countDocuments({ sprint: sprint._id });
+        
+        // Get completed tasks in this sprint
+        const completedTasks = await Task.countDocuments({ 
+          sprint: sprint._id, 
+          status: "done" 
+        });
+        
+        // Get tasks assigned to user in this sprint
+        const userTaskCount = await Task.countDocuments({ 
+          sprint: sprint._id, 
+          assignedTo: userId 
+        });
+        
+        // Get completed tasks assigned to user in this sprint
+        const userCompletedCount = await Task.countDocuments({ 
+          sprint: sprint._id, 
+          assignedTo: userId, 
+          status: "done" 
+        });
+        
+        return {
+          ...sprint.toObject(),
+          totalTasks,
+          completedTasks,
+          userTaskCount,
+          userCompletedCount
+        };
+      })
+    );
+
     // Get tasks assigned to user
     const assignedTasks = await Task.find({ assignedTo: userId })
       .populate("projectId", "name")
@@ -114,7 +149,7 @@ exports.getUserDashboard = async (req, res) => {
         tasksByStatus
       },
       projects,
-      sprints,
+      sprints: sprintsWithStats,
       assignedTasks,
       createdTasks
     });
@@ -254,6 +289,25 @@ exports.getUserActivity = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       message: "Error fetching activity",
+      error: error.message
+    });
+  }
+};
+
+// Get all assignable users for assignment UI (all users except current user)
+exports.getMemberDirectory = async (req, res) => {
+  try {
+    const members = await User.find({ _id: { $ne: req.user.id } })
+      .select("name email role department jobTitle createdAt")
+      .sort({ name: 1 });
+
+    res.json({
+      message: "Member directory fetched successfully",
+      members
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error fetching member directory",
       error: error.message
     });
   }

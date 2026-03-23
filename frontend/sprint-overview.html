@@ -5,6 +5,7 @@
   <title>Sprint Overview | Agile Management Tool</title>
   <link rel="stylesheet" href="style.css">
   <style>
+    :root { --sidebar-width: 300px; }
     body { 
       background: linear-gradient(135deg, #F7FCEB 0%, #ECFDF0 25%, #D1FAE5 50%, #A7F3D0 75%, #6EE7B7 100%); 
       font-family: 'Segoe UI', Arial, sans-serif; 
@@ -14,6 +15,9 @@
       display: flex; 
       min-height: 100vh; 
       background: linear-gradient(135deg, #F7FCEB 0%, #ECFDF0 50%, #D1FAE5 100%);
+      margin-left: var(--sidebar-width);
+      width: calc(100% - var(--sidebar-width));
+      transition: margin-left 0.3s ease, width 0.3s ease;
     }
     #main-content { 
       flex: 1; 
@@ -65,9 +69,10 @@
 </head>
 <body>
   <div class="main-container">
-    <aside class="sidebar">
+    <aside class="sidebar" id="sidebar">
       <div class="sidebar-logo">
         <span style="font-size:1.8rem;font-weight:900;background:linear-gradient(135deg,#D9ED92,#76C893,#34A0A4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">FlowBoard</span>
+        <button class="sidebar-resize-btn" id="sidebarResizeBtn" title="Toggle sidebar size">||</button>
       </div>
       <nav class="sidebar-nav">
         <button class="sidebar-btn" onclick="navigateTo('dashboard-team.html')">Dashboard</button>
@@ -107,12 +112,6 @@
     return;
   }
 
-  // Role-based protection
-  // On manager-only pages (dashboard.html, team.html, reports.html):
-  if (user.role !== 'manager') window.location.href = 'dashboard-team.html';
-
-  // On worker-only pages (dashboard-team.html, my-tasks.html):
-  // if (user.role !== 'worker') window.location.href = 'dashboard.html';
 })();
   
     const currentUser = localStorage.getItem("currentUser");
@@ -162,6 +161,39 @@
     document.addEventListener('DOMContentLoaded', () => {
       renderMySprintTasks();
     });
+
+    // Sidebar resizing behavior
+    const root = document.documentElement;
+    const sidebar = document.getElementById('sidebar');
+    const resizeBtn = document.getElementById('sidebarResizeBtn');
+    let sidebarState = 'normal';
+
+    function setSidebarWidth(width) {
+      root.style.setProperty('--sidebar-width', width + 'px');
+      localStorage.setItem('sidebarWidth', width);
+      if (!sidebar) return;
+      sidebar.classList.remove('compact', 'wide');
+      if (width <= 250) {
+        sidebar.classList.add('compact');
+        sidebarState = 'compact';
+      } else if (width >= 380) {
+        sidebar.classList.add('wide');
+        sidebarState = 'wide';
+      } else {
+        sidebarState = 'normal';
+      }
+    }
+
+    const savedWidth = localStorage.getItem('sidebarWidth');
+    if (savedWidth) setSidebarWidth(parseInt(savedWidth, 10));
+
+    if (resizeBtn) {
+      resizeBtn.addEventListener('click', () => {
+        if (sidebarState === 'compact') setSidebarWidth(300);
+        else if (sidebarState === 'normal') setSidebarWidth(400);
+        else setSidebarWidth(220);
+      });
+    }
   </script>
 </body>
 </html>

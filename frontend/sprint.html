@@ -206,6 +206,7 @@
       <nav class="sidebar-nav">
         <button class="sidebar-btn" id="nav-board" onclick="navigateTo('kanban-board.html')">Kanban Board</button>
         <button class="sidebar-btn" id="nav-projects" onclick="navigateTo('projects.html')">Projects</button>
+        <button class="sidebar-btn" onclick="navigateTo('backlog.html')">Backlog</button>
         <button class="sidebar-btn" id="nav-dashboard" onclick="navigateTo('dashboard.html')">Dashboard</button>
         <button class="sidebar-btn active" id="nav-sprints">Sprints</button>
         <button class="sidebar-btn" onclick="navigateTo('team.html')">Team</button>
@@ -266,42 +267,50 @@
               <option value="inprogress">In Progress</option>
               <option value="done">Done</option>
             </select>
-            <!-- Create Sprint Form (hidden by default, shown for managers) -->
-<div id="createSprintForm" style="display:none; margin-bottom:18px; padding:16px; background:rgba(118,200,147,0.08); border-radius:8px; border:1px solid rgba(118,200,147,0.3);">
-  <h4 style="margin:0 0 12px 0; color:#34A0A4;">Create New Sprint</h4>
-  <label style="font-size:0.9rem; color:#083344; font-weight:600;">Sprint Name</label>
-  <input id="newSprintName" type="text" placeholder="e.g. Sprint 1"
-    style="width:100%;padding:9px 10px;border-radius:7px;border:1px solid #e2e8f0;font-size:1rem;background:#fff;margin:6px 0 12px 0;box-sizing:border-box;">
-  <div style="display:flex;gap:12px;">
-    <div style="flex:1;">
-      <label style="font-size:0.9rem;color:#083344;font-weight:600;">Start Date</label>
-      <input id="newSprintStart" type="date"
-        style="width:100%;padding:9px 10px;border-radius:7px;border:1px solid #e2e8f0;font-size:1rem;background:#fff;margin-top:6px;box-sizing:border-box;">
-    </div>
-    <div style="flex:1;">
-      <label style="font-size:0.9rem;color:#083344;font-weight:600;">End Date</label>
-      <input id="newSprintEnd" type="date"
-        style="width:100%;padding:9px 10px;border-radius:7px;border:1px solid #e2e8f0;font-size:1rem;background:#fff;margin-top:6px;box-sizing:border-box;">
-    </div>
-  </div>
-  <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:14px;">
-    <button type="button" onclick="document.getElementById('createSprintForm').style.display='none'"
-      style="background:#e2e8f0;color:#222;border:none;border-radius:7px;padding:9px 18px;cursor:pointer;font-size:0.95rem;">Cancel</button>
-    <button type="button" onclick="submitCreateSprint()"
-      style="background:linear-gradient(135deg,#76C893,#52B69A);color:#fff;border:none;border-radius:7px;padding:9px 18px;cursor:pointer;font-size:0.95rem;font-weight:600;">Create Sprint</button>
-  </div>
-</div>
-
-<div style="display:flex;justify-content:flex-end;gap:10px;">
-  <button type="button" class="btn" onclick="window.location.href='projects.html'"
-    style="background:#e2e8f0;color:#222;">Back to Projects</button>
-  <button type="button" id="showCreateSprintBtn" class="btn"
-    style="display:none; background:linear-gradient(135deg,#76C893,#52B69A);color:#fff;">
-    + Create Sprint
-  </button>
-</div>
+            <div style="display:flex;justify-content:flex-end;gap:10px;margin-bottom:14px;">
+              <button type="button" class="btn" id="cancelAddTask" style="background:#e2e8f0;color:#222;">Cancel</button>
+              <button type="submit" class="btn" style="background:linear-gradient(135deg,#76C893,#52B69A);color:#fff;">Add Task</button>
+            </div>
           </form>
         </div>
+      </div>
+
+      <!-- Create Sprint Form (hidden by default, shown for managers) -->
+      <div id="createSprintForm" style="display:none; margin-bottom:18px; padding:16px; background:rgba(118,200,147,0.08); border-radius:8px; border:1px solid rgba(118,200,147,0.3);">
+        <h4 style="margin:0 0 12px 0; color:#34A0A4;">Create New Sprint</h4>
+        <label style="font-size:0.9rem; color:#083344; font-weight:600;">Sprint Name</label>
+        <input id="newSprintName" type="text" placeholder="e.g. Sprint 1"
+          style="width:100%;padding:9px 10px;border-radius:7px;border:1px solid #e2e8f0;font-size:1rem;background:#fff;margin:6px 0 12px 0;box-sizing:border-box;">
+        <label style="font-size:0.9rem; color:#083344; font-weight:600;">Sprint Goal</label>
+        <textarea id="newSprintGoal" placeholder="What should this sprint achieve?" rows="3"
+          style="width:100%;padding:9px 10px;border-radius:7px;border:1px solid #e2e8f0;font-size:1rem;background:#fff;margin:6px 0 12px 0;box-sizing:border-box;font-family:inherit;resize:vertical;"></textarea>
+        <div style="display:flex;gap:12px;">
+          <div style="flex:1;">
+            <label style="font-size:0.9rem;color:#083344;font-weight:600;">Start Date</label>
+            <input id="newSprintStart" type="date"
+              style="width:100%;padding:9px 10px;border-radius:7px;border:1px solid #e2e8f0;font-size:1rem;background:#fff;margin-top:6px;box-sizing:border-box;">
+          </div>
+          <div style="flex:1;">
+            <label style="font-size:0.9rem;color:#083344;font-weight:600;">End Date</label>
+            <input id="newSprintEnd" type="date"
+              style="width:100%;padding:9px 10px;border-radius:7px;border:1px solid #e2e8f0;font-size:1rem;background:#fff;margin-top:6px;box-sizing:border-box;">
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:14px;">
+          <button type="button" onclick="document.getElementById('createSprintForm').style.display='none'"
+            style="background:#e2e8f0;color:#222;border:none;border-radius:7px;padding:9px 18px;cursor:pointer;font-size:0.95rem;">Cancel</button>
+          <button type="button" onclick="submitCreateSprint()"
+            style="background:linear-gradient(135deg,#76C893,#52B69A);color:#fff;border:none;border-radius:7px;padding:9px 18px;cursor:pointer;font-size:0.95rem;font-weight:600;">Create Sprint</button>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:10px;">
+        <button type="button" class="btn" onclick="window.location.href='projects.html'"
+          style="background:#e2e8f0;color:#222;">Back to Projects</button>
+        <button type="button" id="showCreateSprintBtn" class="btn"
+          style="display:none; background:linear-gradient(135deg,#76C893,#52B69A);color:#fff;">
+          + Create Sprint
+        </button>
       </div>
 
       <!-- Sprint Selection Modal -->
@@ -324,7 +333,7 @@
           <div class="column-title">To Do</div>
           <div id="todo" class="column-tasks">
             <div class="column-placeholder" style="color: #6b7280; font-style: italic; text-align: center; padding: 20px 16px; background: rgba(118, 200, 147, 0.03); border-radius: 8px; border: 2px dashed rgba(118, 200, 147, 0.2);">
-              📝 No tasks yet. Add a task to get started.
+              No tasks yet. Add a task to get started.
             </div>
           </div>
         </div>
@@ -332,7 +341,7 @@
           <div class="column-title">In Progress</div>
           <div id="inprogress" class="column-tasks">
             <div class="column-placeholder" style="color: #6b7280; font-style: italic; text-align: center; padding: 20px 16px; background: rgba(118, 200, 147, 0.03); border-radius: 8px; border: 2px dashed rgba(118, 200, 147, 0.2);">
-              🚀 Drag tasks here when work starts
+              Drag tasks here when work starts.
             </div>
           </div>
         </div>
@@ -340,7 +349,7 @@
           <div class="column-title">Done</div>
           <div id="done" class="column-tasks">
             <div class="column-placeholder" style="color: #6b7280; font-style: italic; text-align: center; padding: 20px 16px; background: rgba(118, 200, 147, 0.03); border-radius: 8px; border: 2px dashed rgba(118, 200, 147, 0.2);">
-              ✅ Completed tasks appear here
+              Completed tasks appear here.
             </div>
           </div>
         </div>
@@ -359,7 +368,7 @@
       <section class="sprint-retro">
         <h3>Sprint Retrospective</h3>
         <textarea id="retroGood" placeholder="What went well?" rows="2"></textarea>
-        <textarea id="retroBad" placeholder="What didn’t go well?" rows="2"></textarea>
+        <textarea id="retroBad" placeholder="What didn't go well?" rows="2"></textarea>
         <textarea id="retroImprove" placeholder="What to improve next sprint?" rows="2"></textarea>
         <button class="btn" id="saveRetro">Save Retrospective</button>
       </section>
@@ -436,27 +445,30 @@
 
     // ── SPRINT & TASK LOGIC ────────────────────────────────────
     const user        = JSON.parse(localStorage.getItem('user') || 'null');
-    const userRole    = user?.role;
+    const userRole    = normalizeUserRole(user?.role || localStorage.getItem('userRole'));
 
-    // Get projectId and sprintId passed from projects.html
+    // Get projectId and sprintId passed from projects/context
     const params      = new URLSearchParams(window.location.search);
-    let currentProjectId = params.get('projectId') || localStorage.getItem('currentProjectId');
-    let currentSprintId  = params.get('sprintId')  || localStorage.getItem('currentSprintId');
+    const context = getActiveContext();
+    let currentProjectId = params.get('projectId') || context.projectId;
+    let currentSprintId  = params.get('sprintId')  || context.sprintId;
+    let draggingTaskId   = null;
 
-    if (currentProjectId) localStorage.setItem('currentProjectId', currentProjectId);
-    if (currentSprintId)  localStorage.setItem('currentSprintId',  currentSprintId);
+    if (currentProjectId || currentSprintId) {
+      setActiveContext({ projectId: currentProjectId, sprintId: currentSprintId, projectType: 'scrum' });
+    }
 
-    // Show/hide Add Task button based on role
+    // Allow all authenticated project members to add tasks
     const addTaskBtnRow = document.getElementById('addTaskBtnRow');
-    if (userRole === 'manager') {
+    if (addTaskBtnRow) {
       addTaskBtnRow.style.display = 'flex';
     }
     // ── CREATE SPRINT ──────────────────────────────────────────
-// Show "Create Sprint" button only for managers
-if (userRole === 'manager') {
-  const showBtn = document.getElementById('showCreateSprintBtn');
-  if (showBtn) showBtn.style.display = 'inline-block';
-}
+    // Show "Create Sprint" for any authenticated user who can open this project.
+    const showBtn = document.getElementById('showCreateSprintBtn');
+    if (showBtn && currentProjectId) {
+      showBtn.style.display = 'inline-block';
+    }
 
 document.getElementById('showCreateSprintBtn')?.addEventListener('click', () => {
   document.getElementById('createSprintForm').style.display = 'block';
@@ -469,11 +481,12 @@ document.getElementById('showCreateSprintBtn')?.addEventListener('click', () => 
 
 async function submitCreateSprint() {
   const name  = document.getElementById('newSprintName').value.trim();
+  const goal  = document.getElementById('newSprintGoal').value.trim();
   const start = document.getElementById('newSprintStart').value;
   const end   = document.getElementById('newSprintEnd').value;
 
   if (!name || !start || !end) {
-    alert('Please fill in all fields.');
+    alert('Please fill in sprint name, start date, and end date.');
     return;
   }
   if (!currentProjectId) {
@@ -482,10 +495,11 @@ async function submitCreateSprint() {
   }
 
   try {
-    await createSprint(name, start, end, currentProjectId);
+    await createSprint(name, goal, start, end, currentProjectId);
     // Hide form and reload sprints
     document.getElementById('createSprintForm').style.display = 'none';
     document.getElementById('newSprintName').value = '';
+    document.getElementById('newSprintGoal').value = '';
     document.getElementById('sprintSelectionModal').style.display = 'none';
     await loadSprint(); // will now find the new sprint and load it
   } catch (err) {
@@ -503,30 +517,33 @@ async function submitCreateSprint() {
 
       try {
         // Load sprints for this project
-        const sprints = await getProjectSprints(currentProjectId);
+        const sprintResponse = await getProjectSprints(currentProjectId);
+        const sprints = Array.isArray(sprintResponse)
+          ? sprintResponse
+          : (sprintResponse && sprintResponse.data ? sprintResponse.data : []);
 
         if (!sprints || sprints.length === 0) {
           document.getElementById('sprintName').textContent  = 'No sprints found';
-          document.getElementById('sprintDates').textContent = 'Create a sprint first';
+          document.getElementById('sprintDates').textContent = 'Use + Create Sprint to start';
           showSprintSelectionModal(sprints);
           return;
         }
 
-        // If no sprintId in URL, show selection modal
-        if (!currentSprintId) {
-          showSprintSelectionModal(sprints);
-          return;
+        // If no sprintId in URL/localStorage, auto-select latest sprint
+        if (!currentSprintId && sprints.length > 0) {
+          currentSprintId = sprints[0]._id;
+          setActiveContext({ projectId: currentProjectId, sprintId: currentSprintId, projectType: 'scrum' });
         }
 
         const sprint = sprints.find(s => s._id === currentSprintId) || sprints[0];
         currentSprintId = sprint._id;
-        localStorage.setItem('currentSprintId', currentSprintId);
+        setActiveContext({ projectId: currentProjectId, sprintId: currentSprintId, projectType: 'scrum' });
 
         // Update sprint header
         document.getElementById('sprintName').textContent =
           sprint.sprintName || sprint.name || 'Sprint';
         document.getElementById('sprintDates').textContent =
-          `${new Date(sprint.startDate).toLocaleDateString()} → ${new Date(sprint.endDate).toLocaleDateString()}`;
+          `${new Date(sprint.startDate).toLocaleDateString()} - ${new Date(sprint.endDate).toLocaleDateString()}`;
 
         // Load tasks for this sprint
         await loadTasks();
@@ -535,6 +552,7 @@ async function submitCreateSprint() {
 
       } catch (err) {
         console.error('Error loading sprint:', err);
+        alert('Could not load sprint data. Please refresh or re-open this project from Projects.');
       }
     }
 
@@ -552,7 +570,7 @@ async function submitCreateSprint() {
       ['todo', 'inprogress', 'done'].forEach(status => {
         const col = document.getElementById(status);
         col.innerHTML = `<div class="column-placeholder" style="color:#6b7280;font-style:italic;text-align:center;padding:20px 16px;background:rgba(118,200,147,0.03);border-radius:8px;border:2px dashed rgba(118,200,147,0.2);">
-          ${status === 'todo' ? '📝 No tasks yet.' : status === 'inprogress' ? '🚀 Drag tasks here' : '✅ Completed tasks'}
+          ${status === 'todo' ? 'No tasks yet.' : status === 'inprogress' ? 'Drag tasks here' : 'Completed tasks'}
         </div>`;
       });
 
@@ -585,10 +603,16 @@ async function submitCreateSprint() {
 
       // Drag events
       card.addEventListener('dragstart', e => {
+        draggingTaskId = task._id;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', task._id);
         e.dataTransfer.setData('taskId', task._id);
         card.style.opacity = '0.5';
       });
-      card.addEventListener('dragend', () => { card.style.opacity = '1'; });
+      card.addEventListener('dragend', () => {
+        card.style.opacity = '1';
+        draggingTaskId = null;
+      });
 
       col.appendChild(card);
     }
@@ -597,13 +621,27 @@ async function submitCreateSprint() {
     ['todo', 'inprogress', 'done'].forEach(colId => {
       const col = document.getElementById(colId);
 
-      col.addEventListener('dragover', e => { e.preventDefault(); col.style.background = 'rgba(118,200,147,0.1)'; });
+      col.addEventListener('dragover', e => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        col.style.background = 'rgba(118,200,147,0.1)';
+      });
       col.addEventListener('dragleave', ()  => { col.style.background = ''; });
       col.addEventListener('drop', async e => {
         e.preventDefault();
         col.style.background = '';
-        const taskId = e.dataTransfer.getData('taskId');
+
+        const taskId =
+          e.dataTransfer.getData('text/plain') ||
+          e.dataTransfer.getData('taskId') ||
+          draggingTaskId;
+
         if (!taskId) return;
+        if (!['todo', 'inprogress', 'done'].includes(colId)) return;
+
+        const card = document.querySelector(`.task-card[data-task-id="${taskId}"]`);
+        const fromColId = card?.parentElement?.id;
+        if (fromColId === colId) return;
 
         try {
           await updateTaskStatus(taskId, colId);
@@ -615,12 +653,42 @@ async function submitCreateSprint() {
     });
 
     // ── ADD TASK MODAL ─────────────────────────────────────────
-    document.getElementById('openAddTaskModal').addEventListener('click', () => {
+    document.getElementById('openAddTaskModal').addEventListener('click', async () => {
+      if (!currentProjectId) {
+        alert('No project selected. Open this page from a project first.');
+        window.location.href = 'projects.html';
+        return;
+      }
+
+      if (!currentSprintId) {
+        try {
+          const sprintResponse = await getProjectSprints(currentProjectId);
+          const sprints = Array.isArray(sprintResponse)
+            ? sprintResponse
+            : (sprintResponse && sprintResponse.data ? sprintResponse.data : []);
+
+          if (!sprints.length) {
+            alert('No sprint found for this project. Create a sprint first.');
+            return;
+          }
+
+          showSprintSelectionModal(sprints);
+          return;
+        } catch (error) {
+          console.error('Error checking sprints:', error);
+          alert('Unable to load sprints right now.');
+          return;
+        }
+      }
+
       document.getElementById('addTaskModal').style.display = 'flex';
     });
-    document.getElementById('cancelAddTask').addEventListener('click', () => {
-      document.getElementById('addTaskModal').style.display = 'none';
-    });
+    const cancelAddTaskBtn = document.getElementById('cancelAddTask');
+    if (cancelAddTaskBtn) {
+      cancelAddTaskBtn.addEventListener('click', () => {
+        document.getElementById('addTaskModal').style.display = 'none';
+      });
+    }
 
     document.getElementById('addTaskForm').addEventListener('submit', async e => {
       e.preventDefault();
@@ -628,6 +696,16 @@ async function submitCreateSprint() {
       const status = document.getElementById('taskStatusInput').value;
 
       if (!title) return;
+
+      if (!currentProjectId) {
+        alert('No project selected. Open this page from a project first.');
+        return;
+      }
+
+      if (!currentSprintId) {
+        alert('Please select a sprint first.');
+        return;
+      }
 
       try {
         await createTask(
@@ -670,7 +748,7 @@ async function submitCreateSprint() {
           onmouseout="this.style.background='rgba(118,200,147,0.1)'">
           <strong>${s.sprintName || s.name}</strong>
           <div style="font-size:0.85rem;color:#666;">
-            ${new Date(s.startDate).toLocaleDateString()} → ${new Date(s.endDate).toLocaleDateString()}
+            ${new Date(s.startDate).toLocaleDateString()} - ${new Date(s.endDate).toLocaleDateString()}
           </div>
         </div>
       `).join('');
@@ -678,7 +756,7 @@ async function submitCreateSprint() {
 
     function selectSprint(sprintId) {
       currentSprintId = sprintId;
-      localStorage.setItem('currentSprintId', sprintId);
+      setActiveContext({ projectId: currentProjectId, sprintId, projectType: 'scrum' });
       document.getElementById('sprintSelectionModal').style.display = 'none';
       loadSprint();
     }
@@ -691,9 +769,24 @@ async function submitCreateSprint() {
     }
 
     // ── RETROSPECTIVE ──────────────────────────────────────────
-    document.getElementById('saveRetro').addEventListener('click', () => {
-      alert('Retrospective saved!');
-      // You can extend this to POST to your backend later
+    document.getElementById('saveRetro').addEventListener('click', async () => {
+      if (!currentSprintId) {
+        alert('Please select a sprint first.');
+        return;
+      }
+
+      const good = document.getElementById('retroGood').value.trim();
+      const bad = document.getElementById('retroBad').value.trim();
+      const improve = document.getElementById('retroImprove').value.trim();
+      const feedback = document.getElementById('reviewFeedback').value.trim();
+
+      try {
+        await saveSprintRetrospective(currentSprintId, good, bad, improve, feedback);
+        alert('Retrospective saved!');
+      } catch (err) {
+        console.error('Error saving retrospective:', err);
+        alert('Failed to save retrospective: ' + err.message);
+      }
     });
 
     // ── INIT ───────────────────────────────────────────────────

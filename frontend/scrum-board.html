@@ -177,6 +177,8 @@
                   <select id="taskStatusInput" style="border:1px solid #e5e7eb;border-radius:6px;padding:6px 8px;font-size:0.85rem;">
                     <option value="todo">To do</option>
                     <option value="inprogress">In Progress</option>
+                    <option value="review">Review</option>
+                    <option value="blocked">Blocked</option>
                     <option value="done">Done</option>
                   </select>
                 </div>
@@ -262,6 +264,14 @@
           <div id="inprogress" class="column-tasks"></div>
         </div>
         <div class="column">
+          <div class="column-title">Review</div>
+          <div id="review" class="column-tasks"></div>
+        </div>
+        <div class="column">
+          <div class="column-title">Blocked</div>
+          <div id="blocked" class="column-tasks"></div>
+        </div>
+        <div class="column">
           <div class="column-title">Done</div>
           <div id="done" class="column-tasks"></div>
         </div>
@@ -280,12 +290,6 @@
     return;
   }
 
-  // Role-based protection
-  // On manager-only pages (dashboard.html, team.html, reports.html):
-  if (user.role !== 'manager') window.location.href = 'dashboard-team.html';
-
-  // On worker-only pages (dashboard-team.html, my-tasks.html):
-  // if (user.role !== 'worker') window.location.href = 'dashboard.html';
 })();
     // Global navigation and utility functions
     function navigateTo(page) {

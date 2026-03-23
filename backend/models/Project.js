@@ -24,7 +24,15 @@ const projectSchema = new mongoose.Schema(
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"
       }
-    ]
+    ],
+    backlogEnabled: {
+      type: Boolean,
+      default: true
+    },
+    backlogUpdatedAt: {
+      type: Date,
+      default: Date.now
+    }
   },
   { timestamps: true }
 );

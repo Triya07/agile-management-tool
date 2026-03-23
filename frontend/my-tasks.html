@@ -6,35 +6,25 @@
   <title>My Tasks | Agile Management Tool</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    /* Initialize CSS variables */
-    :root {
-      --sidebar-width: 300px;
+    :root { --sidebar-width: 300px; }
+    body {
+      background: linear-gradient(135deg, #F7FCEB 0%, #ECFDF0 25%, #D1FAE5 50%, #A7F3D0 75%, #6EE7B7 100%);
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: #083344;
     }
-    
-    body { 
-      background: linear-gradient(135deg, #F7FCEB 0%, #ECFDF0 25%, #D1FAE5 50%, #A7F3D0 75%, #6EE7B7 100%); 
-      font-family: 'Segoe UI', Arial, sans-serif; 
-      color: #083344; 
-    }
-    .main-container { 
-      display: flex; 
-      min-height: 100vh; 
-      background: linear-gradient(135deg, #F7FCEB 0%, #ECFDF0 50%, #D1FAE5 100%);
+    .main-container {
+      display: flex;
+      min-height: 100vh;
       margin-left: var(--sidebar-width);
       width: calc(100% - var(--sidebar-width));
       transition: margin-left 0.3s ease, width 0.3s ease;
     }
-    #main-content { 
-      flex: 1; 
-      padding: 32px 40px; 
-      background: transparent;
-    }
-    .task-section { 
-      background: rgba(255, 255, 255, 0.8); 
-      border-radius: 15px; 
-      box-shadow: 0 4px 20px rgba(8, 51, 68, 0.08); 
-      padding: 28px; 
-      margin-bottom: 24px; 
+    #main-content { flex: 1; padding: 32px 40px; }
+    .task-section {
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 15px;
+      box-shadow: 0 4px 20px rgba(8, 51, 68, 0.08);
+      padding: 28px;
       border: 1px solid rgba(118, 200, 147, 0.2);
     }
     .task-section h2 {
@@ -44,78 +34,32 @@
       background-clip: text;
       font-weight: 700;
     }
-    .task-item { 
-      display: flex; 
-      align-items: center; 
-      justify-content: space-between; 
-      padding: 14px 18px; 
-      border-radius: 8px; 
-      background: linear-gradient(135deg, rgba(118, 200, 147, 0.05), rgba(82, 182, 154, 0.02)); 
-      margin-bottom: 10px; 
+    .task-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 18px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, rgba(118, 200, 147, 0.05), rgba(82, 182, 154, 0.02));
+      margin-bottom: 10px;
       border-left: 4px solid #76C893;
       box-shadow: 0 2px 8px rgba(8, 51, 68, 0.06);
-      transition: all 0.3s;
     }
-    .task-item:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 15px rgba(8, 51, 68, 0.12);
-    }
-    .status-badge { border-radius: 6px; padding: 2px 10px; font-size: 0.9rem; margin-right: 12px; font-weight: 600; }
-    .status-todo { 
-      background: linear-gradient(135deg, #D9ED92, #B5E48C); 
-      color: #1A759F; 
-      border: 1px solid rgba(181, 228, 140, 0.5);
-    }
-    .status-inprogress { 
-      background: linear-gradient(135deg, #76C893, #52B69A); 
-      color: white; 
-      border: 1px solid rgba(82, 182, 154, 0.5);
-    }
-    .status-done { 
-      background: linear-gradient(135deg, #34A0A4, #168AAD); 
-      color: white; 
-      border: 1px solid rgba(52, 160, 164, 0.5);
-    }
-    .btn { 
-      background: linear-gradient(135deg, #76C893, #52B69A); 
-      color: #fff; 
-      border: none; 
-      border-radius: 8px; 
-      padding: 8px 16px; 
-      font-size: 0.95rem; 
-      cursor: pointer; 
-    }
-    /* My tasks scrollbar styling */
-    #myTasksList::-webkit-scrollbar {
-      width: 8px;
-    }
-    
-    #myTasksList::-webkit-scrollbar-track {
-      background: rgba(217, 237, 146, 0.05);
-      border-radius: 4px;
-    }
-    
-    #myTasksList::-webkit-scrollbar-thumb {
+    .status-badge { border-radius: 6px; padding: 4px 10px; font-size: 0.9rem; margin-right: 12px; font-weight: 600; }
+    .status-todo { background: linear-gradient(135deg, #D9ED92, #B5E48C); color: #1A759F; }
+    .status-inprogress { background: linear-gradient(135deg, #76C893, #52B69A); color: white; }
+    .status-review { background: linear-gradient(135deg, #FCD34D, #F59E0B); color: #78350F; }
+    .status-blocked { background: linear-gradient(135deg, #FCA5A5, #EF4444); color: white; }
+    .status-done { background: linear-gradient(135deg, #34A0A4, #168AAD); color: white; }
+    .btn {
       background: linear-gradient(135deg, #76C893, #52B69A);
-      border-radius: 4px;
-    }
-    
-    #myTasksList::-webkit-scrollbar-thumb:hover {
-      background: linear-gradient(135deg, #52B69A, #34A0A4);
-    }
-    
-    .task-section::-webkit-scrollbar {
-      width: 8px;
-    }
-    
-    .task-section::-webkit-scrollbar-track {
-      background: rgba(217, 237, 146, 0.05);
-      border-radius: 4px;
-    }
-    
-    .task-section::-webkit-scrollbar-thumb {
-      background: linear-gradient(135deg, #99D98C, #76C893);
-      border-radius: 4px;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 0.95rem;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -124,7 +68,7 @@
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-logo">
         <span style="font-size:1.8rem;font-weight:900;background:linear-gradient(135deg,#D9ED92,#76C893,#34A0A4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">FlowBoard</span>
-        <button class="sidebar-resize-btn" id="sidebarResizeBtn" title="Toggle sidebar size">⟷</button>
+        <button class="sidebar-resize-btn" id="sidebarResizeBtn" title="Toggle sidebar size">||</button>
       </div>
       <nav class="sidebar-nav">
         <button class="sidebar-btn" onclick="navigateTo('dashboard-team.html')">Dashboard</button>
@@ -142,357 +86,213 @@
       </div>
     </main>
   </div>
-  
+
   <script src="api.js"></script>
   <script>
-    // AUTH GUARD — paste at top of every protected page
-(function() {
-  const token = localStorage.getItem('token');
-  const user  = JSON.parse(localStorage.getItem('user') || 'null');
-  if (!token || !user) {
-    window.location.href = 'login.html';
-    return;
-  }
+    (function() {
+      const token = localStorage.getItem("token");
+      const user = JSON.parse(localStorage.getItem("user") || "null");
+      if (!token || !user) {
+        window.location.href = "login.html";
+      }
+    })();
 
-  // Role-based protection
-  // On manager-only pages (dashboard.html, team.html, reports.html):
-  if (user.role !== 'manager') window.location.href = 'dashboard-team.html';
+    const root = document.documentElement;
+    const sidebar = document.getElementById("sidebar");
+    const resizeBtn = document.getElementById("sidebarResizeBtn");
+    let sidebarState = "normal";
+    let currentTasks = [];
+    let currentFilter = "all";
 
-  // On worker-only pages (dashboard-team.html, my-tasks.html):
-  // if (user.role !== 'worker') window.location.href = 'dashboard.html';
-})();
-    // Global navigation and utility functions
     function navigateTo(page) {
       window.location.href = page;
     }
+
     function logout() {
-      if (confirm('Are you sure you want to logout?')) {
+      if (confirm("Are you sure you want to logout?")) {
         localStorage.clear();
-        window.location.href = 'login.html';
+        window.location.href = "login.html";
       }
     }
 
-    function checkAuth() {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        window.location.href = '/login.html';
-        return false;
-      }
-      return true;
-    }
-
-    // Initialize CSS variables and resize functionality first
-    const root = document.documentElement;
-    const sidebar = document.getElementById('sidebar');
-    const resizeBtn = document.getElementById('sidebarResizeBtn');
-    
-    let sidebarState = 'normal';
-    
     function setSidebarWidth(width) {
-      root.style.setProperty('--sidebar-width', width + 'px');
-      localStorage.setItem('sidebarWidth', width);
-      
-      if (sidebar) {
-        sidebar.classList.remove('compact', 'wide');
-        if (width <= 250) {
-          sidebar.classList.add('compact');
-          sidebarState = 'compact';
-        } else if (width >= 380) {
-          sidebar.classList.add('wide');
-          sidebarState = 'wide';
-        } else {
-          sidebarState = 'normal';
-        }
+      root.style.setProperty("--sidebar-width", width + "px");
+      localStorage.setItem("sidebarWidth", width);
+
+      if (!sidebar) return;
+      sidebar.classList.remove("compact", "wide");
+      if (width <= 250) {
+        sidebar.classList.add("compact");
+        sidebarState = "compact";
+      } else if (width >= 380) {
+        sidebar.classList.add("wide");
+        sidebarState = "wide";
+      } else {
+        sidebarState = "normal";
       }
     }
-    
-    // Load saved width first
-    const savedWidth = localStorage.getItem('sidebarWidth');
+
+    const savedWidth = localStorage.getItem("sidebarWidth");
     if (savedWidth) {
-      setSidebarWidth(parseInt(savedWidth));
+      setSidebarWidth(parseInt(savedWidth, 10));
     }
-    
+
     if (resizeBtn) {
-      resizeBtn.addEventListener('click', () => {
-        if (sidebarState === 'compact') {
+      resizeBtn.addEventListener("click", () => {
+        if (sidebarState === "compact") {
           setSidebarWidth(300);
-        } else if (sidebarState === 'normal') {
+        } else if (sidebarState === "normal") {
           setSidebarWidth(400);
         } else {
           setSidebarWidth(220);
         }
       });
     }
-    
-    let isResizing = false;
-    
-    if (sidebar) {
-      sidebar.addEventListener('mousedown', (e) => {
-        if (e.offsetX > sidebar.offsetWidth - 10) {
-          isResizing = true;
-          document.body.style.cursor = 'col-resize';
-          e.preventDefault();
-        }
-      });
-    }
-    
-    document.addEventListener('mousemove', (e) => {
-      if (isResizing) {
-        const newWidth = Math.min(Math.max(e.clientX, 220), 450);
-        setSidebarWidth(newWidth);
-      }
-    });
-    
-    document.addEventListener('mouseup', () => {
-      if (isResizing) {
-        isResizing = false;
-        document.body.style.cursor = 'default';
-      }
-    });
 
-    const currentUser = localStorage.getItem("currentUser") || "user1";
-
-    // Load user tasks from API
-    async function loadUserTasks() {
-      try {
-        const tasks = await getUserTasks();
-        return Array.isArray(tasks) ? tasks : (tasks.data || []);
-      } catch (error) {
-        console.error('Error loading tasks:', error);
-        return [];
-      }
-    }
-
-    async function renderMyTasks() {
-      const tasks = await loadUserTasks();
-      const container = document.getElementById("myTasksList");
-      container.innerHTML = "";
-      
-      if (tasks.length === 0) {
-        container.innerHTML = `
-          <div style="text-align: center; padding: 40px; color: #666;">
-            <div style="font-size: 3rem; margin-bottom: 16px;">📝</div>
-            <h3 style="margin-bottom: 8px; color: #34A0A4;">No tasks assigned yet</h3>
-            <p>Tasks assigned to you will appear here.</p>
-            <button onclick="window.location.href='sprint.html'" class="btn" style="margin-top: 16px;">
-              Go to Sprint Board
-            </button>
-          </div>
-        `;
-        return;
-      }
-
-      // Add filter buttons
-      const filterContainer = document.createElement("div");
-      filterContainer.style.cssText = "margin-bottom: 20px; display: flex; gap: 8px; flex-wrap: wrap;";
-      filterContainer.innerHTML = `
-        <button onclick="filterTasks('all')" class="filter-btn active" data-filter="all" style="padding: 8px 16px; border: 2px solid #76C893; background: #76C893; color: white; border-radius: 20px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s;">All (${tasks.length})</button>
-        <button onclick="filterTasks('todo')" class="filter-btn" data-filter="todo" style="padding: 8px 16px; border: 2px solid #76C893; background: transparent; color: #76C893; border-radius: 20px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s;">To Do (${tasks.filter(t => t.status === 'todo').length})</button>
-        <button onclick="filterTasks('inprogress')" class="filter-btn" data-filter="inprogress" style="padding: 8px 16px; border: 2px solid #76C893; background: transparent; color: #76C893; border-radius: 20px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s;">In Progress (${tasks.filter(t => t.status === 'inprogress').length})</button>
-        <button onclick="filterTasks('done')" class="filter-btn" data-filter="done" style="padding: 8px 16px; border: 2px solid #76C893; background: transparent; color: #76C893; border-radius: 20px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s;">Done (${tasks.filter(t => t.status === 'done').length})</button>
-      `;
-      
-      container.appendChild(filterContainer);
-
-      const taskList = document.createElement("div");
-      taskList.id = "taskList";
-      
-      tasks.forEach((task, index) => {
-        const div = document.createElement("div");
-        div.className = `task-item task-${task.status}`;
-        div.style.animationDelay = `${index * 0.1}s`;
-        div.innerHTML = `
-          <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
-            <span class="status-badge status-${task.status}">${task.status === 'todo' ? 'To Do' : task.status === 'inprogress' ? 'In Progress' : 'Done'}</span>
-            <span style="flex: 1;">${task.title}</span>
-            ${task.dueDate ? `<small style="color: #666;">Due: ${task.dueDate}</small>` : ''}
-          </div>
-          <div style="display: flex; gap: 8px;">
-            <button onclick="quickUpdate('${task.id}', '${task.status}')" class="btn" style="padding: 6px 12px; font-size: 0.85rem; background: #34A0A4;">
-              ${task.status === 'todo' ? 'Start' : task.status === 'inprogress' ? 'Complete' : 'Reset'}
-            </button>
-            <button onclick="viewTask('${task.id}')" class="btn" style="padding: 6px 12px; font-size: 0.85rem;">Details</button>
-          </div>
-        `;
-        taskList.appendChild(div);
-      });
-      
-      container.appendChild(taskList);
-    }
-    
-    // Filter tasks function
-    function filterTasks(status) {
-      // Update filter button states
-      document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.classList.remove('active');
-        btn.style.background = 'transparent';
-        btn.style.color = '#76C893';
-      });
-      
-      const activeBtn = document.querySelector(`[data-filter="${status}"]`);
-      if (activeBtn) {
-        activeBtn.classList.add('active');
-        activeBtn.style.background = '#76C893';
-        activeBtn.style.color = 'white';
-      }
-      
-      // Filter task items
-      document.querySelectorAll('.task-item').forEach(item => {
-        if (status === 'all') {
-          item.style.display = 'flex';
-        } else {
-          item.style.display = item.classList.contains(`task-${status}`) ? 'flex' : 'none';
-        }
-      });
-    }
-    
-    // Quick update task status
-    function quickUpdate(taskId, currentStatus) {
-      const statusMap = {
-        'todo': 'inprogress',
-        'inprogress': 'done', 
-        'done': 'todo'
+    function getStatusLabel(status) {
+      const labels = {
+        todo: "To Do",
+        inprogress: "In Progress",
+        review: "Review",
+        blocked: "Blocked",
+        done: "Done"
       };
-      
-      const newStatus = statusMap[currentStatus];
-      const actionMap = {
-        'inprogress': 'started',
-        'done': 'completed',
-        'todo': 'reset'
-      };
-      
-      if (confirm(`Mark task as ${actionMap[newStatus]}?`)) {
-        // Update localStorage (simulated backend)
-        let allTasks = JSON.parse(localStorage.getItem("tasks")) || [];
-        const taskIndex = allTasks.findIndex(t => t.id == taskId);
-        
-        if (taskIndex !== -1) {
-          allTasks[taskIndex].status = newStatus;
-          allTasks[taskIndex].updatedAt = new Date().toISOString();
-          localStorage.setItem("tasks", JSON.stringify(allTasks));
-          
-          // Show success notification
-          showNotification(`Task ${actionMap[newStatus]} successfully!`, 'success');
-          
-          // Re-render tasks
-          renderMyTasks();
-        }
-      }
+      return labels[status] || status;
     }
-    
-    // Enhanced view task function
-    function viewTask(taskId) {
-      const tasks = JSON.parse(localStorage.getItem("tasks")) || [];
-      const task = tasks.find(t => t.id == taskId);
-      
-      if (!task) return;
-      
-      // Create task detail modal
-      const modal = document.createElement('div');
-      modal.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.5);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 1000;
-        animation: fadeIn 0.3s ease;
-      `;
-      
-      modal.innerHTML = `
-        <div style="background: white; border-radius: 12px; padding: 24px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h3 style="margin: 0; color: #34A0A4;">${task.title}</h3>
-            <button onclick="this.closest('.modal').remove()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #999;">×</button>
-          </div>
-          
-          <div style="margin-bottom: 16px;">
-            <strong style="color: #34A0A4;">Status:</strong>
-            <span class="status-badge status-${task.status}" style="margin-left: 8px;">
-              ${task.status === 'todo' ? 'To Do' : task.status === 'inprogress' ? 'In Progress' : 'Done'}
-            </span>
-          </div>
-          
-          ${task.description ? `<div style="margin-bottom: 16px;"><strong style="color: #34A0A4;">Description:</strong><br>${task.description}</div>` : ''}
-          ${task.dueDate ? `<div style="margin-bottom: 16px;"><strong style="color: #34A0A4;">Due Date:</strong> ${task.dueDate}</div>` : ''}
-          ${task.assignee ? `<div style="margin-bottom: 16px;"><strong style="color: #34A0A4;">Assigned to:</strong> ${task.assignee}</div>` : ''}
-          
-          <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
-            <button onclick="quickUpdate('${task.id}', '${task.status}'); this.closest('.modal').remove();" class="btn" style="background: #34A0A4;">
-              ${task.status === 'todo' ? 'Start Task' : task.status === 'inprogress' ? 'Complete Task' : 'Reset Task'}
-            </button>
-            <button onclick="this.closest('.modal').remove()" class="btn" style="background: #6c757d;">Close</button>
-          </div>
-        </div>
-      `;
-      
-      document.body.appendChild(modal);
-      
-      // Close on outside click
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-          modal.remove();
-        }
-      });
-    }
-    
-    // Notification system
-    function showNotification(message, type = 'info') {
-      const notification = document.createElement('div');
-      const colors = {
-        success: { bg: '#d4edda', color: '#155724', border: '#c3e6cb' },
-        error: { bg: '#f8d7da', color: '#721c24', border: '#f5c6cb' },
-        info: { bg: '#d1ecf1', color: '#0c5460', border: '#bee5eb' }
+
+    function getNextStatus(currentStatus) {
+      const order = {
+        todo: "inprogress",
+        inprogress: "review",
+        review: "done",
+        blocked: "inprogress",
+        done: "todo"
       };
-      
-      const colorScheme = colors[type];
+      return order[currentStatus] || "todo";
+    }
+
+    function showNotification(message, type = "info") {
+      const palette = {
+        success: { bg: "#d4edda", color: "#155724", border: "#c3e6cb" },
+        error: { bg: "#f8d7da", color: "#721c24", border: "#f5c6cb" },
+        info: { bg: "#d1ecf1", color: "#0c5460", border: "#bee5eb" }
+      };
+
+      const colors = palette[type] || palette.info;
+      const notification = document.createElement("div");
       notification.style.cssText = `
         position: fixed;
         top: 20px;
         right: 20px;
-        background: ${colorScheme.bg};
-        color: ${colorScheme.color};
+        background: ${colors.bg};
+        color: ${colors.color};
         padding: 12px 20px;
         border-radius: 8px;
-        border: 1px solid ${colorScheme.border};
+        border: 1px solid ${colors.border};
         z-index: 1001;
-        animation: slideInRight 0.3s ease;
-        max-width: 300px;
+        max-width: 320px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         font-weight: 500;
       `;
       notification.textContent = message;
-      
       document.body.appendChild(notification);
-      
-      setTimeout(() => {
-        notification.style.animation = 'slideOutRight 0.3s ease';
-        setTimeout(() => notification.remove(), 300);
-      }, 3000);
+      setTimeout(() => notification.remove(), 3000);
     }
 
-    // Authentication check
-    function checkAuth() {
-      const isLoggedIn = localStorage.getItem('isLoggedIn');
-      const userRole = localStorage.getItem('userRole');
-      
-      if (!isLoggedIn || userRole !== 'member') {
-        alert('Access denied. Team member login required.');
-        window.location.href = 'login.html';
-        return false;
+    async function loadUserTasks() {
+      try {
+        const tasks = await getUserTasks();
+        currentTasks = Array.isArray(tasks) ? tasks : (tasks.data || []);
+      } catch (error) {
+        console.error("Error loading tasks:", error);
+        currentTasks = [];
       }
-      return true;
     }
 
-    // Initialize on page load
-    document.addEventListener('DOMContentLoaded', () => {
-      if (!checkAuth()) {
+    async function renderMyTasks() {
+      await loadUserTasks();
+      const container = document.getElementById("myTasksList");
+      container.innerHTML = "";
+
+      if (!currentTasks.length) {
+        container.innerHTML = `
+          <div style="text-align:center; padding:40px; color:#666;">
+            <h3 style="margin-bottom:8px; color:#34A0A4;">No tasks assigned yet</h3>
+            <p>Tasks assigned to you will appear here.</p>
+            <button onclick="window.location.href='sprint.html'" class="btn" style="margin-top:16px;">Go to Sprint Board</button>
+          </div>
+        `;
         return;
       }
+
+      const statuses = ["all", "todo", "inprogress", "review", "blocked", "done"];
+      const filterContainer = document.createElement("div");
+      filterContainer.style.cssText = "margin-bottom:20px; display:flex; gap:8px; flex-wrap:wrap;";
+      filterContainer.innerHTML = statuses.map(status => {
+        const count = status === "all"
+          ? currentTasks.length
+          : currentTasks.filter(task => task.status === status).length;
+        const active = currentFilter === status;
+        return `
+          <button onclick="filterTasks('${status}')" style="padding:8px 16px; border:2px solid #76C893; background:${active ? "#76C893" : "transparent"}; color:${active ? "white" : "#76C893"}; border-radius:20px; cursor:pointer;">
+            ${status === "all" ? "All" : getStatusLabel(status)} (${count})
+          </button>
+        `;
+      }).join("");
+      container.appendChild(filterContainer);
+
+      const taskList = document.createElement("div");
+      currentTasks
+        .filter(task => currentFilter === "all" || task.status === currentFilter)
+        .forEach(task => {
+          const div = document.createElement("div");
+          div.className = `task-item task-${task.status}`;
+          div.innerHTML = `
+            <div style="display:flex; align-items:center; gap:12px; flex:1;">
+              <span class="status-badge status-${task.status}">${getStatusLabel(task.status)}</span>
+              <div style="flex:1;">
+                <div>${task.title}</div>
+                <small style="color:#666;">${task.projectId?.name || "Unknown project"}${task.sprint?.sprintName ? ` | ${task.sprint.sprintName}` : ""}</small>
+              </div>
+              ${task.dueDate ? `<small style="color:#666;">Due: ${new Date(task.dueDate).toLocaleDateString()}</small>` : ""}
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button onclick="quickUpdate('${task._id}', '${task.status}')" class="btn" style="background:#34A0A4;">Move to ${getStatusLabel(getNextStatus(task.status))}</button>
+              <button onclick="viewTask('${task._id}')" class="btn">Details</button>
+            </div>
+          `;
+          taskList.appendChild(div);
+        });
+
+      container.appendChild(taskList);
+    }
+
+    function filterTasks(status) {
+      currentFilter = status;
+      renderMyTasks();
+    }
+
+    async function quickUpdate(taskId, currentStatus) {
+      const nextStatus = getNextStatus(currentStatus);
+      try {
+        await updateTaskStatus(taskId, nextStatus);
+        if (currentStatus === "blocked" && nextStatus !== "blocked") {
+          await toggleTaskBlocked(taskId, false, "");
+        }
+        showNotification(`Task moved to ${getStatusLabel(nextStatus)}.`, "success");
+        await renderMyTasks();
+      } catch (error) {
+        console.error("Error updating task:", error);
+        showNotification(error.message || "Unable to update task.", "error");
+      }
+    }
+
+    function viewTask(taskId) {
+      localStorage.setItem("viewTaskId", taskId);
+      window.location.href = "task-details.html";
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
       renderMyTasks();
     });
   </script>

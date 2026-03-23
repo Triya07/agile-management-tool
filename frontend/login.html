@@ -587,7 +587,8 @@
           showNotification('Login successful! Redirecting...', 'success');
           
           setTimeout(() => {
-            window.location.href = 'dashboard.html';
+            const role = (result.user.role || '').toLowerCase();
+            window.location.href = role === 'manager' ? 'dashboard.html' : 'dashboard-team.html';
           }, 1000);
         } else {
           showNotification(result.message || 'Invalid email or password', 'error');

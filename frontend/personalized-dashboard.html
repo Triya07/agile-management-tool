@@ -423,13 +423,6 @@
     window.location.href = 'login.html';
     return;
   }
-
-  // Role-based protection
-  // On manager-only pages (dashboard.html, team.html, reports.html):
-  if (user.role !== 'manager') window.location.href = 'dashboard-team.html';
-
-  // On worker-only pages (dashboard-team.html, my-tasks.html):
-  // if (user.role !== 'worker') window.location.href = 'dashboard.html';
 })();
     let currentUser = null;
     let dashboardData = null;
@@ -495,7 +488,7 @@
 
       // Active sprints
       if (dashboardData && dashboardData.sprints) {
-        const activeSprints = dashboardData.sprints.filter(s => s.status === 'active').length;
+        const activeSprints = dashboardData.sprints.filter(s => ['active', 'planning'].includes(s.status)).length;
         document.getElementById("activeSprints").textContent = activeSprints;
       }
     }
@@ -557,7 +550,7 @@
 
       let html = '';
       (dashboardData.sprints || []).forEach(sprint => {
-        if (sprint.status === 'active') {
+        if (['active', 'planning'].includes(sprint.status)) {
           const progress = sprint.totalTasks ? (sprint.completedTasks / sprint.totalTasks * 100).toFixed(0) : 0;
           html += `
             <div style="background:rgba(255,255,255,0.8);padding:16px;border-radius:10px;border-left:4px solid #0891b2;margin-bottom:12px;">
@@ -581,7 +574,8 @@
         return;
       }
 
-      const activeSprint = (dashboardData.sprints || []).find(s => s.status === 'active');
+      const activeSprint = (dashboardData.sprints || []).find(s => s.status === 'active')
+        || (dashboardData.sprints || []).find(s => s.status === 'planning');
       if (!activeSprint) {
         document.getElementById("currentSprintInfo").innerHTML = '<div class="empty-state">No active sprint assigned</div>';
         return;
@@ -687,10 +681,10 @@
     }
 
     function selectProject(projectId, projectType) {
-      localStorage.setItem("activeProject", projectId);
+      setActiveContext({ projectId, projectType });
       
       if (projectType === "scrum") {
-        window.location.href = "/sprint-scrum-board.html";
+        window.location.href = `/sprint.html?projectId=${projectId}`;
       } else {
         window.location.href = "/kanban-board.html";
       }

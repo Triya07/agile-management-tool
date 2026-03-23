@@ -3,6 +3,7 @@ let activeProject = null;
 let activeSprint = null;
 let tasks = [];
 let teamMembers = [];
+const BOARD_COLUMNS = ["todo", "inprogress", "review", "blocked", "done"];
 
 // Load data from API
 async function initializeBoard() {
@@ -19,7 +20,7 @@ async function initializeBoard() {
     const projects = Array.isArray(projectsResponse) ? projectsResponse : (projectsResponse.data || []);
     
     // Find or select active project
-    const activeProjectId = localStorage.getItem("activeProject");
+    const { projectId: activeProjectId, sprintId: activeSprintId } = getActiveContext();
     activeProject = projects.find(p => p._id === activeProjectId && p.type === "scrum") || 
                     projects.find(p => p.type === "scrum");
 
@@ -29,22 +30,24 @@ async function initializeBoard() {
       return;
     }
 
-    localStorage.setItem("activeProject", activeProject._id);
+    setActiveContext({ projectId: activeProject._id, projectType: "scrum" });
 
     // Get sprints for this project
     const sprintsResponse = await getProjectSprints(activeProject._id);
     const sprints = Array.isArray(sprintsResponse) ? sprintsResponse : (sprintsResponse.data || []);
 
     // Find active sprint or use first
-    const activeSprintId = localStorage.getItem("activeSprint");
-    activeSprint = sprints.find(s => s._id === activeSprintId) || sprints[0];
+    activeSprint = sprints.find(s => s._id === activeSprintId)
+      || sprints.find(s => s.status === "active")
+      || sprints.find(s => s.status === "planning")
+      || sprints[0];
 
     if (!activeSprint) {
       alert("No sprints found for this project. Please create one first.");
       return;
     }
 
-    localStorage.setItem("activeSprint", activeSprint._id);
+    setActiveContext({ projectId: activeProject._id, sprintId: activeSprint._id, projectType: "scrum" });
 
     // Load tasks for this sprint
     const tasksResponse = await getSprintTasks(activeSprint._id, activeProject._id);
@@ -68,7 +71,7 @@ async function initializeBoard() {
 
 // Render board with tasks
 function renderBoard() {
-  ["todo", "inprogress", "done"].forEach(col => {
+  BOARD_COLUMNS.forEach(col => {
     const colDiv = document.getElementById(col);
     colDiv.innerHTML = "";
     const colTasks = tasks.filter(t => t.status === col);
@@ -84,6 +87,7 @@ function renderBoard() {
         <div style="font-weight:500;margin-bottom:4px;">${task.title}</div>
         ${task.assignedTo ? `<div style="font-size:0.8rem;color:#666;margin-bottom:4px;">Assigned to: ${assigneeName}</div>` : ''}
         ${dueDate ? `<div style="font-size:0.8rem;color:#666;margin-bottom:4px;">Due: ${dueDate}</div>` : ''}
+        ${task.blockedReason && task.status === "blocked" ? `<div style="font-size:0.8rem;color:#991b1b;margin-bottom:4px;">Blocker: ${task.blockedReason}</div>` : ""}
         ${task.priority ? `<span style="font-size:0.7rem;padding:2px 6px;border-radius:3px;background:${getPriorityColor(task.priority)};color:white;">${task.priority.toUpperCase()}</span>` : ''}
       `;
       
@@ -110,7 +114,7 @@ function onDragStart(e) {
     draggedTaskId = e.target.dataset.id;
 }
 
-["todo", "inprogress", "done"].forEach(col => {
+BOARD_COLUMNS.forEach(col => {
     const colDiv = document.getElementById(col);
     colDiv.ondragover = e => e.preventDefault();
     colDiv.ondrop = async (e) => {
@@ -120,7 +124,14 @@ function onDragStart(e) {
             if (task) {
                 try {
                   await updateTaskStatus(draggedTaskId, col);
+                  if (col === "blocked") {
+                    await toggleTaskBlocked(draggedTaskId, true, task.blockedReason || "Blocked from scrum board");
+                  } else if (task.status === "blocked" || task.isBlocked) {
+                    await toggleTaskBlocked(draggedTaskId, false, "");
+                  }
                   task.status = col;
+                  task.isBlocked = col === "blocked";
+                  task.blockedReason = col === "blocked" ? (task.blockedReason || "Blocked from scrum board") : "";
                   renderBoard();
                 } catch (error) {
                   alert("Failed to update task: " + error.message);
@@ -201,12 +212,26 @@ document.getElementById("addTaskForm").onsubmit = async function(e) {
         return;
     }
     
+    if (!activeProject) {
+        alert("No active project selected");
+        return;
+    }
+    
     const assignedTo = document.getElementById("taskAssigneeSelect").value || null;
     const dueDate = document.getElementById("taskDueDateInput").value || null;
-    const priority = document.getElementById("taskPriorityInput").value;
+    const priority = document.getElementById("taskPriorityInput").value || "medium";
     const description = document.getElementById("taskDescriptionInput").value.trim();
+    const status = document.getElementById("taskStatusInput").value || "todo";
     
     try {
+      // Show loading state
+      const submitBtn = document.querySelector("#addTaskForm button[type='submit']");
+      const originalText = submitBtn ? submitBtn.textContent : "Creating...";
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Creating...";
+      }
+
       const newTask = await createTask(
         title,
         description,
@@ -214,15 +239,38 @@ document.getElementById("addTaskForm").onsubmit = async function(e) {
         activeSprint._id,
         activeProject._id,
         priority,
-        dueDate
+        dueDate,
+        status
       );
 
-      tasks.push(newTask.task || newTask);
+      // Handle response - could be newTask.task or just newTask
+      const taskData = newTask.task || newTask;
+      if (status === "blocked") {
+        await toggleTaskBlocked(taskData._id, true, "Blocked at creation");
+        taskData.isBlocked = true;
+        taskData.blockedReason = "Blocked at creation";
+      }
+      tasks.push(taskData);
       renderBoard();
       closeTaskModal();
+      
+      // Reset form
+      document.getElementById("addTaskForm").reset();
+      
       alert("Task created successfully!");
+      
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
     } catch (error) {
+      console.error("Error creating task:", error);
       alert("Failed to create task: " + error.message);
+      const submitBtn = document.querySelector("#addTaskForm button[type='submit']");
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
     }
 };
 

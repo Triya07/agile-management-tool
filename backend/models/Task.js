@@ -70,6 +70,10 @@ const taskSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Sprint"
     },
+    backlogRank: {
+      type: Number,
+      default: null
+    },
     projectId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Project",
@@ -85,6 +89,9 @@ const taskSchema = new mongoose.Schema(
       type: Date
     },
     startDate: {
+      type: Date
+    },
+    completedAt: {
       type: Date
     },
     

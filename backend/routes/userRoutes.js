@@ -7,7 +7,8 @@ const {
   getUserDashboard,
   updateUserProfile,
   getUserProjects,
-  getUserActivity
+  getUserActivity,
+  getMemberDirectory
 } = require("../controllers/userController");
 
 // Protected routes - require authentication
@@ -16,5 +17,6 @@ router.get("/dashboard", protect, getUserDashboard);
 router.patch("/profile", protect, updateUserProfile);
 router.get("/projects", protect, getUserProjects);
 router.get("/activity", protect, getUserActivity);
+router.get("/members", protect, getMemberDirectory);
 
 module.exports = router;

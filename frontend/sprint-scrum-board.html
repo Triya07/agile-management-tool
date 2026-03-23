@@ -3,6 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <title>Sprint Board | FlowBoard</title>
+  <script>
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      const projectId = params.get('projectId') || localStorage.getItem('currentProjectId') || localStorage.getItem('activeProject');
+      const sprintId = params.get('sprintId') || localStorage.getItem('currentSprintId') || localStorage.getItem('activeSprint');
+      const next = new URL('sprint.html', window.location.href);
+      if (projectId) next.searchParams.set('projectId', projectId);
+      if (sprintId) next.searchParams.set('sprintId', sprintId);
+      window.location.replace(next.toString());
+    })();
+  </script>
   <link rel="stylesheet" href="style.css">
   <style>
     /* Initialize CSS variables */

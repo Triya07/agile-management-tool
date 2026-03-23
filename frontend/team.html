@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Team Management | FlowBoard</title>
   <link rel="stylesheet" href="style.css">
   <style>
@@ -84,6 +85,63 @@
     .activity-assigned { background: #dbeafe; color: #1d4ed8; }
     .activity-completed { background: #d1fae5; color: #065f46; }
     .activity-updated { background: #fef3c7; color: #d97706; }
+    .assign-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      z-index: 1200;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .assign-modal .modal-content {
+      width: min(640px, 96vw);
+      background: #fff;
+      border-radius: 14px;
+      padding: 22px;
+      box-shadow: 0 16px 40px rgba(2, 6, 23, 0.25);
+    }
+    .modal-header {
+      margin-bottom: 12px;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 10px;
+    }
+    .modal-body { padding-top: 6px; }
+    .form-group { margin-bottom: 14px; }
+    .form-label { display: block; font-weight: 600; margin-bottom: 6px; color: #0f172a; }
+    .form-input {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 10px 12px;
+      box-sizing: border-box;
+      font-size: 0.95rem;
+      background: #fff;
+    }
+    .date-picker { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .priority-selector { display: flex; gap: 8px; }
+    .priority-btn {
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+      color: #0f172a;
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      user-select: none;
+      font-weight: 600;
+    }
+    .priority-btn.active {
+      background: linear-gradient(135deg, #0891b2, #22c55e);
+      color: #fff;
+      border-color: transparent;
+    }
+    .btn-secondary {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+    .action-btn { cursor: pointer; }
   </style>
 </head>
 <body>
@@ -154,6 +212,10 @@
             <div id="activityList"></div>
           </div>
         </div>
+          <div class="activity-feed" style="margin-top:16px;">
+            <h3 style="margin-top:0;">Pending Invitations</h3>
+            <div id="inviteList"></div>
+          </div>
       </div>
     </main>
   </div>
@@ -168,11 +230,11 @@
         <form id="assignTaskForm">
           <div class="form-group">
             <label class="form-label">Select Task:</label>
-            <select id="taskSelect" class="form-input"></select>
+            <select id="taskSelect" class="form-input" title="Task"></select>
           </div>
           <div class="form-group">
             <label class="form-label">Assign to:</label>
-            <select id="memberSelect" class="form-input"></select>
+            <select id="memberSelect" class="form-input" title="Team member"></select>
           </div>
           <div class="form-group">
             <label class="form-label">Priority:</label>
@@ -185,8 +247,8 @@
           <div class="form-group">
             <label class="form-label">Due Date:</label>
             <div class="date-picker">
-              <input type="date" id="startDate" class="form-input">
-              <input type="date" id="dueDate" class="form-input">
+              <input type="date" id="startDate" class="form-input" title="Start date">
+              <input type="date" id="dueDate" class="form-input" title="Due date">
             </div>
           </div>
           <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:24px;">
@@ -197,12 +259,18 @@
       </div>
     </div>
   </div>
-<<<<<<< HEAD
+
+  <div id="memberTasksModal" class="assign-modal">
+    <div class="modal-content" style="max-width:640px;">
+      <div class="modal-header" style="display:flex;justify-content:space-between;align-items:center;">
+        <h3 style="margin:0;" id="memberTasksTitle">Member Tasks</h3>
+        <button class="btn btn-secondary" type="button" onclick="closeMemberTasksModal()">Close</button>
+      </div>
+      <div class="modal-body" id="memberTasksContent"></div>
+    </div>
+  </div>
 
   <script src="api.js"></script>
-=======
- 
->>>>>>> 7daa70b62fe5667570c56f9421d22c2ff6bc2620
   <script>
      // AUTH GUARD — paste at top of every protected page
 (function() {
@@ -213,12 +281,9 @@
     return;
   }
 
-  // Role-based protection
-  // On manager-only pages (dashboard.html, team.html, reports.html):
-  if (user.role !== 'manager') window.location.href = 'dashboard-team.html';
-
-  // On worker-only pages (dashboard-team.html, my-tasks.html):
-  // if (user.role !== 'worker') window.location.href = 'dashboard.html';
+  if (user.role !== 'manager') {
+    window.location.href = 'dashboard-team.html';
+  }
 })();
 
     // Global navigation and utility functions
@@ -229,74 +294,74 @@
     // Team members and data
     let teamMembers = [];
     let allTasks = [];
+    let pendingInvites = [];
     let allProjects = [];
+    const currentUser = getCurrentUser();
+    let currentProjectId = getActiveContext().projectId || 'global';
 
     // Load data from API
     async function loadTeamData() {
       try {
-        // Get all projects and their members
         const projectsData = await getProjects();
+        const membersData = await getMemberDirectory();
+
         allProjects = Array.isArray(projectsData) ? projectsData : (projectsData.data || []);
-        
-        // Get all tasks
-        let tasks = [];
-        for (const project of allProjects) {
-          try {
-            const projectTasks = await getProjectTasks(project._id);
-            tasks = tasks.concat(Array.isArray(projectTasks) ? projectTasks : (projectTasks.data || []));
-          } catch (e) {
-            console.log("Could not fetch tasks for project", project._id);
-          }
-        }
-        allTasks = tasks;
-        
-        // Extract unique team members from all projects
-        const memberMap = new Map();
-        allProjects.forEach(project => {
-          if (project.members && Array.isArray(project.members)) {
-            project.members.forEach(member => {
-              const memberId = member._id || member;
-              if (!memberMap.has(memberId)) {
-                memberMap.set(memberId, {
-                  id: memberId,
-                  name: member.name || 'Team Member',
-                  email: member.email || 'unknown@example.com',
-                  role: member.role || 'Team Member'
+        const apiMembers = (Array.isArray(membersData) ? membersData : []).map(member => ({
+          id: member._id,
+          name: member.name,
+          email: member.email,
+          role: member.jobTitle || member.department || 'Member'
+        }));
+
+        if (apiMembers.length) {
+          teamMembers = apiMembers;
+        } else {
+          // Fallback: derive members from project member arrays.
+          const memberMap = new Map();
+          allProjects.forEach(project => {
+            (project.members || []).forEach(member => {
+              const memberId = member && (member._id || member.id || member);
+              if (!memberId) return;
+
+              if (!memberMap.has(String(memberId))) {
+                memberMap.set(String(memberId), {
+                  id: String(memberId),
+                  name: member.name || member.email || 'Team Member',
+                  email: member.email || '',
+                  role: member.role || 'Member'
                 });
               }
             });
-          }
-        });
-        
-        teamMembers = Array.from(memberMap.values());
+          });
+          teamMembers = Array.from(memberMap.values());
+        }
+
+        const taskLists = await Promise.all(
+          allProjects.map(async (project) => {
+            try {
+              const projectTasks = await getProjectTasks(project._id);
+              const normalized = Array.isArray(projectTasks) ? projectTasks : (projectTasks.data || []);
+              return normalized.map(task => ({ ...task, projectName: project.name }));
+            } catch (e) {
+              console.log("Could not fetch tasks for project", project._id);
+              return [];
+            }
+          })
+        );
+
+        allTasks = taskLists.flat();
+
+        if (!currentProjectId || currentProjectId === 'global') {
+          currentProjectId = allProjects[0]?._id || 'global';
+        }
         
         renderTeam();
         renderCalendar();
         updateActivityFeed();
       } catch (error) {
         console.error('Error loading team data:', error);
-        // Fallback to demo data
-        loadDemoTeamData();
+        alert('Failed to load team data from database.');
       }
-    }
-    
-    // Demo data fallback
-    function loadDemoTeamData() {
-      teamMembers = [
-        { id: "user1", name: "John Doe", email: "john@example.com", role: "Developer" },
-        { id: "user2", name: "Jane Smith", email: "jane@example.com", role: "Designer" },
-        { id: "user3", name: "Mike Wilson", email: "mike@example.com", role: "Tester" }
-      ];
-      
-      allTasks = [
-        { id: "task1", title: "Design homepage", assignee: "user2", status: "inprogress" },
-        { id: "task2", title: "Setup database", assignee: "user1", status: "inprogress" },
-        { id: "task3", title: "Write tests", assignee: "user3", status: "done" }
-      ];
-      
-      renderTeam();
-      renderCalendar();
-      updateActivityFeed();
     }
 
     function renderTeam() {
@@ -345,8 +410,8 @@
           </div>
           
           <div style="display:flex;gap:8px;margin-top:16px;">
-            <button class="btn" onclick="assignTask('${member.id}')" style="flex:1;font-size:0.9rem;">Assign Task</button>
-            <button class="btn btn-secondary" onclick="viewMemberTasks('${member.id}')" style="flex:1;font-size:0.9rem;">View All</button>
+            <button class="btn action-btn assign-task-btn" data-member-id="${member.id}" style="flex:1;font-size:0.9rem;">Assign Task</button>
+            <button class="btn btn-secondary action-btn view-tasks-btn" data-member-id="${member.id}" style="flex:1;font-size:0.9rem;">View All</button>
           </div>
         `;
         teamGrid.appendChild(div);
@@ -358,7 +423,7 @@
     function getUserTasks(userId) {
       return allTasks.filter(t => {
         const assignedTo = t.assignedTo ? (t.assignedTo._id || t.assignedTo) : null;
-        return assignedTo === userId;
+        return String(assignedTo || '') === String(userId);
       });
     }
     
@@ -499,6 +564,180 @@
     }
     
     // Enhanced assign task functionality
+    function getAssignableTasks() {
+      return allTasks
+        .filter(task => task.status !== 'done')
+        .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    }
+
+    function assignTask(memberId) {
+      const assignModal = document.getElementById("assignModal");
+      const taskSelect = document.getElementById("taskSelect");
+      const memberSelect = document.getElementById("memberSelect");
+      const assignableTasks = getAssignableTasks();
+
+      if (!teamMembers.length) {
+        alert('No team members found in database. Ask members to sign up first.');
+        return;
+      }
+
+      if (!assignableTasks.length) {
+        alert('No assignable tasks found. Create tasks first.');
+        return;
+      }
+      
+      // Populate task select
+      taskSelect.innerHTML = '<option value="">Select a task...</option>';
+      assignableTasks.forEach(task => {
+        const option = document.createElement("option");
+        option.value = task._id;
+        option.textContent = `${task.title} (${task.projectName || 'Project'})`;
+        taskSelect.appendChild(option);
+      });
+      
+      // Populate member select
+      memberSelect.innerHTML = '';
+      teamMembers.forEach(member => {
+        const option = document.createElement("option");
+        option.value = member.id;
+        option.selected = member.id === memberId;
+        option.textContent = member.name;
+        memberSelect.appendChild(option);
+      });
+
+      if (!memberSelect.value && teamMembers.length > 0) {
+        memberSelect.value = teamMembers[0].id;
+      }
+
+      document.getElementById('startDate').value = '';
+      document.getElementById('dueDate').value = '';
+      
+      assignModal.style.display = "flex";
+    }
+    
+    function viewMemberTasks(memberId) {
+      const member = teamMembers.find(m => m.id === memberId);
+      const memberTasks = allTasks.filter(t => {
+        const assignedTo = t.assignedTo ? (t.assignedTo._id || t.assignedTo) : null;
+        return String(assignedTo || '') === String(memberId);
+      });
+
+      let html = '';
+      if (memberTasks.length === 0) {
+        html += '<p>No tasks assigned to this member.</p>';
+      } else {
+        html += '<ul style="list-style:none;padding:0;">';
+        memberTasks.forEach(task => {
+          const statusColor = task.status === 'done' ? '#10b981' : task.status === 'inprogress' ? '#f59e0b' : '#6b7280';
+          html += `
+            <li style="padding:12px 0;border-bottom:1px solid #e5e7eb;">
+              <strong>${task.title}</strong><br/>
+              <span style="color:${statusColor};font-weight:600;">${task.status.toUpperCase()}</span>
+              ${task.priority ? ` • Priority: ${task.priority}` : ''}
+            </li>
+          `;
+        });
+        html += '</ul>';
+      }
+
+      document.getElementById('memberTasksTitle').textContent = member ? `${member.name}'s Tasks` : 'Member Tasks';
+      document.getElementById('memberTasksContent').innerHTML = html;
+      document.getElementById('memberTasksModal').style.display = 'flex';
+    }
+
+    function closeMemberTasksModal() {
+      document.getElementById('memberTasksModal').style.display = 'none';
+    }
+
+    function loadInvites() {
+      const key = `teamInvites:${currentProjectId || 'global'}`;
+      pendingInvites = JSON.parse(localStorage.getItem(key) || '[]');
+      renderInvites();
+    }
+
+    function saveInvites() {
+      const key = `teamInvites:${currentProjectId || 'global'}`;
+      localStorage.setItem(key, JSON.stringify(pendingInvites));
+      renderInvites();
+    }
+
+    function renderInvites() {
+      const inviteList = document.getElementById('inviteList');
+      if (!inviteList) return;
+
+      if (!pendingInvites.length) {
+        inviteList.innerHTML = '<p style="color:#64748b;margin:0;">No pending invitations.</p>';
+        return;
+      }
+
+      inviteList.innerHTML = pendingInvites
+        .map((invite, idx) => `
+          <div style="padding:10px 0;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;gap:10px;align-items:center;">
+            <div>
+              <div style="font-weight:600;color:#0f172a;">${invite.email}</div>
+              <div style="font-size:0.85rem;color:#64748b;">Invited ${new Date(invite.createdAt).toLocaleString()}</div>
+            </div>
+            <button class="btn btn-secondary" type="button" onclick="removeInvite(${idx})">Remove</button>
+          </div>
+        `)
+        .join('');
+    }
+
+    function removeInvite(index) {
+      pendingInvites.splice(index, 1);
+      saveInvites();
+    }
+    
+    function openBulkAssignModal() {
+      const assignModal = document.getElementById("assignModal");
+      const taskSelect = document.getElementById("taskSelect");
+      const memberSelect = document.getElementById("memberSelect");
+      const assignableTasks = getAssignableTasks();
+
+      if (!teamMembers.length) {
+        alert('No team members found in database. Ask members to sign up first.');
+        return;
+      }
+
+      if (!assignableTasks.length) {
+        alert('No assignable tasks found. Create tasks first.');
+        return;
+      }
+      
+      // Populate task select - allow multiple (but this is single select, so just populate)
+      taskSelect.innerHTML = '<option value="">Select a task...</option>';
+      assignableTasks.forEach(task => {
+        const option = document.createElement("option");
+        option.value = task._id;
+        option.textContent = `${task.title} (${task.projectName || 'Project'})`;
+        taskSelect.appendChild(option);
+      });
+      
+      // Populate member select
+      memberSelect.innerHTML = '';
+      teamMembers.forEach(member => {
+        const option = document.createElement("option");
+        option.value = member.id;
+        option.textContent = member.name;
+        memberSelect.appendChild(option);
+      });
+
+      if (teamMembers.length > 0) {
+        memberSelect.value = teamMembers[0].id;
+      }
+
+      document.getElementById('startDate').value = '';
+      document.getElementById('dueDate').value = '';
+      
+      assignModal.style.display = "flex";
+    }
+    
+    function closeAssignModal() {
+      const assignModal = document.getElementById("assignModal");
+      assignModal.style.display = "none";
+    }
+    
+    // Enhanced assign task functionality
     document.getElementById("assignTaskForm").onsubmit = async function(e) {
       e.preventDefault();
       const taskId = document.getElementById("taskSelect").value;
@@ -506,6 +745,11 @@
       const priority = document.querySelector(".priority-btn.active").dataset.priority;
       const startDate = document.getElementById("startDate").value;
       const dueDate = document.getElementById("dueDate").value;
+
+      if (!taskId || !memberId) {
+        alert('Please select both task and team member.');
+        return;
+      }
       
       try {
         // Find the task in our loaded data
@@ -515,8 +759,29 @@
           return;
         }
         
-        const member = teamMembers.find(m => m.id === memberId);
-        alert(`Assigned task "${task.title}" to ${member.name}. Note: Full task assignment features coming soon.`);
+        const member = teamMembers.find(m => String(m.id) === String(memberId));
+        if (!member) {
+          alert('Selected member not found. Refresh and try again.');
+          return;
+        }
+
+        if (startDate && dueDate && new Date(startDate) > new Date(dueDate)) {
+          alert('Start date cannot be after due date.');
+          return;
+        }
+        
+        await updateTask(
+          taskId,
+          task.title,
+          task.description || '',
+          memberId,
+          priority,
+          dueDate || task.dueDate || null,
+          task.status,
+          startDate || task.startDate || null
+        );
+        
+        alert(`Assigned task "${task.title}" to ${member.name}.`);
         closeAssignModal();
         
         // Reload team data to reflect changes
@@ -525,6 +790,27 @@
         console.error('Error assigning task:', error);
         alert('Error assigning task: ' + error.message);
       }
+    };
+    
+    // Add Member Button Handler
+    document.getElementById("addMemberBtn").onclick = function() {
+      const memberEmail = prompt('Enter member email address:');
+      if (!memberEmail) return;
+
+      const normalized = memberEmail.trim().toLowerCase();
+      if (!/^\S+@\S+\.\S+$/.test(normalized)) {
+        alert('Please enter a valid email address.');
+        return;
+      }
+
+      if (pendingInvites.some(i => i.email === normalized)) {
+        alert('This email already has a pending invitation.');
+        return;
+      }
+
+      pendingInvites.unshift({ email: normalized, createdAt: new Date().toISOString() });
+      saveInvites();
+      alert('Invitation recorded for ' + normalized + '.');
     };
     
     // Priority selector
@@ -536,17 +822,31 @@
     });
     
     // Initialize
-    // Load data from API when page loads
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
+      const teamGrid = document.getElementById('teamGrid');
+      teamGrid.addEventListener('click', (event) => {
+        const assignBtn = event.target.closest('.assign-task-btn');
+        if (assignBtn) {
+          assignTask(assignBtn.dataset.memberId);
+          return;
+        }
+
+        const viewBtn = event.target.closest('.view-tasks-btn');
+        if (viewBtn) {
+          viewMemberTasks(viewBtn.dataset.memberId);
+        }
+      });
+
+      const assignModal = document.getElementById('assignModal');
+      assignModal.addEventListener('click', (event) => {
+        if (event.target === assignModal) {
+          closeAssignModal();
+        }
+      });
+
       loadTeamData();
+      loadInvites();
     });
-    
-    // Also try to load if DOM is already ready
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', loadTeamData);
-    } else {
-      loadTeamData();
-    }
   </script>
 </body>
 </html>

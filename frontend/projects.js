@@ -83,14 +83,12 @@ if (!checkManagerAuth()) {
       // Project card click (excluding the add task button)
       card.addEventListener("click", function(e) {
         if (e.target.classList.contains("add-task-btn")) return;
-        localStorage.setItem("activeProject", project._id);
-        
+        setActiveContext({ projectId: project._id, projectType: project.type });
+
         // Navigate based on project type
         if (project.type === "scrum") {
-          // For Scrum projects, go to scrum board
-          window.location.href = "scrum-board.html";
+          window.location.href = `sprint.html?projectId=${project._id}`;
         } else {
-          // For Kanban projects, go to kanban board
           window.location.href = "kanban-board.html";
         }
       });
@@ -231,8 +229,8 @@ if (!checkManagerAuth()) {
       
       if (title && projectId) {
         try {
-          // Create task via API (no sprint for now, will be null for kanban tasks)
-          await createTask(title, "", null, null, projectId, "medium", null);
+          // Create task via API with the selected status
+          await createTask(title, "", null, null, projectId, "medium", null, status);
           alert("Task created successfully!");
           modal.remove();
         } catch (error) {

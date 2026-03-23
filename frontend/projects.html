@@ -91,6 +91,7 @@
       <nav class="sidebar-nav">
         <button class="sidebar-btn" onclick="navigateTo('kanban-board.html')" id="nav-board">Kanban Board</button>
         <button class="sidebar-btn active" id="nav-projects">Projects</button>
+        <button class="sidebar-btn" onclick="navigateTo('backlog.html')">Backlog</button>
         <button class="sidebar-btn" onclick="navigateTo('dashboard.html')" id="nav-dashboard">Dashboard</button>
         <button class="sidebar-btn" onclick="navigateTo('sprint.html')" id="nav-sprints">Sprints</button>
         <button class="sidebar-btn" onclick="navigateTo('team.html')">Team</button>
@@ -555,10 +556,15 @@
           
           // Add click handler to navigate to project sprints
           card.addEventListener('click', () => {
-            // Store project info in localStorage for sprint page
-            localStorage.setItem('currentProjectId', p._id);
+            // Store project info in unified context for downstream pages
+            setActiveContext({ projectId: p._id, projectType: p.type });
             localStorage.setItem('currentProjectName', p.name);
-            window.location.href = `sprint.html?projectId=${p._id}`;
+
+            if (p.type === 'scrum') {
+              window.location.href = `sprint.html?projectId=${p._id}`;
+            } else {
+              window.location.href = 'kanban-board.html';
+            }
           });
           
           // Add hover effect
@@ -588,6 +594,10 @@
     function loadDemoProjects() {
       const grid = document.getElementById('projectsGrid');
       const emptyState = document.getElementById('emptyState');
+      grid.querySelectorAll('.project-card').forEach(card => card.remove());
+      emptyState.style.display = 'block';
+      showNotification('Projects now load only from the backend. Create a project or reconnect the API.', 'info');
+      return;
       const currentUserName = localStorage.getItem('currentUser') || 'User';
       
       const demoProjects = [

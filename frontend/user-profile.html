@@ -423,10 +423,6 @@
   </style>
 </head>
 <body>
-<<<<<<< HEAD
-=======
-  
-
   <script src="api.js"></script>
   <script>
     // AUTH GUARD — paste at top of every protected page
@@ -438,12 +434,7 @@
     return;
   }
 
-  // Role-based protection
-  // On manager-only pages (dashboard.html, team.html, reports.html):
-  if (user.role !== 'manager') window.location.href = 'dashboard-team.html';
-
-  // On worker-only pages (dashboard-team.html, my-tasks.html):
-  // if (user.role !== 'worker') window.location.href = 'dashboard.html';
+  // Profile page is accessible to authenticated users.
 })();
     let currentUser = null;
     let dashboardData = null;
@@ -485,21 +476,29 @@
     function updateProfileUI() {
       if (!currentUser) return;
 
-      document.getElementById("userName").textContent = currentUser.name;
-      document.getElementById("userEmail").textContent = currentUser.email;
-      document.getElementById("userRole").textContent = currentUser.role === "manager" ? "Manager" : "Team Member";
+      // Fix: Use correct element IDs
+      document.getElementById("profileName").textContent = currentUser.name;
+      document.getElementById("profileEmail").textContent = currentUser.email;
+      document.getElementById("profileRole").textContent = currentUser.role === "manager" ? "Manager" : "Team Member";
       document.getElementById("profileAvatar").textContent = currentUser.name.charAt(0).toUpperCase();
 
       // Update form
       document.getElementById("nameInput").value = currentUser.name;
       document.getElementById("emailInput").value = currentUser.email;
+      document.getElementById("phoneInput").value = currentUser.phone || "";
+      document.getElementById("jobTitleInput").value = currentUser.jobTitle || "";
+      document.getElementById("departmentInput").value = currentUser.department || "";
+      document.getElementById("bioInput").value = currentUser.bio || "";
+      if (currentUser.startDate) {
+        document.getElementById("startDateInput").value = currentUser.startDate.split('T')[0];
+      }
 
-      // Update stats
+      // Update stats with correct IDs
       if (dashboardData && dashboardData.stats) {
-        document.getElementById("statProjects").textContent = dashboardData.stats.totalProjects;
-        document.getElementById("statScrumProjects").textContent = dashboardData.stats.scrumProjects;
-        document.getElementById("statKanbanProjects").textContent = dashboardData.stats.kanbanProjects;
-        document.getElementById("statTasksDone").textContent = dashboardData.stats.tasksByStatus.done || 0;
+        document.getElementById("statProjects").textContent = dashboardData.stats.totalProjects || 0;
+        document.getElementById("statAssigned").textContent = dashboardData.stats.tasksByStatus?.todo || 0;
+        document.getElementById("statCompleted").textContent = dashboardData.stats.tasksByStatus?.done || 0;
+        document.getElementById("statSprints").textContent = dashboardData.stats.sprints || 0;
       }
     }
 
@@ -659,39 +658,6 @@
       event.target.classList.add("active");
     }
 
-    document.getElementById("profileForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-
-      const name = document.getElementById("nameInput").value.trim();
-      const email = document.getElementById("emailInput").value.trim();
-
-      if (!name || !email) {
-        showAlert("Please fill in all fields", "error");
-        return;
-      }
-
-      try {
-        const response = await updateUserProfile(name, email);
-        currentUser = response.user;
-        updateProfileUI();
-        showAlert("Profile updated successfully!", "success");
-      } catch (error) {
-        showAlert("Error updating profile: " + error.message, "error");
-      }
-    });
-
-    function resetForm() {
-      if (currentUser) {
-        document.getElementById("nameInput").value = currentUser.name;
-        document.getElementById("emailInput").value = currentUser.email;
-      }
-    }
-
-    function navigateToProject(projectId) {
-      localStorage.setItem("activeProject", projectId);
-      window.location.href = "/projects.html";
-    }
-
     function navigateToDashboard() {
       const userRole = currentUser?.role || 'member';
       if (userRole === 'manager') {
@@ -751,7 +717,6 @@
     }
   </script>
 
->>>>>>> 7daa70b62fe5667570c56f9421d22c2ff6bc2620
   <div class="main-container">
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-logo">
@@ -1054,16 +1019,31 @@
         return;
       }
 
-      container.innerHTML = projectsData.map(project => `
+      container.innerHTML = projectsData.map(project => {
+        const projectTypeColor = project.type === "kanban" ? "#0891b2" : "#6366f1";
+        const projectTypeIcon = project.type === "kanban" ? "📋" : "🔄";
+        return `
         <div class="list-item project-card" onclick="openProject('${project._id}')">
           <div class="list-item-head">
             <p class="list-item-title">${project.name}</p>
-            <span class="pill">${project.type === "kanban" ? "Kanban" : "Scrum"}</span>
+            <span class="pill" style="background: rgba(${project.type === "kanban" ? "8,145,178" : "99,102,241"}, 0.15); color: ${projectTypeColor};">
+              ${projectTypeIcon} ${project.type === "kanban" ? "Kanban" : "Scrum"}
+            </span>
           </div>
           <p class="list-item-meta">${project.description || "No description provided."}</p>
-          <p class="list-item-meta">Sprints: ${project.stats?.sprints || 0} | Tasks: ${project.stats?.tasks || 0} | Assigned to you: ${project.stats?.tasksAssignedToUser || 0}</p>
+          <p class="list-item-meta">
+            ${project.type === "kanban" ? 
+              `Tasks: ${project.stats?.tasks || 0} | Assigned to you: ${project.stats?.tasksAssignedToUser || 0}` :
+              `Sprints: ${project.stats?.sprints || 0} | Tasks: ${project.stats?.tasks || 0} | Assigned to you: ${project.stats?.tasksAssignedToUser || 0}`
+            }
+          </p>
+          <div style="margin-top: 12px; display: flex; gap: 8px;">
+            <button class="btn btn-secondary" type="button" onclick="navigateToProjectBoard('${project._id}', '${project.type}')" style="flex: 1; font-size: 0.85rem; padding: 8px 12px;">
+              ${project.type === "kanban" ? "Open Kanban" : "Open Scrum"}
+            </button>
+          </div>
         </div>
-      `).join("");
+      `}).join("");
     }
 
     function renderTasks() {
@@ -1252,6 +1232,15 @@
       window.location.href = "projects.html";
     }
 
+    function navigateToProjectBoard(projectId, projectType) {
+      localStorage.setItem("activeProject", projectId);
+      if (projectType === "kanban") {
+        window.location.href = "kanban-board.html";
+      } else {
+        window.location.href = "sprint.html";
+      }
+    }
+
     function navigateTo(page) {
       window.location.href = page;
     }
@@ -1317,7 +1306,12 @@
       }
     });
 
-    document.addEventListener("DOMContentLoaded", loadProfilePage);
+    // Initialize on page load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', loadProfilePage);
+    } else {
+      loadProfilePage();
+    }
   </script>
 </body>
 </html>

@@ -5,20 +5,28 @@
   <title>Task Details | Agile Management Tool</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    body { background: #f7f8fa; font-family: 'Segoe UI', Arial, sans-serif; color: #222; }
-    .main-container { display: flex; min-height: 100vh; }
+    :root { --sidebar-width: 300px; }
+    body { background: #f7f8fa; font-family: "Segoe UI", Arial, sans-serif; color: #222; }
+    .main-container {
+      display: flex;
+      min-height: 100vh;
+      margin-left: var(--sidebar-width);
+      width: calc(100% - var(--sidebar-width));
+      transition: margin-left 0.3s ease, width 0.3s ease;
+    }
     #main-content { flex: 1; padding: 32px 40px; }
     .task-section { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); padding: 24px; margin-bottom: 28px; }
     .status-select { padding: 8px; border-radius: 6px; border: 1px solid #e5e7eb; }
     .btn { background: #3182ce; color: #fff; border: none; border-radius: 7px; padding: 10px 22px; cursor: pointer; }
-    .comment-box { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #e5e7eb; margin: 10px 0; }
+    .comment-box { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #e5e7eb; margin: 10px 0; box-sizing: border-box; }
   </style>
 </head>
 <body>
   <div class="main-container">
-    <aside class="sidebar">
+    <aside class="sidebar" id="sidebar">
       <div class="sidebar-logo">
         <img src="img/logo.png" alt="FlowBoard Logo">
+        <button class="sidebar-resize-btn" id="sidebarResizeBtn" title="Toggle sidebar size">||</button>
       </div>
       <nav class="sidebar-nav">
         <button class="sidebar-btn" onclick="navigateTo('dashboard-team.html')">Dashboard</button>
@@ -32,147 +40,233 @@
     <main id="main-content">
       <div class="task-section">
         <div style="margin-bottom:20px;">
-          <button class="btn" onclick="window.location.href='my-tasks.html'" style="background:#6b7280;">← Back to My Tasks</button>
+          <button class="btn" onclick="window.location.href='my-tasks.html'" style="background:#6b7280;">Back to My Tasks</button>
         </div>
-        
+
         <div id="taskDetails"></div>
       </div>
     </main>
   </div>
- 
+
   <script src="api.js"></script>
   <script>
-     // AUTH GUARD — paste at top of every protected page
-(function() {
-  const token = localStorage.getItem('token');
-  const user  = JSON.parse(localStorage.getItem('user') || 'null');
-  if (!token || !user) {
-    window.location.href = 'login.html';
-    return;
-  }
+    (function() {
+      const token = localStorage.getItem("token");
+      const user = JSON.parse(localStorage.getItem("user") || "null");
+      if (!token || !user) {
+        window.location.href = "login.html";
+      }
+    })();
 
-  // Role-based protection
-  // On manager-only pages (dashboard.html, team.html, reports.html):
-  if (user.role !== 'manager') window.location.href = 'dashboard-team.html';
-
-  // On worker-only pages (dashboard-team.html, my-tasks.html):
-  // if (user.role !== 'worker') window.location.href = 'dashboard.html';
-})();
-  
-    const currentUser = localStorage.getItem("currentUser");
     const taskId = localStorage.getItem("viewTaskId");
-    
-    // Load task from API
-    async function loadTaskDetails() {
-      try {
-        const tasks = await getUserTasks();
-        const taskList = Array.isArray(tasks) ? tasks : (tasks.data || []);
-        return taskList.find(t => t._id === taskId);
-      } catch (error) {
-        console.error('Error loading task:', error);
-        return null;
-      }
-    }
-    
-    async function renderTaskDetails() {
-      const task = await loadTaskDetails();
-      
-      if (!task) {
-        alert('Task not found or not assigned to you.');
-        window.location.href = 'my-tasks.html';
-        return;
-      }
-      
-      document.getElementById('taskDetails').innerHTML = `
-        <h2>${task.title}</h2>
-        <p><strong>Description:</strong> ${task.description || 'No description provided'}</p>
-        <p><strong>Priority:</strong> ${task.priority || 'Medium'}</p>
-        <p><strong>Due Date:</strong> ${task.dueDate || 'Not set'}</p>
-        
-        <div style="margin:20px 0;">
-          <label><strong>Status:</strong></label>
-          <select class="status-select" id="statusSelect">
-            <option value="todo" ${task.status === 'todo' ? 'selected' : ''}>To Do</option>
-            <option value="inprogress" ${task.status === 'inprogress' ? 'selected' : ''}>In Progress</option>
-            <option value="done" ${task.status === 'done' ? 'selected' : ''}>Done</option>
-          </select>
-          <button class="btn" onclick="updateTaskStatus()" style="margin-left:10px;">Update Status</button>
-        </div>
-        
-        <div>
-          <h3>Add Comment</h3>
-          <textarea class="comment-box" id="commentBox" placeholder="Add your comment..."></textarea>
-          <button class="btn" onclick="addComment()">Add Comment</button>
-        </div>
-        
-        <div id="comments"></div>
-      `;
-      
-      renderComments();
-    }
-    
-    function updateTaskStatus() {
-      const newStatus = document.getElementById('statusSelect').value;
-      let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-      const taskIndex = tasks.findIndex(t => t.id === taskId);
-      
-      if (taskIndex !== -1) {
-        tasks[taskIndex].status = newStatus;
-        if (newStatus === 'done') {
-          tasks[taskIndex].completedDate = new Date().toISOString().split('T')[0];
-        }
-        localStorage.setItem('tasks', JSON.stringify(tasks));
-        alert('Task status updated!');
-      }
-    }
-    
-    function addComment() {
-      const comment = document.getElementById('commentBox').value;
-      if (!comment) return;
-      
-      const comments = JSON.parse(localStorage.getItem('taskComments')) || {};
-      if (!comments[taskId]) comments[taskId] = [];
-      
-      comments[taskId].unshift({
-        user: currentUser,
-        comment: comment,
-        date: new Date().toLocaleDateString(),
-        time: new Date().toLocaleTimeString()
-      });
-      
-      localStorage.setItem('taskComments', JSON.stringify(comments));
-      document.getElementById('commentBox').value = '';
-      renderComments();
-    }
-    
-    function renderComments() {
-      const comments = JSON.parse(localStorage.getItem('taskComments')) || {};
-      const taskComments = comments[taskId] || [];
-      
-      document.getElementById('comments').innerHTML = `
-        <h3>Comments</h3>
-        ${taskComments.map(c => `
-          <div style="padding:10px;background:#f7fafc;margin:8px 0;border-radius:6px;">
-            <strong>${c.user}</strong> - ${c.date} ${c.time}
-            <p style="margin:4px 0 0 0;">${c.comment}</p>
-          </div>
-        `).join('') || '<p>No comments yet.</p>'}
-      `;
-    }
-    
+    let currentTask = null;
+    let currentActivity = [];
+
     function navigateTo(page) {
       window.location.href = page;
     }
-    
+
     function logout() {
       localStorage.clear();
-      window.location.href = 'index.html';
+      window.location.href = "login.html";
     }
-    
-    // Initialize on page load
-    document.addEventListener('DOMContentLoaded', () => {
-      renderTaskDetails();
+
+    function formatDate(value) {
+      if (!value) return "Not set";
+      return new Date(value).toLocaleString();
+    }
+
+    function getStatusLabel(status) {
+      const labels = {
+        todo: "To Do",
+        inprogress: "In Progress",
+        review: "Review",
+        blocked: "Blocked",
+        done: "Done"
+      };
+      return labels[status] || status;
+    }
+
+    async function loadTaskDetails() {
+      if (!taskId) {
+        alert("No task selected.");
+        window.location.href = "my-tasks.html";
+        return;
+      }
+
+      try {
+        const [task, activity] = await Promise.all([
+          getTask(taskId),
+          getTaskActivityHistory(taskId)
+        ]);
+
+        currentTask = task;
+        currentActivity = Array.isArray(activity) ? activity : [];
+        renderTaskDetails();
+      } catch (error) {
+        console.error("Error loading task:", error);
+        alert("Unable to load task details.");
+        window.location.href = "my-tasks.html";
+      }
+    }
+
+    function renderComments() {
+      const comments = currentTask.comments || [];
+      return comments.length
+        ? comments.map(comment => `
+          <div style="padding:10px;background:#f7fafc;margin:8px 0;border-radius:6px;">
+            <strong>${comment.author?.name || "Unknown user"}</strong> - ${formatDate(comment.createdAt)}
+            <p style="margin:4px 0 0 0;">${comment.text}</p>
+          </div>
+        `).join("")
+        : "<p>No comments yet.</p>";
+    }
+
+    function renderActivity() {
+      return currentActivity.length
+        ? currentActivity.map(item => `
+          <div style="padding:10px;background:#f8fafc;margin:8px 0;border-radius:6px;">
+            <strong>${item.changedBy?.name || "System"}</strong>
+            <span style="color:#666;">${item.action.replaceAll("_", " ")}</span>
+            <div style="font-size:0.85rem;color:#666;">${formatDate(item.changedAt)}</div>
+          </div>
+        `).join("")
+        : "<p>No activity yet.</p>";
+    }
+
+    function renderTaskDetails() {
+      document.getElementById("taskDetails").innerHTML = `
+        <h2>${currentTask.title}</h2>
+        <p><strong>Description:</strong> ${currentTask.description || "No description provided"}</p>
+        <p><strong>Project:</strong> ${currentTask.projectId?.name || "Unknown project"}</p>
+        <p><strong>Sprint:</strong> ${currentTask.sprint?.sprintName || "Backlog"}</p>
+        <p><strong>Priority:</strong> ${currentTask.priority || "medium"}</p>
+        <p><strong>Due Date:</strong> ${formatDate(currentTask.dueDate)}</p>
+        <p><strong>Blocked:</strong> ${currentTask.isBlocked ? `Yes${currentTask.blockedReason ? ` - ${currentTask.blockedReason}` : ""}` : "No"}</p>
+
+        <div style="margin:20px 0;">
+          <label><strong>Status:</strong></label>
+          <select class="status-select" id="statusSelect">
+            <option value="todo" ${currentTask.status === "todo" ? "selected" : ""}>To Do</option>
+            <option value="inprogress" ${currentTask.status === "inprogress" ? "selected" : ""}>In Progress</option>
+            <option value="review" ${currentTask.status === "review" ? "selected" : ""}>Review</option>
+            <option value="blocked" ${currentTask.status === "blocked" ? "selected" : ""}>Blocked</option>
+            <option value="done" ${currentTask.status === "done" ? "selected" : ""}>Done</option>
+          </select>
+          <button class="btn" onclick="handleStatusUpdate()" style="margin-left:10px;">Update Status</button>
+        </div>
+
+        <div style="margin:20px 0;">
+          <label><strong>Blocker Reason:</strong></label>
+          <textarea class="comment-box" id="blockedReasonBox" placeholder="Add blocker details if needed...">${currentTask.blockedReason || ""}</textarea>
+          <button class="btn" onclick="handleBlockerUpdate()">Save Blocker State</button>
+        </div>
+
+        <div>
+          <h3>Add Comment</h3>
+          <textarea class="comment-box" id="commentBox" placeholder="Add your comment..."></textarea>
+          <button class="btn" onclick="handleAddComment()">Add Comment</button>
+        </div>
+
+        <div id="comments" style="margin-top:20px;">
+          <h3>Comments</h3>
+          ${renderComments()}
+        </div>
+
+        <div id="activity" style="margin-top:20px;">
+          <h3>Activity</h3>
+          ${renderActivity()}
+        </div>
+      `;
+    }
+
+    async function handleStatusUpdate() {
+      const newStatus = document.getElementById("statusSelect").value;
+
+      try {
+        await updateTaskStatus(taskId, newStatus);
+        if (newStatus !== "blocked" && currentTask.isBlocked) {
+          await toggleTaskBlocked(taskId, false, "");
+        }
+        await loadTaskDetails();
+        alert(`Task moved to ${getStatusLabel(newStatus)}.`);
+      } catch (error) {
+        console.error("Error updating status:", error);
+        alert(error.message || "Unable to update task status.");
+      }
+    }
+
+    async function handleBlockerUpdate() {
+      const reason = document.getElementById("blockedReasonBox").value.trim();
+      const isBlocked = reason.length > 0 || document.getElementById("statusSelect").value === "blocked";
+
+      try {
+        await toggleTaskBlocked(taskId, isBlocked, reason);
+        if (isBlocked && currentTask.status !== "blocked") {
+          await updateTaskStatus(taskId, "blocked");
+        }
+        await loadTaskDetails();
+        alert("Blocker state saved.");
+      } catch (error) {
+        console.error("Error updating blocker:", error);
+        alert(error.message || "Unable to save blocker state.");
+      }
+    }
+
+    async function handleAddComment() {
+      const comment = document.getElementById("commentBox").value.trim();
+      if (!comment) return;
+
+      try {
+        await addTaskComment(taskId, comment);
+        await loadTaskDetails();
+      } catch (error) {
+        console.error("Error adding comment:", error);
+        alert(error.message || "Unable to add comment.");
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadTaskDetails();
     });
+
+    const root = document.documentElement;
+    const sidebar = document.getElementById("sidebar");
+    const resizeBtn = document.getElementById("sidebarResizeBtn");
+    let sidebarState = "normal";
+
+    function setSidebarWidth(width) {
+      root.style.setProperty("--sidebar-width", width + "px");
+      localStorage.setItem("sidebarWidth", width);
+      if (!sidebar) return;
+      sidebar.classList.remove("compact", "wide");
+      if (width <= 250) {
+        sidebar.classList.add("compact");
+        sidebarState = "compact";
+      } else if (width >= 380) {
+        sidebar.classList.add("wide");
+        sidebarState = "wide";
+      } else {
+        sidebarState = "normal";
+      }
+    }
+
+    const savedWidth = localStorage.getItem("sidebarWidth");
+    if (savedWidth) {
+      setSidebarWidth(parseInt(savedWidth, 10));
+    }
+
+    if (resizeBtn) {
+      resizeBtn.addEventListener("click", () => {
+        if (sidebarState === "compact") {
+          setSidebarWidth(300);
+        } else if (sidebarState === "normal") {
+          setSidebarWidth(400);
+        } else {
+          setSidebarWidth(220);
+        }
+      });
+    }
   </script>
 </body>
 </html>

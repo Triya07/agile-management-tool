@@ -172,12 +172,7 @@
     return;
   }
 
-  // Role-based protection
-  // On manager-only pages (dashboard.html, team.html, reports.html):
-  if (user.role !== 'manager') window.location.href = 'dashboard-team.html';
-
-  // On worker-only pages (dashboard-team.html, my-tasks.html):
-  // if (user.role !== 'worker') window.location.href = 'dashboard.html';
+  // Kanban page is accessible to authenticated users.
 })();
     // Global navigation and utility functions
     function navigateTo(page) {

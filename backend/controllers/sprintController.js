@@ -26,7 +26,7 @@ const createSprint = async (req, res) => {
       startDate,
       endDate,
       projectId,
-      status: "planning"
+      status: "active"
     });
 
     await sprint.save();

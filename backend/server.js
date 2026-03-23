@@ -4,6 +4,8 @@ const projectRoutes = require("./routes/projectRoutes");
 const taskRoutes = require("./routes/taskRoutes");
 const sprintRoutes = require("./routes/sprintRoutes");
 const userRoutes = require("./routes/userRoutes");
+const reportRoutes = require("./routes/reportRoutes");
+const scrumUpdateRoutes = require("./routes/scrumUpdateRoutes");
 const User = require("./models/User");
 
 
@@ -69,6 +71,8 @@ app.use("/api/users", userRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/sprints", sprintRoutes);
 app.use("/api/tasks", taskRoutes);
+app.use("/api/reports", reportRoutes);
+app.use("/api/scrum-updates", scrumUpdateRoutes);
 
 
 // Start server

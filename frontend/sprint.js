@@ -13,7 +13,6 @@ let SPRINT_ID = null;
 let PROJECT_ID = null;
 let CURRENT_SPRINT = null;
 
-<<<<<<< HEAD
 // Get sprint and project IDs from URL or localStorage
 function getProjectAndSprintId() {
   const params = new URLSearchParams(window.location.search);
@@ -30,12 +29,8 @@ function getProjectAndSprintId() {
   return { SPRINT_ID, PROJECT_ID };
 }
 
-// Get sprintId from URL parameter or localStorage (legacy support)
-function getSprintId() {
-=======
 // Get projectId from URL parameter or localStorage
 function getProjectId() {
->>>>>>> 7daa70b62fe5667570c56f9421d22c2ff6bc2620
   const params = new URLSearchParams(window.location.search);
   const projectIdFromUrl = params.get('projectId');
   
@@ -492,7 +487,6 @@ function showCreateSprintModal(projectId) {
 }
 
 // Initialize on page load
-<<<<<<< HEAD
 document.addEventListener('DOMContentLoaded', async () => {
   const { SPRINT_ID: sprintId, PROJECT_ID: projectId } = getProjectAndSprintId();
   
@@ -504,20 +498,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     await switchToSprint(sprintId);
   } else {
     console.error('No sprint or project ID provided');
-=======
-document.addEventListener('DOMContentLoaded', () => {
-  // Ensure project ID is available from URL if present
-  getProjectId();
-  
-  const sprintId = getSprintId();
-  if (!sprintId) {
-    showSprintSelection();
-  } else {
-    // Sprint already selected, show the UI
-    document.getElementById('addTaskBtnRow').style.display = 'block';
-    document.getElementById('sprintBoard').style.display = 'flex';
-    loadTasks();
->>>>>>> 7daa70b62fe5667570c56f9421d22c2ff6bc2620
   }
 });
 
