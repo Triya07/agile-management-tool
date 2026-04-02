@@ -128,3 +128,53 @@ exports.addMember = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// UPDATE PROJECT (Manager + creator only)
+exports.updateProject = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const { name, description, type } = req.body;
+    const currentUserId = req.user.id;
+
+    if (req.user.role !== "manager") {
+      return res.status(403).json({ message: "Only managers can edit projects" });
+    }
+
+    const project = await Project.findById(projectId);
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
+    if (project.createdBy.toString() !== currentUserId) {
+      return res.status(403).json({ message: "Only project creator can edit this project" });
+    }
+
+    if (name !== undefined) {
+      const validatedName = requireNonEmptyString(name, "Project name");
+      if (validatedName.error) {
+        return res.status(400).json({ message: validatedName.error });
+      }
+      project.name = validatedName.value;
+    }
+
+    if (description !== undefined) {
+      project.description = String(description || "").trim();
+    }
+
+    if (type !== undefined) {
+      if (!["scrum", "kanban"].includes(type)) {
+        return res.status(400).json({ message: "Invalid project type" });
+      }
+      project.type = type;
+    }
+
+    await project.save();
+
+    return res.json({
+      message: "Project updated successfully",
+      project: await project.populate(["createdBy", "members"])
+    });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};

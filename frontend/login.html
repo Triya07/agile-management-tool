@@ -386,7 +386,11 @@
     <form class="login-form">
       <input type="email" placeholder="Email" required>
       <input type="password" placeholder="Password" required>
-      <div style="font-size:0.92rem;color:#dbeafe;margin:4px 0 2px;">Your role is determined by your account, not by this form.</div>
+      <div class="role-select" id="loginRoleSelect">
+        <button type="button" class="role-btn active" data-role="member">Team Member</button>
+        <button type="button" class="role-btn" data-role="manager">Manager</button>
+      </div>
+      <div style="font-size:0.92rem;color:#dbeafe;margin:4px 0 2px;">Role selection is for convenience. Access is always based on your real account role.</div>
       <button type="submit" class="login-btn">Login</button>
     </form>
     <span class="signup-link" onclick="window.location.href='signup.html'">Don't have an account? Sign up</span>
@@ -477,6 +481,17 @@
     createGeometricNetwork();
     createOrbitalSystem();
     createMatrixRain();
+
+    // Role selection buttons (UI only)
+    const loginRoleButtons = document.querySelectorAll('#loginRoleSelect .role-btn');
+    let selectedLoginRole = 'member';
+    loginRoleButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        loginRoleButtons.forEach((item) => item.classList.remove('active'));
+        btn.classList.add('active');
+        selectedLoginRole = btn.dataset.role || 'member';
+      });
+    });
     
     // Notification function
     function showNotification(message, type) {
@@ -566,6 +581,9 @@
           
           setTimeout(() => {
             const role = (result.user.role || '').toLowerCase();
+            if (selectedLoginRole && selectedLoginRole !== role) {
+              showNotification(`Logged in as ${role}. Redirecting to your ${role} dashboard.`, 'info');
+            }
             window.location.href = role === 'manager' ? 'dashboard.html' : 'dashboard-team.html';
           }, 1000);
         } else {

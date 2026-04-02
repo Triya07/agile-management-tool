@@ -224,7 +224,9 @@ exports.getUserProjects = async (req, res) => {
 
     const projectsWithStats = await Promise.all(
       projects.map(async (project) => {
-        const sprints = await Sprint.countDocuments({ projectId: project._id });
+        const sprints = project.type === "scrum"
+          ? await Sprint.countDocuments({ projectId: project._id })
+          : 0;
         const tasks = await Task.countDocuments({ projectId: project._id });
         const tasksAssignedToUser = await Task.countDocuments({
           projectId: project._id,

@@ -22,7 +22,8 @@ function getAllowedOrigins() {
   const configured = (process.env.FRONTEND_URL || "")
     .split(",")
     .map((value) => value.trim())
-    .filter(Boolean);
+    .filter(Boolean)
+    .map((value) => value.replace(/\/+$/, ""));
 
   const defaults = [
     "http://localhost:3000",
@@ -36,6 +37,15 @@ function getAllowedOrigins() {
 
 const allowedOrigins = getAllowedOrigins();
 
+function isLocalDevOrigin(origin) {
+  try {
+    const parsed = new URL(origin);
+    return parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1";
+  } catch {
+    return false;
+  }
+}
+
 // Middleware
 app.use(cors({
   origin: (origin, callback) => {
@@ -44,14 +54,16 @@ app.use(cors({
       return callback(null, true);
     }
 
-    if (allowedOrigins.includes(origin)) {
+    const normalizedOrigin = origin.replace(/\/+$/, "");
+    if (allowedOrigins.includes(normalizedOrigin) || isLocalDevOrigin(normalizedOrigin)) {
       return callback(null, true);
     }
 
-    return callback(new Error("CORS origin not allowed"));
+    console.warn(`CORS blocked origin: ${origin}`);
+    return callback(null, false);
   },
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 app.use(express.json());

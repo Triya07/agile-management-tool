@@ -227,6 +227,14 @@
         </div>
       </div>
 
+      <section style="margin-bottom:16px;padding:12px 16px;background:rgba(118,200,147,0.08);border-radius:10px;border:1px solid rgba(118,200,147,0.2);display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <strong style="color:#34A0A4;">Scrum Project:</strong>
+        <select id="scrumProjectSelect" style="min-width:260px;padding:8px 10px;border-radius:8px;border:1px solid #c7e9d3;background:#fff;color:#083344;">
+          <option value="">Select a scrum project...</option>
+        </select>
+        <span id="scrumProjectHint" style="font-size:0.9rem;color:#5b7380;">Choose a project to create or view its sprints.</span>
+      </section>
+
       <!-- Sprint Info & Progress Tracking -->
       <section class="sprint-info" id="sprintInfoSection" style="background: linear-gradient(135deg, rgba(118, 200, 147, 0.1), rgba(82, 182, 154, 0.05)); border-radius: 12px; padding: 18px 28px; margin-bottom: 28px; border: 1px solid rgba(118, 200, 147, 0.2); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
         <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
@@ -453,12 +461,60 @@
     let currentProjectId = params.get('projectId') || context.projectId;
     let currentSprintId  = params.get('sprintId')  || context.sprintId;
     let draggingTaskId   = null;
+    let scrumProjects    = [];
 
     if (currentProjectId || currentSprintId) {
       setActiveContext({ projectId: currentProjectId, sprintId: currentSprintId, projectType: 'scrum' });
     }
 
     const isManager = userRole === 'manager';
+
+    async function loadScrumProjectOptions() {
+      const select = document.getElementById('scrumProjectSelect');
+      const hint = document.getElementById('scrumProjectHint');
+      if (!select) return;
+
+      try {
+        const projectsResponse = await getProjects();
+        const projects = Array.isArray(projectsResponse) ? projectsResponse : (projectsResponse?.data || []);
+        scrumProjects = projects.filter(project => project.type === 'scrum');
+
+        select.innerHTML = '<option value="">Select a scrum project...</option>';
+        scrumProjects.forEach((project) => {
+          const option = document.createElement('option');
+          option.value = project._id;
+          option.textContent = project.name;
+          select.appendChild(option);
+        });
+
+        if (currentProjectId) {
+          select.value = currentProjectId;
+        }
+
+        if (!scrumProjects.length && hint) {
+          hint.textContent = 'No scrum projects found. Create one from Projects page.';
+        }
+      } catch (error) {
+        console.error('Failed to load scrum projects:', error);
+      }
+    }
+
+    document.getElementById('scrumProjectSelect')?.addEventListener('change', async (event) => {
+      const selectedProjectId = event.target.value;
+      currentProjectId = selectedProjectId || null;
+      currentSprintId = null;
+
+      if (currentProjectId) {
+        setActiveContext({ projectId: currentProjectId, sprintId: null, projectType: 'scrum' });
+      }
+
+      const showBtn = document.getElementById('showCreateSprintBtn');
+      if (showBtn) {
+        showBtn.style.display = currentProjectId && isManager ? 'inline-block' : 'none';
+      }
+
+      await loadSprint();
+    });
 
     // Allow task creation only for managers on this page
     const addTaskBtnRow = document.getElementById('addTaskBtnRow');
@@ -517,7 +573,9 @@ async function submitCreateSprint() {
     // ── LOAD SPRINT DATA ───────────────────────────────────────
     async function loadSprint() {
       if (!currentProjectId) {
-        showSprintSelectionModal();
+        document.getElementById('sprintName').textContent  = 'No scrum project selected';
+        document.getElementById('sprintDates').textContent = 'Select a project from the dropdown above';
+        document.getElementById('sprintBoard').style.display = 'none';
         return;
       }
 
@@ -741,7 +799,17 @@ async function submitCreateSprint() {
       modal.style.display = 'flex';
 
       if (!sprints.length) {
-        listEl.innerHTML = '<p style="color:#666;">No sprints available. Create one from the Projects page.</p>';
+        if (isManager && currentProjectId) {
+          listEl.innerHTML = `
+            <p style="color:#666;margin-bottom:10px;">No sprints available for this scrum project yet.</p>
+            <button type="button" onclick="openCreateSprintFromSelectionModal()"
+              style="background:linear-gradient(135deg,#76C893,#52B69A);color:#fff;border:none;border-radius:7px;padding:9px 14px;cursor:pointer;font-size:0.9rem;font-weight:600;">
+              + Create Sprint
+            </button>
+          `;
+        } else {
+          listEl.innerHTML = '<p style="color:#666;">No sprints available for this scrum project.</p>';
+        }
         return;
       }
 
@@ -758,6 +826,16 @@ async function submitCreateSprint() {
           </div>
         </div>
       `).join('');
+    }
+
+    function openCreateSprintFromSelectionModal() {
+      document.getElementById('sprintSelectionModal').style.display = 'none';
+      document.getElementById('createSprintForm').style.display = 'block';
+      const today = new Date().toISOString().split('T')[0];
+      const twoWeeks = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      document.getElementById('newSprintStart').value = today;
+      document.getElementById('newSprintEnd').value = twoWeeks;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function selectSprint(sprintId) {
@@ -796,7 +874,10 @@ async function submitCreateSprint() {
     });
 
     // ── INIT ───────────────────────────────────────────────────
-    loadSprint();
+    (async () => {
+      await loadScrumProjectOptions();
+      await loadSprint();
+    })();
   </script>
 </body>
 </html>

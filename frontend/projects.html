@@ -526,6 +526,14 @@
           // Calculate project stats
           const sprintCount = p.sprints ? p.sprints.length : 0;
           const taskCount = p.tasks ? p.tasks.length : 0;
+          const sprintStatsHtml = p.type === 'scrum'
+            ? `
+              <div style="text-align:center;">
+                <div style="font-size:1.2rem; font-weight:700; color:#0891b2;">${sprintCount}</div>
+                <div style="font-size:0.75rem; color:#666;">Sprints</div>
+              </div>
+            `
+            : '';
           
           // Get owner name
           const ownerName = p.createdBy?.name || p.createdBy || 'Unknown';
@@ -538,10 +546,7 @@
             <h4 style="margin:0 0 8px 0; font-size:1.1rem; color:#083344;">${p.name}</h4>
             <p style="margin:0 0 12px 0; color:#666; font-size:0.95rem;">${p.description || 'No description'}</p>
             <div style="display:flex; gap:12px; margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid #e6eef2;">
-              <div style="text-align:center;">
-                <div style="font-size:1.2rem; font-weight:700; color:#0891b2;">${sprintCount}</div>
-                <div style="font-size:0.75rem; color:#666;">Sprints</div>
-              </div>
+              ${sprintStatsHtml}
               <div style="text-align:center;">
                 <div style="font-size:1.2rem; font-weight:700; color:#0891b2;">${taskCount}</div>
                 <div style="font-size:0.75rem; color:#666;">Tasks</div>
@@ -550,6 +555,9 @@
             <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; color:#666;">
               <small>Owner: ${ownerName}</small>
               <small>${new Date(p.createdAt).toLocaleDateString()}</small>
+            </div>
+            <div style="display:flex; justify-content:flex-end; margin-top:10px;">
+              <button class="create-btn edit-project-btn" data-project-id="${p._id}" style="padding:6px 12px; border-radius:6px; font-size:0.85rem;">Edit</button>
             </div>
           `;
           
@@ -565,6 +573,33 @@
               window.location.href = 'kanban-board.html';
             }
           });
+
+          const editBtn = card.querySelector('.edit-project-btn');
+          if (editBtn) {
+            editBtn.addEventListener('click', async (event) => {
+              event.preventDefault();
+              event.stopPropagation();
+
+              const nextName = prompt('Edit project name:', p.name || '');
+              if (nextName === null) return;
+              const trimmedName = nextName.trim();
+              if (!trimmedName) {
+                showNotification('Project name is required.', 'error');
+                return;
+              }
+
+              const nextDescription = prompt('Edit project description:', p.description || '');
+              if (nextDescription === null) return;
+
+              try {
+                await updateProject(p._id, trimmedName, nextDescription.trim(), p.type);
+                showNotification('Project updated successfully.', 'success');
+                await loadProjects();
+              } catch (error) {
+                showNotification(`Failed to update project: ${error.message}`, 'error');
+              }
+            });
+          }
           
           // Add hover effect
           card.addEventListener('mouseenter', () => {

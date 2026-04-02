@@ -461,20 +461,18 @@ exports.updateTaskStatus = async (req, res) => {
       return res.status(400).json({ message: "Invalid task status" });
     }
 
-    const isAssignedUser = task.assignedTo && task.assignedTo.toString() === userId;
-    if (!isAssignedUser) {
-      const access = await verifyProjectManagerAccess(task.projectId, userId, req.user.role);
-      if (access.error) {
-        return res.status(access.error.status).json({ message: access.error.message });
-      }
-    }
-
     const access = await verifyProjectAccess(task.projectId, userId);
     if (access.error) {
       return res.status(access.error.status).json({ message: access.error.message });
     }
 
-    if (!isAssignedUser && !isProjectManager(access.project, userId, req.user.role)) {
+    // Kanban is collaborative WIP: any project member can move cards.
+    // Scrum keeps stricter controls (assigned user or project manager).
+    const isAssignedUser = task.assignedTo && task.assignedTo.toString() === userId;
+    const isManager = isProjectManager(access.project, userId, req.user.role);
+    const canUpdateStatus = access.project.type === "kanban" ? true : (isAssignedUser || isManager);
+
+    if (!canUpdateStatus) {
       return res.status(403).json({ message: "Not authorized to update this task" });
     }
 

@@ -1,8 +1,8 @@
 // API utility functions for authenticated requests
 
-const API_BASE_URL = (() => {
+const PRIMARY_API_BASE_URL = (() => {
   const fromStorage = localStorage.getItem("API_BASE_URL");
-  if (fromStorage) {
+  if (fromStorage && /^https?:\/\//i.test(fromStorage)) {
     return fromStorage.replace(/\/+$/, "");
   }
 
@@ -16,6 +16,16 @@ const API_BASE_URL = (() => {
 
   return `${origin}/api`;
 })();
+
+function getApiBaseCandidates() {
+  const candidates = [
+    PRIMARY_API_BASE_URL,
+    "http://localhost:5000/api",
+    "http://127.0.0.1:5000/api"
+  ];
+
+  return [...new Set(candidates)];
+}
 
 // Get token from localStorage
 function getToken() {
@@ -170,41 +180,55 @@ async function apiCall(endpoint, options = {}) {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      ...options,
-      headers
-    });
+  const apiBases = getApiBaseCandidates();
+  let lastError = null;
 
-    const raw = await response.text();
-    let data = null;
+  for (const apiBase of apiBases) {
+    try {
+      const response = await fetch(`${apiBase}${endpoint}`, {
+        ...options,
+        headers
+      });
 
-    if (raw) {
-      try {
-        data = JSON.parse(raw);
-      } catch {
-        data = { message: raw };
+      const raw = await response.text();
+      let data = null;
+
+      if (raw) {
+        try {
+          data = JSON.parse(raw);
+        } catch {
+          data = { message: raw };
+        }
       }
-    }
 
-    if (response.status === 401) {
-      clearSessionState();
-      const currentPage = (window.location.pathname.split("/").pop() || "").toLowerCase();
-      if (currentPage !== "login.html" && currentPage !== "signup.html" && currentPage !== "index.html") {
-        window.location.href = "login.html";
+      if (response.status === 401) {
+        clearSessionState();
+        const currentPage = (window.location.pathname.split("/").pop() || "").toLowerCase();
+        if (currentPage !== "login.html" && currentPage !== "signup.html" && currentPage !== "index.html") {
+          window.location.href = "login.html";
+        }
+        throw new Error("Session expired. Please log in again.");
       }
-      throw new Error("Session expired. Please log in again.");
-    }
 
-    if (!response.ok) {
-      throw new Error((data && data.message) || `API error (${response.status})`);
-    }
+      if (!response.ok) {
+        throw new Error((data && data.message) || `API error (${response.status})`);
+      }
 
-    return data;
-  } catch (error) {
-    console.error("API Error:", error);
-    throw error;
+      return data;
+    } catch (error) {
+      lastError = error;
+      const isNetworkError = error && (error.name === "TypeError" || String(error.message || "").includes("Failed to fetch"));
+      if (!isNetworkError) {
+        console.error("API Error:", error);
+        throw error;
+      }
+      // Try next base URL candidate on network-level failure.
+    }
   }
+
+  const message = "Cannot reach backend API. Please ensure backend is running on port 5000 and then refresh.";
+  console.error("API Error:", lastError || message);
+  throw new Error(message);
 }
 
 // PROJECT ENDPOINTS
@@ -227,6 +251,13 @@ async function addProjectMember(projectId, userId) {
   return apiCall(`/projects/${projectId}/members`, {
     method: "POST",
     body: JSON.stringify({ userId })
+  });
+}
+
+async function updateProject(projectId, name, description, type) {
+  return apiCall(`/projects/${projectId}`, {
+    method: "PUT",
+    body: JSON.stringify({ name, description, type })
   });
 }
 
