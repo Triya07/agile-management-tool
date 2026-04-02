@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
+const User = require("../models/User");
 
-exports.protect = (req, res, next) => {
+exports.protect = async (req, res, next) => {
   let token;
 
   if (
@@ -16,7 +17,17 @@ exports.protect = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // { id, role }
+    const user = await User.findById(decoded.id).select("_id role isDeleted");
+
+    if (!user || user.isDeleted) {
+      return res.status(401).json({ message: "Token invalid or user not active" });
+    }
+
+    req.user = {
+      id: user._id.toString(),
+      role: user.role
+    };
+
     next();
   } catch (error) {
     return res.status(401).json({ message: "Token invalid" });

@@ -514,6 +514,9 @@
     const openBtn = document.getElementById('openAddTaskModal');
     const closeBtn = document.querySelector('[onclick="closeTaskModal()"]');
     const form = document.getElementById('addTaskForm');
+    const activeContext = getActiveContext();
+    const currentProjectId = activeContext.projectId;
+    const currentSprintId = activeContext.sprintId;
 
     function openTaskModal() {
       modal.style.display = 'flex';
@@ -571,49 +574,42 @@
       }
 
       try {
-        // Call API to create task
-        const response = await fetch('/api/tasks', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          },
-          body: JSON.stringify({
-            title,
-            description,
-            status,
-            priority,
-            dueDate: dueDate || null
-          })
-        });
-
-        if (response.ok) {
-          closeTaskModal();
-          // Reload tasks from API
-          loadSprintTasks();
-        } else {
-          alert('Error creating task. Please try again.');
+        if (!currentProjectId || !currentSprintId) {
+          alert('Missing project or sprint context. Open this page from the project flow.');
+          return;
         }
+
+        await createTask(
+          title,
+          description,
+          null,
+          currentSprintId,
+          currentProjectId,
+          priority,
+          dueDate || null,
+          status
+        );
+
+        closeTaskModal();
+        await loadSprintTasks();
       } catch (error) {
         console.error('Error creating task:', error);
-        alert('Error creating task');
+        alert(error && error.message ? error.message : 'Error creating task');
       }
     });
 
     // Load sprint tasks from API
     async function loadSprintTasks() {
       try {
-        const response = await fetch('/api/tasks', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-        
-        if (response.ok) {
-          const tasks = await response.json();
-          renderTasks(tasks);
+        if (!currentProjectId || !currentSprintId) {
+          renderTasks([]);
           updateTaskCount();
+          return;
         }
+
+        const tasks = await getSprintTasks(currentSprintId, currentProjectId);
+        renderTasks(Array.isArray(tasks) ? tasks : []);
+        updateTaskCount();
       } catch (error) {
         console.error('Error loading tasks:', error);
       }

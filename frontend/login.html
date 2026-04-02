@@ -386,14 +386,7 @@
     <form class="login-form">
       <input type="email" placeholder="Email" required>
       <input type="password" placeholder="Password" required>
-      <div class="role-select">
-        <button type="button" class="role-btn active" id="role-manager">Manager</button>
-        <button type="button" class="role-btn" id="role-member">Member</button>
-      </div>
-      <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;margin:8px 0;">
-        <input type="checkbox" id="rememberMe" style="margin:0;">
-        <span>Remember me</span>
-      </label>
+      <div style="font-size:0.92rem;color:#dbeafe;margin:4px 0 2px;">Your role is determined by your account, not by this form.</div>
       <button type="submit" class="login-btn">Login</button>
     </form>
     <span class="signup-link" onclick="window.location.href='signup.html'">Don't have an account? Sign up</span>
@@ -518,31 +511,24 @@
       }, 3000);
     }
 
-    // Role selection toggle
-    const managerBtn = document.getElementById('role-manager');
-    const memberBtn = document.getElementById('role-member');
-    let selectedRole = 'manager';
-    
-    managerBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-      managerBtn.classList.add('active');
-      memberBtn.classList.remove('active');
-      selectedRole = 'manager';
-    });
-    memberBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-      memberBtn.classList.add('active');
-      managerBtn.classList.remove('active');
-      selectedRole = 'member';
-    });
-    
+    function resolveApiBaseUrl() {
+      const { protocol, hostname, port, origin } = window.location;
+      const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
+
+      if (isLocal) {
+        if (port === '5000') return `${origin}/api`;
+        return `${protocol}//${hostname}:5000/api`;
+      }
+
+      return `${origin}/api`;
+    }
+
     // Simple login form handling with backend
     document.querySelector('.login-form').addEventListener('submit', async function(e) {
       e.preventDefault();
       
       const email = this.querySelector('input[type="email"]').value.trim();
       const password = this.querySelector('input[type="password"]').value;
-      const rememberMe = this.querySelector('input[type="checkbox"]')?.checked || false;
       
       // Basic validation
       if (!email || !password) {
@@ -556,7 +542,7 @@
       }
       
       try {
-        const response = await fetch('http://localhost:5000/api/auth/login', {
+        const response = await fetch(`${resolveApiBaseUrl()}/auth/login`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -573,17 +559,9 @@
           // Save user data
           localStorage.setItem('token', result.token);
           localStorage.setItem('user', JSON.stringify(result.user));
-          localStorage.setItem('userRole', result.user.role);
           localStorage.setItem('currentUser', result.user.name);
           localStorage.setItem('userEmail', result.user.email);
-          localStorage.setItem('isLoggedIn', 'true');
-          
-          if (rememberMe) {
-            localStorage.setItem('rememberMe', 'true');
-            localStorage.setItem('savedUserRole', result.user.role);
-            localStorage.setItem('savedUser', result.user.name);
-          }
-          
+
           showNotification('Login successful! Redirecting...', 'success');
           
           setTimeout(() => {
@@ -595,7 +573,7 @@
         }
       } catch (err) {
         console.error('Login error:', err);
-        showNotification('Connection error. Make sure the backend is running on http://localhost:5000', 'error');
+        showNotification('Connection error. Please check backend availability and try again.', 'error');
       }
     });
   </script>

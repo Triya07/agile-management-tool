@@ -213,17 +213,16 @@
     // Check authentication and load user data
     async function initializeUserSession() {
       const token = localStorage.getItem('token');
-      const isLoggedIn = localStorage.getItem('isLoggedIn');
+      const user = JSON.parse(localStorage.getItem('user') || 'null');
       
-      if (!token || !isLoggedIn) {
+      if (!token || !user || !user.role) {
         window.location.href = 'login.html';
         return;
       }
       
       // Get current user info
-      const currentUserObj = localStorage.getItem('user');
-      const currentUserName = localStorage.getItem('currentUser');
-      const userRole = localStorage.getItem('userRole');
+      const currentUserName = user.name || localStorage.getItem('currentUser') || 'User';
+      const userRole = user.role;
       
       console.log('Current User:', currentUserName, 'Role:', userRole);
       
@@ -589,96 +588,6 @@
         }
       }
     }
-    
-    // Fallback demo data
-    function loadDemoProjects() {
-      const grid = document.getElementById('projectsGrid');
-      const emptyState = document.getElementById('emptyState');
-      grid.querySelectorAll('.project-card').forEach(card => card.remove());
-      emptyState.style.display = 'block';
-      showNotification('Projects now load only from the backend. Create a project or reconnect the API.', 'info');
-      return;
-      const currentUserName = localStorage.getItem('currentUser') || 'User';
-      
-      const demoProjects = [
-        {
-          _id: '1',
-          name: 'E-commerce Platform',
-          description: 'Building a modern e-commerce platform with microservices',
-          type: 'scrum',
-          owner: { name: currentUserName },
-          sprints: [{}, {}, {}],
-          tasks: [{}, {}, {}, {}, {}],
-          createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-        },
-        {
-          _id: '2',
-          name: 'Mobile App Redesign',
-          description: 'Complete UI/UX redesign for the mobile application',
-          type: 'kanban',
-          owner: { name: currentUserName },
-          sprints: [{}, {}],
-          tasks: [{}, {}, {}],
-          createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000)
-        },
-        {
-          _id: '3',
-          name: 'API Documentation',
-          description: 'Comprehensive API documentation and integration guides',
-          type: 'kanban',
-          owner: { name: currentUserName },
-          sprints: [{}],
-          tasks: [{}, {}],
-          createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-        }
-      ];
-      
-      emptyState.style.display = 'none';
-      grid.innerHTML = '';
-      
-      demoProjects.forEach(p => {
-        const card = document.createElement('div');
-        card.className = 'project-card';
-        card.style.cssText = 'background: rgba(255,255,255,0.9); padding:16px; border-radius:12px; margin:12px; box-shadow:0 6px 18px rgba(0,0,0,0.06); width:300px; display:inline-block; vertical-align:top; cursor:pointer; transition:all 0.3s;';
-        
-        const typeBadge = p.type === 'scrum' ? '🔄' : '📋';
-        
-        card.innerHTML = `
-          <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-            <span style="font-size:1.2rem;">${typeBadge}</span>
-            <span style="font-weight:600; color:#34A0A4; font-size:0.85rem;">${p.type.toUpperCase()}</span>
-          </div>
-          <h4 style="margin:0 0 8px 0; font-size:1.1rem; color:#083344;">${p.name}</h4>
-          <p style="margin:0 0 12px 0; color:#666; font-size:0.95rem;">${p.description}</p>
-          <div style="display:flex; gap:12px; margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid #e6eef2;">
-            <div style="text-align:center;">
-              <div style="font-size:1.2rem; font-weight:700; color:#0891b2;">${p.sprints.length}</div>
-              <div style="font-size:0.75rem; color:#666;">Sprints</div>
-            </div>
-            <div style="text-align:center;">
-              <div style="font-size:1.2rem; font-weight:700; color:#0891b2;">${p.tasks.length}</div>
-              <div style="font-size:0.75rem; color:#666;">Tasks</div>
-            </div>
-          </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; color:#666;">
-            <small>Owner: ${p.owner.name}</small>
-            <small>${p.createdAt.toLocaleDateString()}</small>
-          </div>
-        `;
-        
-        card.addEventListener('mouseenter', () => {
-          card.style.transform = 'translateY(-4px)';
-          card.style.boxShadow = '0 12px 28px rgba(0,0,0,0.12)';
-        });
-        
-        card.addEventListener('mouseleave', () => {
-          card.style.transform = 'translateY(0)';
-          card.style.boxShadow = '0 6px 18px rgba(0,0,0,0.06)';
-        });
-
-        grid.appendChild(card);
-      });
-    }
     // Handle radio button styling
     document.querySelectorAll('input[name="projectType"]').forEach(radio => {
       radio.addEventListener('change', (e) => {
@@ -786,3 +695,4 @@
   </script>
 </body>
 </html>
+

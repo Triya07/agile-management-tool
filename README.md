@@ -98,7 +98,8 @@ cd agile-management-tool
 ```bash
 cd backend
 npm install
-# Configure .env with MongoDB URI and JWT secret
+# Configure .env with MONGODB_URI, JWT_SECRET, and GEMINI_API_KEY
+# Optional: GEMINI_MODEL (defaults to gemini-2.5-flash-lite)
 node server.js
 ```
 

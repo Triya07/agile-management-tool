@@ -659,31 +659,18 @@
   
   <!-- Session management logic -->
   <script>
-    // Only clear session if rememberMe is not enabled
-    const rememberMe = localStorage.getItem('rememberMe');
-    const savedUserRole = localStorage.getItem('savedUserRole');
-    const currentSessionRole = localStorage.getItem('userRole');
-    const currentSessionUser = localStorage.getItem('currentUser');
-    
-    // If user has rememberMe enabled, restore their session
-    if (rememberMe === 'true' && savedUserRole) {
-      localStorage.setItem('isLoggedIn', 'true');
-      localStorage.setItem('userRole', savedUserRole);
-      localStorage.setItem('currentUser', localStorage.getItem('savedUser') || 'User');
-      
-      if (savedUserRole === 'manager') {
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+
+    if (token && user && user.role) {
+      localStorage.setItem('currentUser', user.name || 'User');
+      localStorage.setItem('userEmail', user.email || '');
+
+      if (String(user.role).toLowerCase() === 'manager') {
         window.location.href = 'dashboard.html';
       } else {
         window.location.href = 'dashboard-team.html';
       }
-    } else if (currentSessionRole && currentSessionUser) {
-      // User has an active session (not rememberMe), preserve it
-      localStorage.setItem('isLoggedIn', 'true');
-    } else {
-      // No active session and rememberMe disabled - clear any stale auth keys
-      localStorage.removeItem('isLoggedIn');
-      localStorage.removeItem('userRole');
-      localStorage.removeItem('currentUser');
     }
     
     // Create Wave Particle System

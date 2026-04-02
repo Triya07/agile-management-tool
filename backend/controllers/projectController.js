@@ -1,4 +1,7 @@
 const Project = require("../models/Project");
+const User = require("../models/User");
+const mongoose = require("mongoose");
+const { requireNonEmptyString } = require("../utils/requestValidation");
 
 // CREATE PROJECT (Manager only)
 exports.createProject = async (req, res) => {
@@ -8,9 +11,13 @@ exports.createProject = async (req, res) => {
     }
 
     const { name, description, type } = req.body;
+    const validatedName = requireNonEmptyString(name, "Project name");
+    if (validatedName.error) {
+      return res.status(400).json({ message: validatedName.error });
+    }
 
     const project = await Project.create({
-      name,
+      name: validatedName.value,
       description,
       type: type || "scrum",
       createdBy: req.user.id,
@@ -95,8 +102,21 @@ exports.addMember = async (req, res) => {
       return res.status(403).json({ message: "Only project creator can add members" });
     }
 
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid userId" });
+    }
+
+    const userToAdd = await User.findOne({
+      _id: userId,
+      isDeleted: { $ne: true }
+    }).select("_id");
+
+    if (!userToAdd) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
     if (!project.members.some(member => member.toString() === userId)) {
-      project.members.push(userId);
+      project.members.push(userToAdd._id);
       await project.save();
     }
 

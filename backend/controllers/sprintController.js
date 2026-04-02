@@ -1,6 +1,79 @@
 const Sprint = require("../models/Sprint");
 const Project = require("../models/Project");
 const Task = require("../models/Task");
+const { requireNonEmptyString, validateEnum } = require("../utils/requestValidation");
+const VALID_SPRINT_STATUSES = ["planning", "active", "completed"];
+
+function isProjectMember(project, userId) {
+  return project.createdBy.toString() === userId ||
+    project.members.some((member) => member.toString() === userId);
+}
+
+function canManageSprint(project, userId, userRole) {
+  return userRole === "manager" && project.createdBy.toString() === userId;
+}
+
+function parseSprintDates(startDate, endDate) {
+  const parsedStartDate = new Date(startDate);
+  const parsedEndDate = new Date(endDate);
+
+  if (Number.isNaN(parsedStartDate.getTime()) || Number.isNaN(parsedEndDate.getTime())) {
+    return { error: "Sprint start and end dates must be valid dates." };
+  }
+
+  if (parsedStartDate > parsedEndDate) {
+    return { error: "Sprint start date must be before or equal to the end date." };
+  }
+
+  return { parsedStartDate, parsedEndDate };
+}
+
+async function validateSprintGovernance({
+  projectId,
+  startDate,
+  endDate,
+  status,
+  excludeSprintId = null
+}) {
+  const managedStatuses = ["planning", "active"];
+  if (!managedStatuses.includes(status)) {
+    return null;
+  }
+
+  const overlapQuery = {
+    projectId,
+    status: { $in: managedStatuses },
+    startDate: { $lte: endDate },
+    endDate: { $gte: startDate }
+  };
+
+  if (excludeSprintId) {
+    overlapQuery._id = { $ne: excludeSprintId };
+  }
+
+  const overlappingSprint = await Sprint.findOne(overlapQuery);
+  if (overlappingSprint) {
+    return "Sprint dates overlap with another planning or active sprint in this project.";
+  }
+
+  if (status === "active") {
+    const activeSprintQuery = {
+      projectId,
+      status: "active"
+    };
+
+    if (excludeSprintId) {
+      activeSprintQuery._id = { $ne: excludeSprintId };
+    }
+
+    const anotherActiveSprint = await Sprint.findOne(activeSprintQuery);
+    if (anotherActiveSprint) {
+      return "Only one active sprint is allowed per project.";
+    }
+  }
+
+  return null;
+}
 
 // Create a new sprint
 const createSprint = async (req, res) => {
@@ -14,19 +87,41 @@ const createSprint = async (req, res) => {
       return res.status(404).json({ message: "Project not found" });
     }
 
-    const isAuthorized = project.createdBy.toString() === userId || 
-                         project.members.some(member => member.toString() === userId);
-    if (!isAuthorized) {
-      return res.status(403).json({ message: "Not authorized to access this project" });
+    if (!canManageSprint(project, userId, req.user.role)) {
+      return res.status(403).json({ message: "Only the project manager can create sprints" });
+    }
+
+    if (!sprintName || !startDate || !endDate) {
+      return res.status(400).json({ message: "Sprint name, start date, and end date are required" });
+    }
+
+    const validatedName = requireNonEmptyString(sprintName, "Sprint name");
+    if (validatedName.error) {
+      return res.status(400).json({ message: validatedName.error });
+    }
+
+    const { parsedStartDate, parsedEndDate, error } = parseSprintDates(startDate, endDate);
+    if (error) {
+      return res.status(400).json({ message: error });
+    }
+
+    const governanceError = await validateSprintGovernance({
+      projectId,
+      startDate: parsedStartDate,
+      endDate: parsedEndDate,
+      status: "planning"
+    });
+    if (governanceError) {
+      return res.status(400).json({ message: governanceError });
     }
 
     const sprint = new Sprint({
-      sprintName,
+      sprintName: validatedName.value,
       sprintGoal,
-      startDate,
-      endDate,
+      startDate: parsedStartDate,
+      endDate: parsedEndDate,
       projectId,
-      status: "active"
+      status: "planning"
     });
 
     await sprint.save();
@@ -49,14 +144,17 @@ const getProjectSprints = async (req, res) => {
     const { projectId } = req.query;
     const userId = req.user.id;
 
+    if (!projectId) {
+      return res.status(400).json({ message: "projectId is required" });
+    }
+
     // Verify user has access to the project
     const project = await Project.findById(projectId);
     if (!project) {
       return res.status(404).json({ message: "Project not found" });
     }
 
-    const isAuthorized = project.createdBy.toString() === userId || 
-                         project.members.some(member => member.toString() === userId);
+    const isAuthorized = isProjectMember(project, userId);
     if (!isAuthorized) {
       return res.status(403).json({ message: "Not authorized to access this project" });
     }
@@ -113,8 +211,11 @@ const getSprint = async (req, res) => {
 
     // Verify access
     const project = await Project.findById(sprint.projectId);
-    const isAuthorized = project.createdBy.toString() === userId || 
-                         project.members.some(m => m._id.toString() === userId);
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
+    const isAuthorized = isProjectMember(project, userId);
     
     if (!isAuthorized) {
       return res.status(403).json({ message: "Not authorized to access this sprint" });
@@ -140,17 +241,44 @@ const updateSprint = async (req, res) => {
 
     // Verify access
     const project = sprint.projectId;
-    const isAuthorized = project.createdBy.toString() === userId || 
-                         project.members.some(m => m._id.toString() === userId);
-    
-    if (!isAuthorized) {
-      return res.status(403).json({ message: "Not authorized to update this sprint" });
+    if (!canManageSprint(project, userId, req.user.role)) {
+      return res.status(403).json({ message: "Only the project manager can update sprints" });
+    }
+
+    const nextSprintName = sprintName !== undefined ? String(sprintName).trim() : sprint.sprintName;
+    const nextStartDate = startDate ? new Date(startDate) : sprint.startDate;
+    const nextEndDate = endDate ? new Date(endDate) : sprint.endDate;
+    const nextStatus = status || sprint.status;
+
+    const statusValidation = validateEnum(status, VALID_SPRINT_STATUSES, "sprint status");
+    if (statusValidation.error) {
+      return res.status(400).json({ message: statusValidation.error });
+    }
+
+    if (!nextSprintName) {
+      return res.status(400).json({ message: "Sprint name is required" });
+    }
+
+    const { parsedStartDate, parsedEndDate, error } = parseSprintDates(nextStartDate, nextEndDate);
+    if (error) {
+      return res.status(400).json({ message: error });
+    }
+
+    const governanceError = await validateSprintGovernance({
+      projectId: project._id,
+      startDate: parsedStartDate,
+      endDate: parsedEndDate,
+      status: nextStatus,
+      excludeSprintId: sprint._id
+    });
+    if (governanceError) {
+      return res.status(400).json({ message: governanceError });
     }
 
     if (sprintName) sprint.sprintName = sprintName;
     if (sprintGoal) sprint.sprintGoal = sprintGoal;
-    if (startDate) sprint.startDate = startDate;
-    if (endDate) sprint.endDate = endDate;
+    if (startDate) sprint.startDate = parsedStartDate;
+    if (endDate) sprint.endDate = parsedEndDate;
     if (status) sprint.status = status;
 
     await sprint.save();
@@ -178,8 +306,11 @@ const saveRetrospective = async (req, res) => {
 
     // Verify access
     const project = sprint.projectId;
-    const isAuthorized = project.createdBy.toString() === userId || 
-                         project.members.some(m => m._id.toString() === userId);
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
+    const isAuthorized = isProjectMember(project, userId);
     
     if (!isAuthorized) {
       return res.status(403).json({ message: "Not authorized to update this sprint" });
@@ -210,8 +341,11 @@ const getSprintSummary = async (req, res) => {
 
     // Verify access
     const project = sprint.projectId;
-    const isAuthorized = project.createdBy.toString() === userId || 
-                         project.members.some(m => m._id.toString() === userId);
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
+    const isAuthorized = isProjectMember(project, userId);
     
     if (!isAuthorized) {
       return res.status(403).json({ message: "Not authorized to access this sprint" });

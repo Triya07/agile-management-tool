@@ -1,6 +1,11 @@
 const Task = require("../models/Task");
 const Sprint = require("../models/Sprint");
 const Project = require("../models/Project");
+const { requireNonEmptyString, normalizeString, validateEnum } = require("../utils/requestValidation");
+
+const VALID_TASK_STATUSES = ["todo", "inprogress", "review", "blocked", "done"];
+const VALID_TASK_PRIORITIES = ["low", "medium", "high", "critical"];
+const VALID_TASK_TYPES = ["story", "bug", "task", "subtask", "epic"];
 
 async function getNextBacklogRank(projectId) {
   const rankedBacklogTask = await Task.findOne({
@@ -28,6 +33,81 @@ async function verifyProjectAccess(projectId, userId) {
   return { project };
 }
 
+async function getAccessibleProjectIds(userId) {
+  const projects = await Project.find({
+    $or: [
+      { createdBy: userId },
+      { members: userId }
+    ]
+  }).select("_id");
+
+  return projects.map((project) => project._id);
+}
+
+function isUserInProject(project, userId) {
+  if (!project) return false;
+  return project.createdBy.toString() === userId ||
+    project.members.some(member => member.toString() === userId);
+}
+
+function isProjectManager(project, userId, userRole) {
+  return userRole === "manager" && project.createdBy.toString() === userId;
+}
+
+async function verifyProjectManagerAccess(projectId, userId, userRole) {
+  const access = await verifyProjectAccess(projectId, userId);
+  if (access.error) {
+    return access;
+  }
+
+  if (!isProjectManager(access.project, userId, userRole)) {
+    return { error: { status: 403, message: "Only project managers can perform this action" } };
+  }
+
+  return access;
+}
+
+async function validateTaskRelations({ project, assignedTo, sprint, dependsOn, excludeTaskId = null }) {
+  if (assignedTo) {
+    const assigneeInProject = isUserInProject(project, assignedTo.toString());
+    if (!assigneeInProject) {
+      return { error: { status: 400, message: "Assigned user is not a member of this project" } };
+    }
+  }
+
+  if (sprint) {
+    const targetSprint = await Sprint.findById(sprint);
+    if (!targetSprint || targetSprint.projectId.toString() !== project._id.toString()) {
+      return { error: { status: 400, message: "Invalid sprint for this project" } };
+    }
+  }
+
+  if (dependsOn !== undefined) {
+    if (!Array.isArray(dependsOn)) {
+      return { error: { status: 400, message: "dependsOn must be an array of task IDs" } };
+    }
+
+    if (excludeTaskId && dependsOn.some(depId => depId?.toString() === excludeTaskId.toString())) {
+      return { error: { status: 400, message: "Task cannot depend on itself" } };
+    }
+
+    const uniqueDependencyIds = [...new Set(dependsOn.map(depId => depId.toString()))];
+
+    if (uniqueDependencyIds.length > 0) {
+      const dependencyTasks = await Task.find({
+        _id: { $in: uniqueDependencyIds },
+        projectId: project._id
+      }).select("_id");
+
+      if (dependencyTasks.length !== uniqueDependencyIds.length) {
+        return { error: { status: 400, message: "One or more dependencies are invalid for this project" } };
+      }
+    }
+  }
+
+  return {};
+}
+
 // Create a new task
 exports.createTask = async (req, res) => {
   try {
@@ -37,10 +117,44 @@ exports.createTask = async (req, res) => {
     } = req.body;
     const userId = req.user.id;
 
+    if (!projectId) {
+      return res.status(400).json({ message: "projectId is required" });
+    }
+
+    const validatedTitle = requireNonEmptyString(title, "Task title");
+    if (validatedTitle.error) {
+      return res.status(400).json({ message: validatedTitle.error });
+    }
+
+    const statusValidation = validateEnum(status, VALID_TASK_STATUSES, "task status");
+    if (statusValidation.error) {
+      return res.status(400).json({ message: statusValidation.error });
+    }
+
+    const priorityValidation = validateEnum(priority, VALID_TASK_PRIORITIES, "task priority");
+    if (priorityValidation.error) {
+      return res.status(400).json({ message: priorityValidation.error });
+    }
+
+    const taskTypeValidation = validateEnum(taskType, VALID_TASK_TYPES, "task type");
+    if (taskTypeValidation.error) {
+      return res.status(400).json({ message: taskTypeValidation.error });
+    }
+
     // Verify project access
-    const access = await verifyProjectAccess(projectId, userId);
+    const access = await verifyProjectManagerAccess(projectId, userId, req.user.role);
     if (access.error) {
       return res.status(access.error.status).json({ message: access.error.message });
+    }
+
+    const relationValidation = await validateTaskRelations({
+      project: access.project,
+      assignedTo,
+      sprint,
+      dependsOn
+    });
+    if (relationValidation.error) {
+      return res.status(relationValidation.error.status).json({ message: relationValidation.error.message });
     }
 
     const isBacklogTask = !sprint;
@@ -48,7 +162,7 @@ exports.createTask = async (req, res) => {
     const completedAt = status === "done" ? new Date() : null;
 
     const task = await Task.create({
-      title,
+      title: validatedTitle.value,
       description,
       assignedTo,
       sprint,
@@ -100,7 +214,7 @@ exports.getBacklogTasks = async (req, res) => {
       return res.status(400).json({ message: "projectId is required" });
     }
 
-    const access = await verifyProjectAccess(projectId, userId);
+    const access = await verifyProjectManagerAccess(projectId, userId, req.user.role);
     if (access.error) {
       return res.status(access.error.status).json({ message: access.error.message });
     }
@@ -130,7 +244,7 @@ exports.updateBacklogOrder = async (req, res) => {
       return res.status(400).json({ message: "orderedTaskIds must be a non-empty array" });
     }
 
-    const access = await verifyProjectAccess(projectId, userId);
+    const access = await verifyProjectManagerAccess(projectId, userId, req.user.role);
     if (access.error) {
       return res.status(access.error.status).json({ message: access.error.message });
     }
@@ -177,7 +291,7 @@ exports.moveTaskToSprint = async (req, res) => {
     }
     const previousSprint = task.sprint ? task.sprint.toString() : "backlog";
 
-    const access = await verifyProjectAccess(task.projectId, userId);
+    const access = await verifyProjectManagerAccess(task.projectId, userId, req.user.role);
     if (access.error) {
       return res.status(access.error.status).json({ message: access.error.message });
     }
@@ -224,6 +338,14 @@ exports.getTasks = async (req, res) => {
     const { sprintId, projectId } = req.query;
     const userId = req.user.id;
 
+    if (!projectId) {
+      return res.status(400).json({ message: "projectId is required" });
+    }
+
+    if (!sprintId) {
+      return res.status(400).json({ message: "sprintId is required" });
+    }
+
     // Verify project access
     const access = await verifyProjectAccess(projectId, userId);
     if (access.error) {
@@ -246,6 +368,10 @@ exports.getProjectTasks = async (req, res) => {
   try {
     const { projectId } = req.query;
     const userId = req.user.id;
+
+    if (!projectId) {
+      return res.status(400).json({ message: "projectId is required" });
+    }
 
     // Verify project access
     const access = await verifyProjectAccess(projectId, userId);
@@ -299,8 +425,16 @@ exports.getTaskById = async (req, res) => {
 exports.getUserTasks = async (req, res) => {
   try {
     const userId = req.user.id;
+    const projectIds = await getAccessibleProjectIds(userId);
 
-    const tasks = await Task.find({ assignedTo: userId })
+    if (projectIds.length === 0) {
+      return res.json([]);
+    }
+
+    const tasks = await Task.find({
+      assignedTo: userId,
+      projectId: { $in: projectIds }
+    })
       .populate("sprint", "sprintName")
       .populate("projectId", "name")
       .sort({ createdAt: -1 });
@@ -323,13 +457,24 @@ exports.updateTaskStatus = async (req, res) => {
       return res.status(404).json({ message: "Task not found" });
     }
 
-    // Verify project access
-    const project = await Project.findById(task.projectId);
+    if (!VALID_TASK_STATUSES.includes(status)) {
+      return res.status(400).json({ message: "Invalid task status" });
+    }
+
     const isAssignedUser = task.assignedTo && task.assignedTo.toString() === userId;
-    const isAuthorized = isAssignedUser ||
-               project.createdBy.toString() === userId || 
-               project.members.some(member => member.toString() === userId);
-    if (!isAuthorized) {
+    if (!isAssignedUser) {
+      const access = await verifyProjectManagerAccess(task.projectId, userId, req.user.role);
+      if (access.error) {
+        return res.status(access.error.status).json({ message: access.error.message });
+      }
+    }
+
+    const access = await verifyProjectAccess(task.projectId, userId);
+    if (access.error) {
+      return res.status(access.error.status).json({ message: access.error.message });
+    }
+
+    if (!isAssignedUser && !isProjectManager(access.project, userId, req.user.role)) {
       return res.status(403).json({ message: "Not authorized to update this task" });
     }
 
@@ -366,34 +511,58 @@ exports.updateTask = async (req, res) => {
       return res.status(404).json({ message: "Task not found" });
     }
 
-    // Verify project access
-    const project = await Project.findById(task.projectId);
-    const isAuthorized = project.createdBy.toString() === userId || 
-                         project.members.some(member => member.toString() === userId);
-    if (!isAuthorized) {
-      return res.status(403).json({ message: "Not authorized to update this task" });
+    if (title !== undefined) {
+      const validatedTitle = requireNonEmptyString(title, "Task title");
+      if (validatedTitle.error) {
+        return res.status(400).json({ message: validatedTitle.error });
+      }
     }
 
-    if (sprint) {
-      const targetSprint = await Sprint.findById(sprint);
-      if (!targetSprint || targetSprint.projectId.toString() !== task.projectId.toString()) {
-        return res.status(400).json({ message: "Invalid sprint for this project" });
-      }
+    const statusValidation = validateEnum(status, VALID_TASK_STATUSES, "task status");
+    if (statusValidation.error) {
+      return res.status(400).json({ message: statusValidation.error });
+    }
+
+    const priorityValidation = validateEnum(priority, VALID_TASK_PRIORITIES, "task priority");
+    if (priorityValidation.error) {
+      return res.status(400).json({ message: priorityValidation.error });
+    }
+
+    const taskTypeValidation = validateEnum(taskType, VALID_TASK_TYPES, "task type");
+    if (taskTypeValidation.error) {
+      return res.status(400).json({ message: taskTypeValidation.error });
+    }
+
+    // Verify project access
+    const access = await verifyProjectManagerAccess(task.projectId, userId, req.user.role);
+    if (access.error) {
+      return res.status(access.error.status).json({ message: access.error.message });
+    }
+
+    const relationValidation = await validateTaskRelations({
+      project: access.project,
+      assignedTo,
+      sprint,
+      dependsOn,
+      excludeTaskId: task._id
+    });
+    if (relationValidation.error) {
+      return res.status(relationValidation.error.status).json({ message: relationValidation.error.message });
     }
 
     // Track changes in activity history
     const updates = [];
     
-    if (title && title !== task.title) {
+    if (title !== undefined && normalizeString(title) !== task.title) {
       updates.push({
         action: "updated",
         field: "title",
         oldValue: task.title,
-        newValue: title,
+        newValue: normalizeString(title),
         changedBy: userId,
         changedAt: new Date()
       });
-      task.title = title;
+      task.title = normalizeString(title);
     }
     
     if (description !== undefined && description !== task.description) {
@@ -503,11 +672,9 @@ exports.deleteTask = async (req, res) => {
     }
 
     // Verify project access
-    const project = await Project.findById(task.projectId);
-    const isAuthorized = project.createdBy.toString() === userId || 
-                         project.members.some(member => member.toString() === userId);
-    if (!isAuthorized) {
-      return res.status(403).json({ message: "Not authorized to delete this task" });
+    const access = await verifyProjectManagerAccess(task.projectId, userId, req.user.role);
+    if (access.error) {
+      return res.status(access.error.status).json({ message: access.error.message });
     }
 
     await Task.findByIdAndDelete(taskId);
@@ -530,17 +697,19 @@ exports.addComment = async (req, res) => {
       return res.status(404).json({ message: "Task not found" });
     }
 
-    // Verify project access
-    const project = await Project.findById(task.projectId);
-    const isAuthorized = project.createdBy.toString() === userId || 
-                         project.members.some(member => member.toString() === userId);
-    if (!isAuthorized) {
-      return res.status(403).json({ message: "Not authorized to comment on this task" });
+    const validatedText = requireNonEmptyString(text, "Comment text");
+    if (validatedText.error) {
+      return res.status(400).json({ message: validatedText.error });
+    }
+
+    const access = await verifyProjectAccess(task.projectId, userId);
+    if (access.error) {
+      return res.status(access.error.status).json({ message: access.error.message });
     }
 
     task.comments.push({
       author: userId,
-      text,
+      text: validatedText.value,
       createdAt: new Date()
     });
 
@@ -580,12 +749,9 @@ exports.getActivityHistory = async (req, res) => {
       return res.status(404).json({ message: "Task not found" });
     }
 
-    // Verify project access
-    const project = await Project.findById(task.projectId);
-    const isAuthorized = project.createdBy.toString() === userId || 
-                         project.members.some(member => member.toString() === userId);
-    if (!isAuthorized) {
-      return res.status(403).json({ message: "Not authorized to view this task" });
+    const access = await verifyProjectAccess(task.projectId, userId);
+    if (access.error) {
+      return res.status(access.error.status).json({ message: access.error.message });
     }
 
     const history = await Task.findById(taskId).populate("activityHistory.changedBy", "name email");
@@ -609,11 +775,9 @@ exports.toggleBlocked = async (req, res) => {
     }
 
     // Verify project access
-    const project = await Project.findById(task.projectId);
-    const isAuthorized = project.createdBy.toString() === userId || 
-                         project.members.some(member => member.toString() === userId);
-    if (!isAuthorized) {
-      return res.status(403).json({ message: "Not authorized to update this task" });
+    const access = await verifyProjectManagerAccess(task.projectId, userId, req.user.role);
+    if (access.error) {
+      return res.status(access.error.status).json({ message: access.error.message });
     }
 
     const oldState = task.isBlocked;

@@ -6,6 +6,7 @@ const sprintRoutes = require("./routes/sprintRoutes");
 const userRoutes = require("./routes/userRoutes");
 const reportRoutes = require("./routes/reportRoutes");
 const scrumUpdateRoutes = require("./routes/scrumUpdateRoutes");
+const aiRoutes = require("./routes/aiRoutes");
 const User = require("./models/User");
 
 
@@ -17,9 +18,38 @@ const cors = require("cors");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+function getAllowedOrigins() {
+  const configured = (process.env.FRONTEND_URL || "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  const defaults = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:5500",
+    "http://127.0.0.1:5500"
+  ];
+
+  return [...new Set([...configured, ...defaults])];
+}
+
+const allowedOrigins = getAllowedOrigins();
+
 // Middleware
 app.use(cors({
-  origin: "*", // Allow all origins during development
+  origin: (origin, callback) => {
+    // Allow requests without origin (e.g., curl, Postman, same-origin server calls)
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error("CORS origin not allowed"));
+  },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
@@ -73,6 +103,7 @@ app.use("/api/sprints", sprintRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/scrum-updates", scrumUpdateRoutes);
+app.use("/api/ai", aiRoutes);
 
 
 // Start server
@@ -86,4 +117,5 @@ process.on("SIGINT", async () => {
   await mongoose.connection.close();
   process.exit(0);
 });
+
 

@@ -258,23 +258,38 @@ exports.getUserProjects = async (req, res) => {
 exports.getUserActivity = async (req, res) => {
   try {
     const userId = req.user.id;
+    const accessibleProjects = await Project.find({
+      $or: [
+        { createdBy: userId },
+        { members: userId }
+      ]
+    }).select("_id");
+
+    const projectIds = accessibleProjects.map((project) => project._id);
 
     // Get recent tasks assigned to user
-    const recentAssignedTasks = await Task.find({ assignedTo: userId })
+    const recentAssignedTasks = await Task.find({
+      assignedTo: userId,
+      projectId: { $in: projectIds }
+    })
       .populate("projectId", "name")
       .populate("createdBy", "name")
       .sort({ createdAt: -1 })
       .limit(5);
 
     // Get recent tasks created by user
-    const recentCreatedTasks = await Task.find({ createdBy: userId })
+    const recentCreatedTasks = await Task.find({
+      createdBy: userId,
+      projectId: { $in: projectIds }
+    })
       .populate("projectId", "name")
       .sort({ createdAt: -1 })
       .limit(5);
 
     // Get active sprints user is part of
     const activeSprints = await Sprint.find({
-      status: "active"
+      status: "active",
+      projectId: { $in: projectIds }
     })
       .populate("projectId", "name")
       .sort({ createdAt: -1 })
@@ -297,7 +312,30 @@ exports.getUserActivity = async (req, res) => {
 // Get all assignable users for assignment UI (all users except current user)
 exports.getMemberDirectory = async (req, res) => {
   try {
-    const members = await User.find({ _id: { $ne: req.user.id } })
+    const sharedProjects = await Project.find({
+      $or: [
+        { createdBy: req.user.id },
+        { members: req.user.id }
+      ]
+    }).select("createdBy members");
+
+    const memberIds = new Set();
+    sharedProjects.forEach((project) => {
+      if (project.createdBy) {
+        memberIds.add(String(project.createdBy));
+      }
+
+      (project.members || []).forEach((memberId) => {
+        memberIds.add(String(memberId));
+      });
+    });
+
+    memberIds.delete(String(req.user.id));
+
+    const members = await User.find({
+      _id: { $in: Array.from(memberIds) },
+      isDeleted: { $ne: true }
+    })
       .select("name email role department jobTitle createdAt")
       .sort({ name: 1 });
 

@@ -445,7 +445,7 @@
 
     // ── SPRINT & TASK LOGIC ────────────────────────────────────
     const user        = JSON.parse(localStorage.getItem('user') || 'null');
-    const userRole    = normalizeUserRole(user?.role || localStorage.getItem('userRole'));
+    const userRole    = normalizeUserRole(user?.role);
 
     // Get projectId and sprintId passed from projects/context
     const params      = new URLSearchParams(window.location.search);
@@ -458,15 +458,17 @@
       setActiveContext({ projectId: currentProjectId, sprintId: currentSprintId, projectType: 'scrum' });
     }
 
-    // Allow all authenticated project members to add tasks
+    const isManager = userRole === 'manager';
+
+    // Allow task creation only for managers on this page
     const addTaskBtnRow = document.getElementById('addTaskBtnRow');
-    if (addTaskBtnRow) {
+    if (addTaskBtnRow && isManager) {
       addTaskBtnRow.style.display = 'flex';
     }
     // ── CREATE SPRINT ──────────────────────────────────────────
-    // Show "Create Sprint" for any authenticated user who can open this project.
+    // Show sprint creation only for project managers.
     const showBtn = document.getElementById('showCreateSprintBtn');
-    if (showBtn && currentProjectId) {
+    if (showBtn && currentProjectId && isManager) {
       showBtn.style.display = 'inline-block';
     }
 
@@ -487,6 +489,10 @@ async function submitCreateSprint() {
 
   if (!name || !start || !end) {
     alert('Please fill in sprint name, start date, and end date.');
+    return;
+  }
+  if (!isManager) {
+    alert('Only managers can create sprints.');
     return;
   }
   if (!currentProjectId) {

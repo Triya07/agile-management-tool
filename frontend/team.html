@@ -213,8 +213,10 @@
           </div>
         </div>
           <div class="activity-feed" style="margin-top:16px;">
-            <h3 style="margin-top:0;">Pending Invitations</h3>
-            <div id="inviteList"></div>
+            <h3 style="margin-top:0;">Team Membership</h3>
+            <div id="inviteList">
+              <p style="color:#64748b;margin:0;">Member invitations are not implemented yet. Use the real project membership flow after a teammate has signed up.</p>
+            </div>
           </div>
       </div>
     </main>
@@ -294,7 +296,6 @@
     // Team members and data
     let teamMembers = [];
     let allTasks = [];
-    let pendingInvites = [];
     let allProjects = [];
     const currentUser = getCurrentUser();
     let currentProjectId = getActiveContext().projectId || 'global';
@@ -649,43 +650,10 @@
       document.getElementById('memberTasksModal').style.display = 'none';
     }
 
-    function loadInvites() {
-      const key = `teamInvites:${currentProjectId || 'global'}`;
-      pendingInvites = JSON.parse(localStorage.getItem(key) || '[]');
-      renderInvites();
-    }
-
-    function saveInvites() {
-      const key = `teamInvites:${currentProjectId || 'global'}`;
-      localStorage.setItem(key, JSON.stringify(pendingInvites));
-      renderInvites();
-    }
-
     function renderInvites() {
       const inviteList = document.getElementById('inviteList');
       if (!inviteList) return;
-
-      if (!pendingInvites.length) {
-        inviteList.innerHTML = '<p style="color:#64748b;margin:0;">No pending invitations.</p>';
-        return;
-      }
-
-      inviteList.innerHTML = pendingInvites
-        .map((invite, idx) => `
-          <div style="padding:10px 0;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;gap:10px;align-items:center;">
-            <div>
-              <div style="font-weight:600;color:#0f172a;">${invite.email}</div>
-              <div style="font-size:0.85rem;color:#64748b;">Invited ${new Date(invite.createdAt).toLocaleString()}</div>
-            </div>
-            <button class="btn btn-secondary" type="button" onclick="removeInvite(${idx})">Remove</button>
-          </div>
-        `)
-        .join('');
-    }
-
-    function removeInvite(index) {
-      pendingInvites.splice(index, 1);
-      saveInvites();
+      inviteList.innerHTML = '<p style="color:#64748b;margin:0;">Member invitations are not implemented yet. Use the real project membership flow after a teammate has signed up.</p>';
     }
     
     function openBulkAssignModal() {
@@ -794,23 +762,7 @@
     
     // Add Member Button Handler
     document.getElementById("addMemberBtn").onclick = function() {
-      const memberEmail = prompt('Enter member email address:');
-      if (!memberEmail) return;
-
-      const normalized = memberEmail.trim().toLowerCase();
-      if (!/^\S+@\S+\.\S+$/.test(normalized)) {
-        alert('Please enter a valid email address.');
-        return;
-      }
-
-      if (pendingInvites.some(i => i.email === normalized)) {
-        alert('This email already has a pending invitation.');
-        return;
-      }
-
-      pendingInvites.unshift({ email: normalized, createdAt: new Date().toISOString() });
-      saveInvites();
-      alert('Invitation recorded for ' + normalized + '.');
+      alert('Member invitations are not implemented yet. Use the project membership flow after the user has signed up.');
     };
     
     // Priority selector
@@ -845,7 +797,7 @@
       });
 
       loadTeamData();
-      loadInvites();
+      renderInvites();
     });
   </script>
 </body>

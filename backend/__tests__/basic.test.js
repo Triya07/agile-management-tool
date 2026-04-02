@@ -47,14 +47,14 @@ describe('Sprint Management System', () => {
 
   describe('Task Status', () => {
     it('should pass status parameter when creating tasks', () => {
-      // Verify projects.js passes status to createTask
+      // Verify API helper includes status in createTask payload
       const fs = require('fs');
       const path = require('path');
-      const projectsPath = path.join(__dirname, '../../frontend/projects.js');
-      const projectsContent = fs.readFileSync(projectsPath, 'utf8');
+      const apiPath = path.join(__dirname, '../../frontend/api.js');
+      const apiContent = fs.readFileSync(apiPath, 'utf8');
 
-      // Check that status is passed as the last parameter (8th parameter)
-      expect(projectsContent).toContain('createTask(title, "", null, null, projectId, "medium", null, status)');
+      expect(apiContent).toContain('async function createTask(title, description, assignedTo, sprint, projectId, priority = "medium", dueDate = null, status = "todo")');
+      expect(apiContent).toContain('status');
     });
   });
 

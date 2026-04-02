@@ -210,8 +210,7 @@
       // Check if user is authenticated
       const token = localStorage.getItem('token');
       if (!token) {
-        console.warn('User not authenticated, showing demo data');
-        loadDemoDashboardData();
+        window.location.href = 'login.html';
         return;
       }
 
@@ -279,20 +278,19 @@
         await loadRecentActivity(projects, sprints, allTasks);
       } catch (error) {
         console.error('Error loading dashboard data:', error);
-        console.log('Falling back to demo data');
-        loadDemoDashboardData();
+        showDashboardEmptyState('Unable to load dashboard data from backend right now.');
       }
     }
     
-    // Show empty state (no demo data)
-    function loadDemoDashboardData() {
+    // Show empty state only when backend data is unavailable
+    function showDashboardEmptyState(message) {
       document.getElementById('totalProjects').textContent = '0';
       document.getElementById('totalSprints').textContent = '0';
       document.getElementById('totalTasks').textContent = '0';
       document.getElementById('teamMembers').textContent = '0';
       
       const activityDiv = document.getElementById('recentActivity');
-      activityDiv.innerHTML = '<div style="padding: 12px 0; color: #999;">No data yet. Create a project to get started.</div>';
+      activityDiv.innerHTML = `<div style="padding: 12px 0; color: #999;">${message || 'No data yet. Create a project to get started.'}</div>`;
     }
     
     // Load recent activity
