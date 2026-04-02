@@ -269,6 +269,10 @@
           <form id="addTaskForm">
             <label style="font-size:1rem;">Title</label>
             <input id="taskTitleInput" type="text" required style="width:100%;margin-bottom:14px;padding:9px 10px;border-radius:7px;border:1px solid #e2e8f0;font-size:1rem;background:#f7fafc;">
+            <label style="font-size:1rem;">Assign To (Multiple)</label>
+            <select id="taskAssigneeInput" multiple size="5" style="width:100%;margin-bottom:14px;padding:9px 10px;border-radius:7px;border:1px solid #e2e8f0;font-size:1rem;background:#f7fafc;">
+              <option value="">Unassigned</option>
+            </select>
             <label style="font-size:1rem;">Status</label>
             <select id="taskStatusInput" style="width:100%;margin-bottom:18px;padding:9px 10px;border-radius:7px;border:1px solid #e2e8f0;font-size:1rem;background:#f7fafc;">
               <option value="todo">To Do</option>
@@ -462,12 +466,92 @@
     let currentSprintId  = params.get('sprintId')  || context.sprintId;
     let draggingTaskId   = null;
     let scrumProjects    = [];
+    let assignableMembers = [];
 
     if (currentProjectId || currentSprintId) {
       setActiveContext({ projectId: currentProjectId, sprintId: currentSprintId, projectType: 'scrum' });
     }
 
     const isManager = userRole === 'manager';
+
+    function getTaskAssigneeNames(task) {
+      if (Array.isArray(task?.assignedUsers) && task.assignedUsers.length > 0) {
+        return task.assignedUsers.map((member) => member?.name || 'Unknown');
+      }
+
+      if (task?.assignedTo) {
+        return [task.assignedTo.name || task.assignedTo];
+      }
+
+      return [];
+    }
+
+    async function loadAssignableMembers(projectId) {
+      const assigneeSelect = document.getElementById('taskAssigneeInput');
+      if (!assigneeSelect || !projectId) return;
+
+      try {
+        const directoryMembers = await getMemberDirectory();
+        const members = Array.isArray(directoryMembers) ? directoryMembers : [];
+        const currentUserId = String(user?.id || user?._id || '');
+
+        assignableMembers = members
+          .filter((member) => member && member._id && String(member._id) !== currentUserId)
+          .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+
+        assigneeSelect.innerHTML = '';
+        assignableMembers.forEach((member) => {
+          const option = document.createElement('option');
+          option.value = member._id;
+          option.textContent = `${member.name || 'Unknown'}${member.email ? ` (${member.email})` : ''}`;
+          assigneeSelect.appendChild(option);
+        });
+      } catch (error) {
+        console.error('Failed to load global member directory for assignment:', error);
+
+        // Fallback to current project members if directory endpoint fails
+        try {
+          const project = await getProject(projectId);
+          const members = Array.isArray(project?.members) ? project.members : [];
+          const currentUserId = String(user?.id || user?._id || '');
+
+          assignableMembers = members
+            .filter((member) => member && member._id && String(member._id) !== currentUserId)
+            .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+
+          assigneeSelect.innerHTML = '';
+          assignableMembers.forEach((member) => {
+            const option = document.createElement('option');
+            option.value = member._id;
+            option.textContent = `${member.name || 'Unknown'}${member.email ? ` (${member.email})` : ''}`;
+            assigneeSelect.appendChild(option);
+          });
+        } catch (fallbackError) {
+          console.error('Fallback member loading failed:', fallbackError);
+          assigneeSelect.innerHTML = '';
+        }
+      }
+    }
+
+    async function ensureAssigneeInProject(projectId, assigneeId) {
+      if (!projectId) return;
+      if (!isManager) return;
+      const assigneeIds = Array.isArray(assigneeId)
+        ? assigneeId.filter(Boolean)
+        : (assigneeId ? [assigneeId] : []);
+      if (!assigneeIds.length) return;
+
+      const project = await getProject(projectId);
+      const memberIds = (Array.isArray(project?.members) ? project.members : []).map((member) =>
+        String(member && member._id ? member._id : member)
+      );
+
+      for (const id of assigneeIds) {
+        if (!memberIds.includes(String(id))) {
+          await addProjectMember(projectId, id);
+        }
+      }
+    }
 
     async function loadScrumProjectOptions() {
       const select = document.getElementById('scrumProjectSelect');
@@ -659,7 +743,7 @@ async function submitCreateSprint() {
       card.dataset.taskId = task._id;
       card.innerHTML = `
         <div style="font-weight:600;margin-bottom:4px;">${task.title}</div>
-        ${task.assignedTo ? `<div style="font-size:0.85rem;color:#52B69A;">👤 ${task.assignedTo.name || task.assignedTo}</div>` : ''}
+        ${getTaskAssigneeNames(task).length ? `<div style="font-size:0.85rem;color:#52B69A;">👤 ${getTaskAssigneeNames(task).join(', ')}</div>` : ''}
         <div style="font-size:0.8rem;color:#888;margin-top:4px;">
           <span style="padding:2px 8px;border-radius:10px;background:rgba(118,200,147,0.2);">${task.priority || 'medium'}</span>
         </div>
@@ -745,6 +829,7 @@ async function submitCreateSprint() {
         }
       }
 
+      await loadAssignableMembers(currentProjectId);
       document.getElementById('addTaskModal').style.display = 'flex';
     });
     const cancelAddTaskBtn = document.getElementById('cancelAddTask');
@@ -758,6 +843,9 @@ async function submitCreateSprint() {
       e.preventDefault();
       const title  = document.getElementById('taskTitleInput').value.trim();
       const status = document.getElementById('taskStatusInput').value;
+      const assigneeId = Array.from(document.getElementById('taskAssigneeInput').selectedOptions || [])
+        .map((option) => option.value)
+        .filter(Boolean);
 
       if (!title) return;
 
@@ -772,10 +860,12 @@ async function submitCreateSprint() {
       }
 
       try {
+        await ensureAssigneeInProject(currentProjectId, assigneeId);
+
         await createTask(
           title,
           '',               // description
-          null,             // assignedTo (optional, can extend later)
+          assigneeId,
           currentSprintId,
           currentProjectId,
           'medium',
@@ -784,6 +874,9 @@ async function submitCreateSprint() {
         );
 
         document.getElementById('taskTitleInput').value = '';
+        Array.from(document.getElementById('taskAssigneeInput').options || []).forEach((option) => {
+          option.selected = false;
+        });
         document.getElementById('addTaskModal').style.display = 'none';
         await loadTasks(); // refresh board
       } catch (err) {

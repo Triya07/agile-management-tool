@@ -69,13 +69,13 @@ exports.getUserDashboard = async (req, res) => {
         // Get tasks assigned to user in this sprint
         const userTaskCount = await Task.countDocuments({ 
           sprint: sprint._id, 
-          assignedTo: userId 
+          $or: [{ assignedTo: userId }, { assignedUsers: userId }]
         });
         
         // Get completed tasks assigned to user in this sprint
         const userCompletedCount = await Task.countDocuments({ 
           sprint: sprint._id, 
-          assignedTo: userId, 
+          $or: [{ assignedTo: userId }, { assignedUsers: userId }],
           status: "done" 
         });
         
@@ -90,9 +90,10 @@ exports.getUserDashboard = async (req, res) => {
     );
 
     // Get tasks assigned to user
-    const assignedTasks = await Task.find({ assignedTo: userId })
+    const assignedTasks = await Task.find({ $or: [{ assignedTo: userId }, { assignedUsers: userId }] })
       .populate("projectId", "name")
       .populate("sprint", "sprintName")
+      .populate("assignedUsers", "name email")
       .sort({ createdAt: -1 })
       .limit(10);
 
@@ -113,6 +114,7 @@ exports.getUserDashboard = async (req, res) => {
         $match: {
           $or: [
             { assignedTo: new mongoose.Types.ObjectId(userId) },
+            { assignedUsers: new mongoose.Types.ObjectId(userId) },
             { createdBy: new mongoose.Types.ObjectId(userId) }
           ],
           projectId: { $in: projectIds.map(id => new mongoose.Types.ObjectId(id)) }
@@ -230,7 +232,7 @@ exports.getUserProjects = async (req, res) => {
         const tasks = await Task.countDocuments({ projectId: project._id });
         const tasksAssignedToUser = await Task.countDocuments({
           projectId: project._id,
-          assignedTo: userId
+          $or: [{ assignedTo: userId }, { assignedUsers: userId }]
         });
 
         return {
@@ -271,11 +273,12 @@ exports.getUserActivity = async (req, res) => {
 
     // Get recent tasks assigned to user
     const recentAssignedTasks = await Task.find({
-      assignedTo: userId,
+      $or: [{ assignedTo: userId }, { assignedUsers: userId }],
       projectId: { $in: projectIds }
     })
       .populate("projectId", "name")
       .populate("createdBy", "name")
+      .populate("assignedUsers", "name email")
       .sort({ createdAt: -1 })
       .limit(5);
 
@@ -314,6 +317,21 @@ exports.getUserActivity = async (req, res) => {
 // Get all assignable users for assignment UI (all users except current user)
 exports.getMemberDirectory = async (req, res) => {
   try {
+    if (req.user.role === "manager") {
+      const members = await User.find({
+        role: "member",
+        isDeleted: { $ne: true },
+        _id: { $ne: req.user.id }
+      })
+        .select("name email role department jobTitle createdAt")
+        .sort({ name: 1 });
+
+      return res.json({
+        message: "Member directory fetched successfully",
+        members
+      });
+    }
+
     const sharedProjects = await Project.find({
       $or: [
         { createdBy: req.user.id },
@@ -336,6 +354,7 @@ exports.getMemberDirectory = async (req, res) => {
 
     const members = await User.find({
       _id: { $in: Array.from(memberIds) },
+      role: "member",
       isDeleted: { $ne: true }
     })
       .select("name email role department jobTitle createdAt")

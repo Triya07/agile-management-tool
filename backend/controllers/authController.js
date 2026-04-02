@@ -163,6 +163,13 @@ exports.deleteAccount = async (req, res) => {
     );
 
     await Task.updateMany(
+      { assignedUsers: user._id },
+      {
+        $pull: { assignedUsers: user._id }
+      }
+    );
+
+    await Task.updateMany(
       { reporter: user._id },
       { $set: { reporter: null } }
     );

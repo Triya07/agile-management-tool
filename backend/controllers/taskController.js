@@ -67,11 +67,38 @@ async function verifyProjectManagerAccess(projectId, userId, userRole) {
   return access;
 }
 
-async function validateTaskRelations({ project, assignedTo, sprint, dependsOn, excludeTaskId = null }) {
-  if (assignedTo) {
-    const assigneeInProject = isUserInProject(project, assignedTo.toString());
-    if (!assigneeInProject) {
-      return { error: { status: 400, message: "Assigned user is not a member of this project" } };
+function normalizeAssigneeIds(assignedTo) {
+  if (assignedTo === undefined || assignedTo === null || assignedTo === "") return [];
+
+  const assigneeIds = Array.isArray(assignedTo) ? assignedTo : [assignedTo];
+  const normalized = assigneeIds
+    .map((assigneeId) => String(assigneeId || "").trim())
+    .filter(Boolean);
+
+  return [...new Set(normalized)];
+}
+
+function getTaskAssigneeIds(task) {
+  if (Array.isArray(task?.assignedUsers) && task.assignedUsers.length > 0) {
+    return task.assignedUsers.map((assignee) => String(assignee && assignee._id ? assignee._id : assignee));
+  }
+
+  if (task?.assignedTo) {
+    return [String(task.assignedTo && task.assignedTo._id ? task.assignedTo._id : task.assignedTo)];
+  }
+
+  return [];
+}
+
+function getPrimaryAssigneeId(assigneeIds) {
+  return Array.isArray(assigneeIds) && assigneeIds.length > 0 ? assigneeIds[0] : null;
+}
+
+async function validateTaskRelations({ project, assigneeIds, sprint, dependsOn, excludeTaskId = null }) {
+  if (Array.isArray(assigneeIds) && assigneeIds.length > 0) {
+    const allInProject = assigneeIds.every((assigneeId) => isUserInProject(project, assigneeId));
+    if (!allInProject) {
+      return { error: { status: 400, message: "One or more assigned users are not members of this project" } };
     }
   }
 
@@ -116,6 +143,7 @@ exports.createTask = async (req, res) => {
       storyPoints, taskType, labels, acceptanceCriteria, estimate, startDate, dependsOn
     } = req.body;
     const userId = req.user.id;
+    const assigneeIds = normalizeAssigneeIds(assignedTo);
 
     if (!projectId) {
       return res.status(400).json({ message: "projectId is required" });
@@ -149,7 +177,7 @@ exports.createTask = async (req, res) => {
 
     const relationValidation = await validateTaskRelations({
       project: access.project,
-      assignedTo,
+      assigneeIds,
       sprint,
       dependsOn
     });
@@ -164,7 +192,8 @@ exports.createTask = async (req, res) => {
     const task = await Task.create({
       title: validatedTitle.value,
       description,
-      assignedTo,
+      assignedTo: getPrimaryAssigneeId(assigneeIds),
+      assignedUsers: assigneeIds,
       sprint,
       projectId,
       priority: priority || "medium",
@@ -194,7 +223,7 @@ exports.createTask = async (req, res) => {
 
     res.status(201).json({
       message: "Task created successfully",
-      task: await task.populate(["assignedTo", "createdBy", "reporter", "dependsOn"])
+      task: await task.populate(["assignedTo", "assignedUsers", "createdBy", "reporter", "dependsOn"])
     });
   } catch (error) {
     res.status(500).json({
@@ -224,6 +253,7 @@ exports.getBacklogTasks = async (req, res) => {
       $or: [{ sprint: null }, { sprint: { $exists: false } }]
     })
       .populate("assignedTo", "name email")
+      .populate("assignedUsers", "name email")
       .populate("createdBy", "name email")
       .sort({ backlogRank: 1, createdAt: 1 });
 
@@ -354,6 +384,7 @@ exports.getTasks = async (req, res) => {
 
     const tasks = await Task.find({ sprint: sprintId, projectId })
       .populate("assignedTo", "name email")
+      .populate("assignedUsers", "name email")
       .populate("createdBy", "name email")
       .sort({ createdAt: -1 });
 
@@ -381,6 +412,7 @@ exports.getProjectTasks = async (req, res) => {
 
     const tasks = await Task.find({ projectId })
       .populate("assignedTo", "name email")
+      .populate("assignedUsers", "name email")
       .populate("createdBy", "name email")
       .populate("sprint", "sprintName")
       .sort({ createdAt: -1 });
@@ -399,6 +431,7 @@ exports.getTaskById = async (req, res) => {
 
     const task = await Task.findById(taskId)
       .populate("assignedTo", "name email")
+      .populate("assignedUsers", "name email")
       .populate("createdBy", "name email")
       .populate("reporter", "name email")
       .populate("projectId", "name type")
@@ -432,11 +465,12 @@ exports.getUserTasks = async (req, res) => {
     }
 
     const tasks = await Task.find({
-      assignedTo: userId,
+      $or: [{ assignedTo: userId }, { assignedUsers: userId }],
       projectId: { $in: projectIds }
     })
       .populate("sprint", "sprintName")
       .populate("projectId", "name")
+      .populate("assignedUsers", "name email")
       .sort({ createdAt: -1 });
 
     res.json(tasks);
@@ -468,7 +502,8 @@ exports.updateTaskStatus = async (req, res) => {
 
     // Kanban is collaborative WIP: any project member can move cards.
     // Scrum keeps stricter controls (assigned user or project manager).
-    const isAssignedUser = task.assignedTo && task.assignedTo.toString() === userId;
+    const assigneeIds = getTaskAssigneeIds(task);
+    const isAssignedUser = assigneeIds.includes(String(userId));
     const isManager = isProjectManager(access.project, userId, req.user.role);
     const canUpdateStatus = access.project.type === "kanban" ? true : (isAssignedUser || isManager);
 
@@ -503,6 +538,7 @@ exports.updateTask = async (req, res) => {
       acceptanceCriteria, estimate, dependsOn, sprint
     } = req.body;
     const userId = req.user.id;
+    const assigneeIds = normalizeAssigneeIds(assignedTo);
 
     const task = await Task.findById(taskId);
     if (!task) {
@@ -539,7 +575,7 @@ exports.updateTask = async (req, res) => {
 
     const relationValidation = await validateTaskRelations({
       project: access.project,
-      assignedTo,
+      assigneeIds: assignedTo !== undefined ? assigneeIds : undefined,
       sprint,
       dependsOn,
       excludeTaskId: task._id
@@ -605,15 +641,23 @@ exports.updateTask = async (req, res) => {
       }
     }
     
-    if (assignedTo !== undefined && assignedTo !== task.assignedTo) {
-      updates.push({
-        action: "assigned",
-        oldValue: task.assignedTo?.toString(),
-        newValue: assignedTo,
-        changedBy: userId,
-        changedAt: new Date()
-      });
-      task.assignedTo = assignedTo;
+    if (assignedTo !== undefined) {
+      const previousAssigneeIds = getTaskAssigneeIds(task);
+      const previousSerialized = [...previousAssigneeIds].sort().join(",");
+      const nextSerialized = [...assigneeIds].sort().join(",");
+
+      if (previousSerialized !== nextSerialized) {
+        updates.push({
+          action: "assigned",
+          oldValue: previousSerialized || "unassigned",
+          newValue: nextSerialized || "unassigned",
+          changedBy: userId,
+          changedAt: new Date()
+        });
+
+        task.assignedUsers = assigneeIds;
+        task.assignedTo = getPrimaryAssigneeId(assigneeIds);
+      }
     }
     
     if (priority && priority !== task.priority) {
@@ -647,7 +691,7 @@ exports.updateTask = async (req, res) => {
     await task.save();
 
     // Populate before returning
-    const updatedTask = await task.populate(["assignedTo", "createdBy", "reporter", "dependsOn", "comments.author"]);
+    const updatedTask = await task.populate(["assignedTo", "assignedUsers", "createdBy", "reporter", "dependsOn", "comments.author"]);
 
     res.json({
       message: "Task updated successfully",
@@ -723,6 +767,7 @@ exports.addComment = async (req, res) => {
     const updatedTask = await task.populate([
       { path: "comments.author", select: "name email" },
       { path: "assignedTo", select: "name email" },
+      { path: "assignedUsers", select: "name email" },
       { path: "projectId", select: "name type" },
       { path: "sprint", select: "sprintName status" }
     ]);

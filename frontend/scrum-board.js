@@ -5,6 +5,18 @@ let tasks = [];
 let teamMembers = [];
 const BOARD_COLUMNS = ["todo", "inprogress", "review", "blocked", "done"];
 
+function getTaskAssigneeNames(task) {
+  if (Array.isArray(task?.assignedUsers) && task.assignedUsers.length > 0) {
+    return task.assignedUsers.map((member) => member?.name || "Unknown");
+  }
+
+  if (task?.assignedTo) {
+    return [task.assignedTo.name || "Unknown"];
+  }
+
+  return [];
+}
+
 // Load data from API
 async function initializeBoard() {
   try {
@@ -80,12 +92,12 @@ function renderBoard() {
       const div = document.createElement("div");
       div.className = "task-card";
       
-      const assigneeName = task.assignedTo ? task.assignedTo.name : "Unassigned";
+      const assigneeNames = getTaskAssigneeNames(task);
       const dueDate = task.dueDate ? new Date(task.dueDate).toLocaleDateString() : "";
       
       div.innerHTML = `
         <div style="font-weight:500;margin-bottom:4px;">${task.title}</div>
-        ${task.assignedTo ? `<div style="font-size:0.8rem;color:#666;margin-bottom:4px;">Assigned to: ${assigneeName}</div>` : ''}
+        ${assigneeNames.length ? `<div style="font-size:0.8rem;color:#666;margin-bottom:4px;">Assigned to: ${assigneeNames.join(", ")}</div>` : ''}
         ${dueDate ? `<div style="font-size:0.8rem;color:#666;margin-bottom:4px;">Due: ${dueDate}</div>` : ''}
         ${task.blockedReason && task.status === "blocked" ? `<div style="font-size:0.8rem;color:#991b1b;margin-bottom:4px;">Blocker: ${task.blockedReason}</div>` : ""}
         ${task.priority ? `<span style="font-size:0.7rem;padding:2px 6px;border-radius:3px;background:${getPriorityColor(task.priority)};color:white;">${task.priority.toUpperCase()}</span>` : ''}
@@ -146,7 +158,7 @@ const addTaskModal = document.getElementById("addTaskModal");
 
 document.getElementById("openAddTaskModal").onclick = () => {
     const assigneeSelect = document.getElementById("taskAssigneeSelect");
-    assigneeSelect.innerHTML = '<option value="">Unassigned</option>';
+    assigneeSelect.innerHTML = '';
     
     teamMembers.forEach(member => {
         const option = document.createElement("option");
@@ -217,7 +229,9 @@ document.getElementById("addTaskForm").onsubmit = async function(e) {
         return;
     }
     
-    const assignedTo = document.getElementById("taskAssigneeSelect").value || null;
+    const assignedTo = Array.from(document.getElementById("taskAssigneeSelect").selectedOptions || [])
+      .map((option) => option.value)
+      .filter(Boolean);
     const dueDate = document.getElementById("taskDueDateInput").value || null;
     const priority = document.getElementById("taskPriorityInput").value || "medium";
     const description = document.getElementById("taskDescriptionInput").value.trim();

@@ -423,8 +423,10 @@
     
     function getUserTasks(userId) {
       return allTasks.filter(t => {
+        const assignedUsers = Array.isArray(t.assignedUsers) ? t.assignedUsers : [];
+        const assignedUserIds = assignedUsers.map(u => String(u && (u._id || u)));
         const assignedTo = t.assignedTo ? (t.assignedTo._id || t.assignedTo) : null;
-        return String(assignedTo || '') === String(userId);
+        return assignedUserIds.includes(String(userId)) || String(assignedTo || '') === String(userId);
       });
     }
     
@@ -619,8 +621,10 @@
     function viewMemberTasks(memberId) {
       const member = teamMembers.find(m => m.id === memberId);
       const memberTasks = allTasks.filter(t => {
+        const assignedUsers = Array.isArray(t.assignedUsers) ? t.assignedUsers : [];
+        const assignedUserIds = assignedUsers.map(u => String(u && (u._id || u)));
         const assignedTo = t.assignedTo ? (t.assignedTo._id || t.assignedTo) : null;
-        return String(assignedTo || '') === String(memberId);
+        return assignedUserIds.includes(String(memberId)) || String(assignedTo || '') === String(memberId);
       });
 
       let html = '';

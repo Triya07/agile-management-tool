@@ -69,7 +69,7 @@ async function buildContextSnapshot(userId, context = {}) {
   const accessibleProjectIds = accessibleProjects.map((project) => project._id);
   const taskFilter = accessibleProjectIds.length > 0
     ? { projectId: { $in: accessibleProjectIds } }
-    : { $or: [{ assignedTo: userId }, { createdBy: userId }] };
+    : { $or: [{ assignedTo: userId }, { assignedUsers: userId }, { createdBy: userId }] };
 
   if (activeSprint) {
     taskFilter.sprint = activeSprint._id;
@@ -77,6 +77,7 @@ async function buildContextSnapshot(userId, context = {}) {
 
   const tasks = await Task.find(taskFilter)
     .populate("assignedTo", "name")
+    .populate("assignedUsers", "name")
     .populate("createdBy", "name")
     .sort({ updatedAt: -1, createdAt: -1 })
     .limit(30);
@@ -101,7 +102,9 @@ async function buildContextSnapshot(userId, context = {}) {
     status: task.status,
     priority: task.priority,
     projectId: task.projectId ? task.projectId.toString() : null,
-    assignedTo: task.assignedTo ? task.assignedTo.name : "Unassigned",
+    assignedTo: (Array.isArray(task.assignedUsers) && task.assignedUsers.length > 0)
+      ? task.assignedUsers.map((user) => user.name).join(", ")
+      : (task.assignedTo ? task.assignedTo.name : "Unassigned"),
     dueDate: task.dueDate ? task.dueDate.toISOString().slice(0, 10) : null,
     blockedReason: task.blockedReason || null
   }));

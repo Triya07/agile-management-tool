@@ -1,14 +1,28 @@
 // Initialize kanban board with API data
 let activeProject = null;
 let tasks = [];
+let assignableMembers = [];
+let currentUser = null;
 const columns = ['todo', 'inprogress', 'review', 'blocked', 'done'];
+
+function getTaskAssigneeNames(task) {
+  if (Array.isArray(task?.assignedUsers) && task.assignedUsers.length > 0) {
+    return task.assignedUsers.map((user) => user?.name || "Unknown");
+  }
+
+  if (task?.assignedTo) {
+    return [task.assignedTo.name || "Unknown"];
+  }
+
+  return [];
+}
 
 // Load data from API
 async function initializeBoard() {
   try {
     // Check if user is logged in
-    const user = getCurrentUser();
-    if (!user) {
+    currentUser = getCurrentUser();
+    if (!currentUser) {
       window.location.href = "login.html";
       return;
     }
@@ -29,6 +43,7 @@ async function initializeBoard() {
     }
 
     setActiveContext({ projectId: activeProject._id, projectType: "kanban" });
+    await loadAssignableMembers();
 
     // Get all tasks for this project (not sprint-scoped for kanban)
     const tasksResponse = await getProjectTasks(activeProject._id);
@@ -78,12 +93,12 @@ function renderBoard() {
       taskCard.draggable = true;
       taskCard.dataset.id = task._id;
 
-      const assigneeName = task.assignedTo ? task.assignedTo.name : 'Unassigned';
+      const assigneeNames = getTaskAssigneeNames(task);
 
       taskCard.innerHTML = `
         <div class="task-title">${task.title}</div>
         <div class="task-description">${task.description || ''}</div>
-        <div class="task-assignee">Assigned to: ${assigneeName}</div>
+        <div class="task-assignee">Assigned to: ${assigneeNames.length ? assigneeNames.join(", ") : "Unassigned"}</div>
       `;
 
       taskCard.addEventListener('dragstart', onDragStart);
@@ -91,11 +106,14 @@ function renderBoard() {
       colDiv.appendChild(taskCard);
     });
 
-    const addBtn = document.createElement('button');
-    addBtn.className = 'add-task-btn';
-    addBtn.textContent = '+ Add Task';
-    addBtn.onclick = () => openAddTaskModal(col);
-    colDiv.appendChild(addBtn);
+    const canCreateTask = currentUser && currentUser.role === "manager";
+    if (canCreateTask) {
+      const addBtn = document.createElement('button');
+      addBtn.className = 'add-task-btn';
+      addBtn.textContent = '+ Add Task';
+      addBtn.onclick = () => openAddTaskModal(col);
+      colDiv.appendChild(addBtn);
+    }
 
     colDiv.addEventListener('dragover', onDragOver);
     colDiv.addEventListener('drop', (e) => onDrop(e, col));
@@ -151,20 +169,30 @@ async function onDrop(e, toStatus) {
 
 // Modal for adding task
 function openAddTaskModal(status) {
-  const title = prompt('Enter task title:');
-  if (!title) return;
+  const modal = document.getElementById("kanbanAddTaskModal");
+  const statusInput = document.getElementById("kanbanTaskStatusInput");
+  const titleInput = document.getElementById("kanbanTaskTitleInput");
+  const descInput = document.getElementById("kanbanTaskDescriptionInput");
+  const assigneeInput = document.getElementById("kanbanTaskAssigneeInput");
 
-  const description = prompt('Enter task description (optional):');
-  
-  addTaskToColumn(title, description, status);
+  if (!modal || !statusInput || !titleInput || !descInput || !assigneeInput) return;
+
+  statusInput.value = status;
+  titleInput.value = "";
+  descInput.value = "";
+  Array.from(assigneeInput.options).forEach((option) => { option.selected = false; });
+  modal.style.display = "flex";
+  titleInput.focus();
 }
 
-async function addTaskToColumn(title, description, status) {
+async function addTaskToColumn(title, description, status, assignedTo = null) {
   try {
+    await ensureAssigneeInProject(assignedTo);
+
     const newTask = await createTask(
       title,
       description,
-      null,  // no assigned user for kanban
+      assignedTo,
       null,  // no sprint ID
       activeProject._id,
       'medium',
@@ -179,6 +207,98 @@ async function addTaskToColumn(title, description, status) {
     alert("Failed to create task: " + error.message);
   }
 }
+
+async function loadAssignableMembers() {
+  try {
+    if (!activeProject || !activeProject._id) return;
+    const directoryMembers = await getMemberDirectory();
+    const members = Array.isArray(directoryMembers) ? directoryMembers : [];
+    const selfId = String(currentUser?.id || currentUser?._id || "");
+
+    assignableMembers = members
+      .filter(member => member && member._id && String(member._id) !== selfId)
+      .sort((a, b) => String(a.name || "").localeCompare(String(b.name || "")));
+
+    const assigneeInput = document.getElementById("kanbanTaskAssigneeInput");
+    if (!assigneeInput) return;
+
+    assigneeInput.innerHTML = "";
+    assignableMembers.forEach((member) => {
+      const option = document.createElement("option");
+      option.value = member._id;
+      option.textContent = `${member.name || "Unknown"}${member.email ? ` (${member.email})` : ""}`;
+      assigneeInput.appendChild(option);
+    });
+  } catch (error) {
+    console.error("Failed to load assignable members:", error);
+
+    // Fallback to project members if global directory is unavailable
+    try {
+      const project = await getProject(activeProject._id);
+      const members = Array.isArray(project?.members) ? project.members : [];
+      const selfId = String(currentUser?.id || currentUser?._id || "");
+      assignableMembers = members
+        .filter(member => member && member._id && String(member._id) !== selfId)
+        .sort((a, b) => String(a.name || "").localeCompare(String(b.name || "")));
+
+      const assigneeInput = document.getElementById("kanbanTaskAssigneeInput");
+      if (!assigneeInput) return;
+
+      assigneeInput.innerHTML = "";
+      assignableMembers.forEach((member) => {
+        const option = document.createElement("option");
+        option.value = member._id;
+        option.textContent = `${member.name || "Unknown"}${member.email ? ` (${member.email})` : ""}`;
+        assigneeInput.appendChild(option);
+      });
+    } catch (fallbackError) {
+      console.error("Fallback member loading failed:", fallbackError);
+    }
+  }
+}
+
+async function ensureAssigneeInProject(assigneeId) {
+  if (!activeProject || !activeProject._id) return;
+  if (!currentUser || currentUser.role !== "manager") return;
+  const assigneeIds = Array.isArray(assigneeId)
+    ? assigneeId.filter(Boolean)
+    : (assigneeId ? [assigneeId] : []);
+  if (!assigneeIds.length) return;
+
+  const project = await getProject(activeProject._id);
+  const memberIds = (Array.isArray(project?.members) ? project.members : []).map((member) =>
+    String(member && member._id ? member._id : member)
+  );
+
+  for (const id of assigneeIds) {
+    if (!memberIds.includes(String(id))) {
+      await addProjectMember(activeProject._id, id);
+    }
+  }
+}
+
+document.getElementById("kanbanCancelTaskBtn")?.addEventListener("click", () => {
+  const modal = document.getElementById("kanbanAddTaskModal");
+  if (modal) modal.style.display = "none";
+});
+
+document.getElementById("kanbanSaveTaskBtn")?.addEventListener("click", async () => {
+  const title = document.getElementById("kanbanTaskTitleInput")?.value.trim();
+  const description = document.getElementById("kanbanTaskDescriptionInput")?.value.trim() || "";
+  const status = document.getElementById("kanbanTaskStatusInput")?.value || "todo";
+  const assignedTo = Array.from(document.getElementById("kanbanTaskAssigneeInput")?.selectedOptions || [])
+    .map((option) => option.value)
+    .filter(Boolean);
+
+  if (!title) {
+    alert("Please enter task title.");
+    return;
+  }
+
+  await addTaskToColumn(title, description, status, assignedTo);
+  const modal = document.getElementById("kanbanAddTaskModal");
+  if (modal) modal.style.display = "none";
+});
 
 // Sidebar functionality
 function navigateTo(page) {

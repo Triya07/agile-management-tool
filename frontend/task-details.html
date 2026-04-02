@@ -6,31 +6,129 @@
   <link rel="stylesheet" href="style.css">
   <style>
     :root { --sidebar-width: 300px; }
-    body { background: #f7f8fa; font-family: "Segoe UI", Arial, sans-serif; color: #222; }
+    body {
+      background: linear-gradient(135deg, #F7FCEB 0%, #ECFDF0 25%, #D1FAE5 50%, #A7F3D0 75%, #6EE7B7 100%);
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: #083344;
+    }
     .main-container {
       display: flex;
       min-height: 100vh;
+      background: linear-gradient(135deg, #F7FCEB 0%, #ECFDF0 50%, #D1FAE5 100%);
       margin-left: var(--sidebar-width);
       width: calc(100% - var(--sidebar-width));
       transition: margin-left 0.3s ease, width 0.3s ease;
     }
-    #main-content { flex: 1; padding: 32px 40px; }
-    .task-section { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); padding: 24px; margin-bottom: 28px; }
-    .status-select { padding: 8px; border-radius: 6px; border: 1px solid #e5e7eb; }
-    .btn { background: #3182ce; color: #fff; border: none; border-radius: 7px; padding: 10px 22px; cursor: pointer; }
-    .comment-box { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #e5e7eb; margin: 10px 0; box-sizing: border-box; }
+    #main-content {
+      flex: 1;
+      padding: 32px 40px;
+      background: transparent;
+    }
+    .task-section {
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 15px;
+      box-shadow: 0 4px 20px rgba(8, 51, 68, 0.08);
+      padding: 28px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(118, 200, 147, 0.2);
+    }
+    .page-title {
+      margin: 0 0 10px 0;
+      background: linear-gradient(135deg, #76C893, #52B69A);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+    }
+    .task-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px 24px;
+      margin: 24px 0;
+    }
+    .meta-card {
+      background: linear-gradient(135deg, rgba(118, 200, 147, 0.08), rgba(82, 182, 154, 0.04));
+      border: 1px solid rgba(118, 200, 147, 0.2);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+    .meta-card strong {
+      display: block;
+      color: #168AAD;
+      margin-bottom: 6px;
+      font-size: 0.95rem;
+    }
+    .control-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0;
+    }
+    .panel {
+      margin: 24px 0;
+      padding: 20px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(247, 252, 235, 0.9), rgba(236, 253, 240, 0.85));
+      border: 1px solid rgba(118, 200, 147, 0.2);
+    }
+    .panel h3 {
+      margin-top: 0;
+      color: #34A0A4;
+    }
+    .status-select {
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(118, 200, 147, 0.35);
+      background: rgba(255, 255, 255, 0.95);
+      color: #083344;
+    }
+    .btn {
+      background: linear-gradient(135deg, #76C893, #52B69A);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 22px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn-secondary {
+      background: linear-gradient(135deg, #64748b, #475569);
+    }
+    .comment-box {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(118, 200, 147, 0.3);
+      margin: 10px 0 14px;
+      box-sizing: border-box;
+      background: rgba(255, 255, 255, 0.95);
+      color: #083344;
+    }
+    .activity-item,
+    .comment-item {
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.9);
+      margin: 10px 0;
+      border-radius: 10px;
+      border: 1px solid rgba(118, 200, 147, 0.16);
+    }
+    .muted {
+      color: #4b5563;
+      font-size: 0.9rem;
+    }
   </style>
 </head>
 <body>
   <div class="main-container">
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-logo">
-        <img src="img/logo.png" alt="FlowBoard Logo">
+        <span style="font-size:1.8rem;font-weight:900;background:linear-gradient(135deg,#D9ED92,#76C893,#34A0A4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">FlowBoard</span>
         <button class="sidebar-resize-btn" id="sidebarResizeBtn" title="Toggle sidebar size">||</button>
       </div>
       <nav class="sidebar-nav">
         <button class="sidebar-btn" onclick="navigateTo('dashboard-team.html')">Dashboard</button>
-        <button class="sidebar-btn" onclick="navigateTo('my-tasks.html')">My Tasks</button>
+        <button class="sidebar-btn active" onclick="navigateTo('my-tasks.html')">My Tasks</button>
         <button class="sidebar-btn" onclick="navigateTo('sprint-overview.html')">Sprint Overview</button>
         <button class="sidebar-btn" onclick="navigateTo('scrum-updates.html')">Scrum Updates</button>
         <button class="sidebar-btn" onclick="navigateTo('user-profile.html')">Profile</button>
@@ -40,7 +138,7 @@
     <main id="main-content">
       <div class="task-section">
         <div style="margin-bottom:20px;">
-          <button class="btn" onclick="window.location.href='my-tasks.html'" style="background:#6b7280;">Back to My Tasks</button>
+          <button class="btn btn-secondary" onclick="window.location.href='my-tasks.html'">Back to My Tasks</button>
         </div>
 
         <div id="taskDetails"></div>
@@ -114,7 +212,7 @@
       const comments = currentTask.comments || [];
       return comments.length
         ? comments.map(comment => `
-          <div style="padding:10px;background:#f7fafc;margin:8px 0;border-radius:6px;">
+          <div class="comment-item">
             <strong>${comment.author?.name || "Unknown user"}</strong> - ${formatDate(comment.createdAt)}
             <p style="margin:4px 0 0 0;">${comment.text}</p>
           </div>
@@ -125,10 +223,10 @@
     function renderActivity() {
       return currentActivity.length
         ? currentActivity.map(item => `
-          <div style="padding:10px;background:#f8fafc;margin:8px 0;border-radius:6px;">
+          <div class="activity-item">
             <strong>${item.changedBy?.name || "System"}</strong>
-            <span style="color:#666;">${item.action.replaceAll("_", " ")}</span>
-            <div style="font-size:0.85rem;color:#666;">${formatDate(item.changedAt)}</div>
+            <span class="muted">${item.action.replaceAll("_", " ")}</span>
+            <div class="muted">${formatDate(item.changedAt)}</div>
           </div>
         `).join("")
         : "<p>No activity yet.</p>";
@@ -136,15 +234,39 @@
 
     function renderTaskDetails() {
       document.getElementById("taskDetails").innerHTML = `
-        <h2>${currentTask.title}</h2>
-        <p><strong>Description:</strong> ${currentTask.description || "No description provided"}</p>
-        <p><strong>Project:</strong> ${currentTask.projectId?.name || "Unknown project"}</p>
-        <p><strong>Sprint:</strong> ${currentTask.sprint?.sprintName || "Backlog"}</p>
-        <p><strong>Priority:</strong> ${currentTask.priority || "medium"}</p>
-        <p><strong>Due Date:</strong> ${formatDate(currentTask.dueDate)}</p>
-        <p><strong>Blocked:</strong> ${currentTask.isBlocked ? `Yes${currentTask.blockedReason ? ` - ${currentTask.blockedReason}` : ""}` : "No"}</p>
+        <h2 class="page-title">${currentTask.title}</h2>
+        <p style="margin:0 0 18px 0;">${currentTask.description || "No description provided"}</p>
 
-        <div style="margin:20px 0;">
+        <div class="task-meta">
+          <div class="meta-card">
+            <strong>Project</strong>
+            <span>${currentTask.projectId?.name || "Unknown project"}</span>
+          </div>
+          <div class="meta-card">
+            <strong>Sprint</strong>
+            <span>${currentTask.sprint?.sprintName || "Backlog"}</span>
+          </div>
+          <div class="meta-card">
+            <strong>Priority</strong>
+            <span>${currentTask.priority || "medium"}</span>
+          </div>
+          <div class="meta-card">
+            <strong>Due Date</strong>
+            <span>${formatDate(currentTask.dueDate)}</span>
+          </div>
+          <div class="meta-card">
+            <strong>Blocked</strong>
+            <span>${currentTask.isBlocked ? `Yes${currentTask.blockedReason ? ` - ${currentTask.blockedReason}` : ""}` : "No"}</span>
+          </div>
+          <div class="meta-card">
+            <strong>Current Status</strong>
+            <span>${getStatusLabel(currentTask.status)}</span>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Status</h3>
+          <div class="control-row">
           <label><strong>Status:</strong></label>
           <select class="status-select" id="statusSelect">
             <option value="todo" ${currentTask.status === "todo" ? "selected" : ""}>To Do</option>
@@ -153,27 +275,28 @@
             <option value="blocked" ${currentTask.status === "blocked" ? "selected" : ""}>Blocked</option>
             <option value="done" ${currentTask.status === "done" ? "selected" : ""}>Done</option>
           </select>
-          <button class="btn" onclick="handleStatusUpdate()" style="margin-left:10px;">Update Status</button>
+          <button class="btn" onclick="handleStatusUpdate()">Update Status</button>
+          </div>
         </div>
 
-        <div style="margin:20px 0;">
-          <label><strong>Blocker Reason:</strong></label>
+        <div class="panel">
+          <h3>Blocker</h3>
           <textarea class="comment-box" id="blockedReasonBox" placeholder="Add blocker details if needed...">${currentTask.blockedReason || ""}</textarea>
           <button class="btn" onclick="handleBlockerUpdate()">Save Blocker State</button>
         </div>
 
-        <div>
+        <div class="panel">
           <h3>Add Comment</h3>
           <textarea class="comment-box" id="commentBox" placeholder="Add your comment..."></textarea>
           <button class="btn" onclick="handleAddComment()">Add Comment</button>
         </div>
 
-        <div id="comments" style="margin-top:20px;">
+        <div id="comments" class="panel">
           <h3>Comments</h3>
           ${renderComments()}
         </div>
 
-        <div id="activity" style="margin-top:20px;">
+        <div id="activity" class="panel">
           <h3>Activity</h3>
           ${renderActivity()}
         </div>
