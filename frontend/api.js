@@ -1,5 +1,17 @@
 // API utility functions for authenticated requests
 
+// Theme Initialization
+(function() {
+  const theme = localStorage.getItem('theme') || 'light';
+  if (theme === 'dark') {
+    document.documentElement.style.background = '#0f172a';
+    if (document.body) {
+      document.body.classList.add('dark');
+    } else {
+      document.addEventListener('DOMContentLoaded', () => document.body.classList.add('dark'));
+    }
+  }
+})();
 const PRIMARY_API_BASE_URL = (() => {
   const fromStorage = localStorage.getItem("API_BASE_URL");
   if (fromStorage && /^https?:\/\//i.test(fromStorage)) {

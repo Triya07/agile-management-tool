@@ -17,6 +17,8 @@
       align-items: center;
       justify-content: center;
       font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+      overflow-x: hidden;
+      position: relative;
     }
     .signup-container {
       background: rgba(255, 255, 255, 0.95);
@@ -139,6 +141,82 @@
     .login-link:hover {
       color: #76C893;
     }
+
+    /* Floating Geometric Network */
+    .geometric-network {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 200vh;
+      overflow: hidden;
+      z-index: -1;
+    }
+    
+    .network-node {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: rgba(15, 118, 110, 0.4);
+      border-radius: 50%;
+      animation: nodeFloat 20s linear infinite;
+    }
+    
+    @keyframes nodeFloat {
+      0% {
+        transform: translate(0, 100vh) scale(0);
+        opacity: 0;
+      }
+      5% {
+        transform: translate(0, 95vh) scale(1);
+        opacity: 1;
+      }
+      95% {
+        transform: translate(0, 5vh) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(0, 0vh) scale(0);
+        opacity: 0;
+      }
+    }
+    
+    /* Matrix Rain Effect */
+    .matrix-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 200vh;
+      overflow: hidden;
+      z-index: -1;
+    }
+    
+    .matrix-column {
+      position: absolute;
+      color: rgba(15, 118, 110, 0.4);
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      animation: matrixFall 10s linear infinite;
+    }
+    
+    @keyframes matrixFall {
+      0% {
+        transform: translateY(-100vh);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      90% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(100vh);
+        opacity: 0;
+      }
+    }
+
     /* Custom scrollbar for signup page */
     ::-webkit-scrollbar {
       width: 10px;
@@ -161,6 +239,8 @@
   </style>
 </head>
 <body>
+  <div class="geometric-network" id="geometricNetwork"></div>
+  <div class="matrix-container" id="matrixContainer"></div>
   <div class="signup-container fade-in">
     <div class="signup-logo">
       <span class="signup-logo-text">FlowBoard</span>
@@ -326,6 +406,47 @@
         showNotification('Connection error. Please check backend availability and try again.', 'error');
       }
     });
+
+    // Create Geometric Network
+    function createGeometricNetwork() {
+      const container = document.getElementById('geometricNetwork');
+      
+      for (let i = 0; i < 25; i++) {
+        const node = document.createElement('div');
+        node.className = 'network-node';
+        node.style.left = Math.random() * 100 + '%';
+        node.style.animationDelay = Math.random() * 0.5 + 's';
+        node.style.animationDuration = (8 + Math.random() * 6) + 's';
+        
+        container.appendChild(node);
+      }
+    }
+    
+    // Create Matrix Rain
+    function createMatrixRain() {
+      const container = document.getElementById('matrixContainer');
+      const chars = '01ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      
+      for (let i = 0; i < 20; i++) {
+        const column = document.createElement('div');
+        column.className = 'matrix-column';
+        column.style.left = Math.random() * 100 + '%';
+        column.style.animationDelay = Math.random() * 0.1 + 's';
+        column.style.animationDuration = (5 + Math.random() * 2) + 's';
+        
+        let text = '';
+        for (let j = 0; j < 20; j++) {
+          text += chars[Math.floor(Math.random() * chars.length)] + '<br>';
+        }
+        column.innerHTML = text;
+        
+        container.appendChild(column);
+      }
+    }
+    
+    // Initialize animations
+    createGeometricNetwork();
+    createMatrixRain();
   </script>
 </body>
 </html>
