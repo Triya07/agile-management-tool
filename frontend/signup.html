@@ -186,8 +186,11 @@
       selectedRole = 'worker';
     };
     
-    // Enhanced signup form handling
-    document.querySelector('.signup-form').onsubmit = function(e) {
+    // Backend configuration
+    const BACKEND_URL = 'http://localhost:5000';
+    
+    // Enhanced signup form handling with backend integration
+    document.querySelector('.signup-form').onsubmit = async function(e) {
       e.preventDefault();
       
       const username = this.querySelector('input[type="text"]').value.trim();
@@ -205,33 +208,85 @@
         return;
       }
       
-      // Simulate account creation
-      const userData = {
-        username,
-        email,
-        role: selectedRole,
-        createdAt: new Date().toISOString(),
-        id: Date.now().toString()
-      };
+      // Show loading state
+      const submitBtn = this.querySelector('.signup-btn');
+      const originalText = submitBtn.textContent;
+      submitBtn.textContent = 'Creating Account...';
+      submitBtn.disabled = true;
       
-      // Save to localStorage (simulated backend)
-      localStorage.setItem('userRole', selectedRole);
-      localStorage.setItem('currentUser', username);
-      localStorage.setItem('userEmail', email);
-      localStorage.setItem('isLoggedIn', 'true');
-      localStorage.setItem('userData', JSON.stringify(userData));
-      
-      // Show success message
-      showNotification('Account created successfully! Redirecting...', 'success');
-      
-      // Redirect based on role
-      setTimeout(() => {
-        if (selectedRole === 'manager') {
-          window.location.href = 'projects.html';
+      try {
+        // Try backend registration first
+        const response = await fetch(`${BACKEND_URL}/api/auth/register`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ username, email, password, role: selectedRole })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          
+          // Store auth data
+          localStorage.setItem('authToken', data.token);
+          localStorage.setItem('userRole', data.user.role);
+          localStorage.setItem('currentUser', data.user.username);
+          localStorage.setItem('userEmail', data.user.email);
+          localStorage.setItem('isLoggedIn', 'true');
+          localStorage.setItem('userData', JSON.stringify(data.user));
+          
+          showNotification('Account created successfully! Redirecting...', 'success');
+          
+          // Redirect based on role
+          setTimeout(() => {
+            if (data.user.role === 'manager') {
+              window.location.href = 'projects.html';
+            } else {
+              window.location.href = 'dashboard-team.html';
+            }
+          }, 1500);
+          
         } else {
-          window.location.href = 'dashboard-team.html';
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Registration failed');
         }
-      }, 1500);
+        
+      } catch (error) {
+        console.log('Backend registration failed, using demo mode:', error.message);
+        
+        // Fallback to demo mode
+        const userData = {
+          username,
+          email,
+          role: selectedRole,
+          createdAt: new Date().toISOString(),
+          id: Date.now().toString()
+        };
+        
+        // Save to localStorage (simulated backend)
+        localStorage.setItem('userRole', selectedRole);
+        localStorage.setItem('currentUser', username);
+        localStorage.setItem('userEmail', email);
+        localStorage.setItem('isLoggedIn', 'true');
+        localStorage.setItem('userData', JSON.stringify(userData));
+        localStorage.setItem('demoMode', 'true');
+        
+        // Show success message
+        showNotification('Account created successfully (demo mode)! Redirecting...', 'success');
+        
+        // Redirect based on role
+        setTimeout(() => {
+          if (selectedRole === 'manager') {
+            window.location.href = 'projects.html';
+          } else {
+            window.location.href = 'dashboard-team.html';
+          }
+        }, 1500);
+      } finally {
+        // Reset button
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+      }
     };
     
     // Notification system

@@ -165,34 +165,112 @@
       selectedRole = 'worker';
     };
     
-    // Handle login with proper user session and remember me
-    document.querySelector('.login-form').onsubmit = function(e) {
+    // Backend configuration
+    const BACKEND_URL = 'http://localhost:5000';
+    
+    // Enhanced login form handling with backend integration
+    document.querySelector('.login-form').onsubmit = async function(e) {
       e.preventDefault();
-      const username = document.querySelector('input[type="text"]').value;
-      const password = document.querySelector('input[type="password"]').value;
-      const rememberMe = document.getElementById('rememberMe').checked;
       
-      // Save user session info
-      localStorage.setItem('userRole', selectedRole);
-      localStorage.setItem('currentUser', username);
-      localStorage.setItem('isLoggedIn', 'true');
+      const email = this.querySelector('input[type="email"]').value.trim();
+      const password = this.querySelector('input[type="password"]').value;
+      const rememberMe = this.querySelector('input[type="checkbox"]')?.checked || false;
       
-      // Save remember me preference
-      if (rememberMe) {
-        localStorage.setItem('rememberMe', 'true');
-        localStorage.setItem('savedUserRole', selectedRole);
-        localStorage.setItem('savedUser', username);
-      } else {
-        localStorage.removeItem('rememberMe');
-        localStorage.removeItem('savedUserRole');
-        localStorage.removeItem('savedUser');
+      // Basic validation
+      if (!email || !password) {
+        showNotification('Please fill in all fields', 'error');
+        return;
       }
       
-      // Redirect based on role
-      if (selectedRole === 'manager') {
-        window.location.href = 'dashboard.html';
-      } else {
-        window.location.href = 'dashboard-team.html';
+      // Show loading state
+      const submitBtn = this.querySelector('.login-btn');
+      const originalText = submitBtn.textContent;
+      submitBtn.textContent = 'Signing in...';
+      submitBtn.disabled = true;
+      
+      try {
+        // Try backend login first
+        const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email, password })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          
+          // Store auth data
+          localStorage.setItem('authToken', data.token);
+          localStorage.setItem('userRole', data.user.role);
+          localStorage.setItem('currentUser', data.user.username);
+          localStorage.setItem('userEmail', data.user.email);
+          localStorage.setItem('isLoggedIn', 'true');
+          
+          if (rememberMe) {
+            localStorage.setItem('rememberMe', 'true');
+            localStorage.setItem('savedUser', data.user.username);
+            localStorage.setItem('savedUserRole', data.user.role);
+          }
+          
+          showNotification('Login successful! Redirecting...', 'success');
+          
+          // Redirect based on role
+          setTimeout(() => {
+            if (data.user.role === 'manager') {
+              window.location.href = 'projects.html';
+            } else {
+              window.location.href = 'dashboard-team.html';
+            }
+          }, 1000);
+          
+        } else {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Login failed');
+        }
+        
+      } catch (error) {
+        console.log('Backend login failed, trying demo mode:', error.message);
+        
+        // Fallback to demo mode
+        const demoUsers = {
+          'admin@example.com': { password: 'admin123', role: 'manager', username: 'Admin' },
+          'worker@example.com': { password: 'worker123', role: 'worker', username: 'Worker' },
+          'test@example.com': { password: 'test123', role: 'worker', username: 'TestUser' }
+        };
+        
+        const user = demoUsers[email];
+        if (user && user.password === password) {
+          // Demo login successful
+          localStorage.setItem('userRole', user.role);
+          localStorage.setItem('currentUser', user.username);
+          localStorage.setItem('userEmail', email);
+          localStorage.setItem('isLoggedIn', 'true');
+          localStorage.setItem('demoMode', 'true');
+          
+          if (rememberMe) {
+            localStorage.setItem('rememberMe', 'true');
+            localStorage.setItem('savedUser', user.username);
+            localStorage.setItem('savedUserRole', user.role);
+          }
+          
+          showNotification('Demo login successful! Redirecting...', 'success');
+          
+          setTimeout(() => {
+            if (user.role === 'manager') {
+              window.location.href = 'projects.html';
+            } else {
+              window.location.href = 'dashboard-team.html';
+            }
+          }, 1000);
+        } else {
+          showNotification('Invalid credentials. Try demo accounts:\nadmin@example.com / admin123\nworker@example.com / worker123', 'error');
+        }
+      } finally {
+        // Reset button
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
       }
     };
   </script>
