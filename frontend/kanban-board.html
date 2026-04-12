@@ -143,8 +143,11 @@
         <button class="sidebar-btn active">Kanban Board</button>
         <button class="sidebar-btn" onclick="navigateTo('projects.html')">Projects</button>
         <button class="sidebar-btn" onclick="navigateTo('dashboard.html')">Dashboard</button>
-        <button class="sidebar-btn" onclick="navigateTo('sprints.html')">Sprints</button>
+        <button class="sidebar-btn" onclick="navigateTo('sprint.html')">Sprints</button>
+        <button class="sidebar-btn" onclick="navigateTo('team.html')">Team</button>
+        <button class="sidebar-btn" onclick="navigateTo('user-profile.html')">Profile</button>
         <button class="sidebar-btn" onclick="navigateTo('settings.html')">Settings</button>
+        <button class="sidebar-btn" onclick="logout()">Logout</button>
       </nav>
     </aside>
 
@@ -152,173 +155,66 @@
       <h1 class="kanban-title">Kanban Board</h1>
       
       <div class="board">
-        <div class="column">
-          <div class="column-header">
-            <span class="column-title">To Do</span>
-            <span class="task-count">3</span>
-          </div>
-          <div class="task-card">
-            <div class="task-title">Setup User Authentication</div>
-            <div class="task-description">Implement login and signup functionality</div>
-            <div class="task-assignee">Assigned to: John Doe</div>
-          </div>
-          <div class="task-card">
-            <div class="task-title">Design Database Schema</div>
-            <div class="task-description">Create tables for users, projects, and tasks</div>
-            <div class="task-assignee">Assigned to: Jane Smith</div>
-          </div>
-          <div class="task-card">
-            <div class="task-title">Create API Endpoints</div>
-            <div class="task-description">Build REST API for CRUD operations</div>
-            <div class="task-assignee">Assigned to: Mike Johnson</div>
-          </div>
-          <button class="add-task-btn">+ Add Task</button>
-        </div>
-        
-        <div class="column">
-          <div class="column-header">
-            <span class="column-title">In Progress</span>
-            <span class="task-count">2</span>
-          </div>
-          <div class="task-card">
-            <div class="task-title">Frontend Dashboard</div>
-            <div class="task-description">Build responsive dashboard interface</div>
-            <div class="task-assignee">Assigned to: Sarah Wilson</div>
-          </div>
-          <div class="task-card">
-            <div class="task-title">Sprint Planning Module</div>
-            <div class="task-description">Implement sprint creation and management</div>
-            <div class="task-assignee">Assigned to: Tom Brown</div>
-          </div>
-          <button class="add-task-btn">+ Add Task</button>
-        </div>
-        
-        <div class="column">
-          <div class="column-header">
-            <span class="column-title">Review</span>
-            <span class="task-count">1</span>
-          </div>
-          <div class="task-card">
-            <div class="task-title">Task Drag & Drop</div>
-            <div class="task-description">Enable drag and drop functionality for tasks</div>
-            <div class="task-assignee">Assigned to: Lisa Davis</div>
-          </div>
-          <button class="add-task-btn">+ Add Task</button>
-        </div>
-        
-        <div class="column">
-          <div class="column-header">
-            <span class="column-title">Done</span>
-            <span class="task-count">4</span>
-          </div>
-          <div class="task-card">
-            <div class="task-title">Project Setup</div>
-            <div class="task-description">Initialize project structure and dependencies</div>
-            <div class="task-assignee">Completed by: John Doe</div>
-          </div>
-          <div class="task-card">
-            <div class="task-title">UI/UX Design</div>
-            <div class="task-description">Create mockups and wireframes</div>
-            <div class="task-assignee">Completed by: Jane Smith</div>
-          </div>
-          <button class="add-task-btn">+ Add Task</button>
-        </div>
+        <!-- Board will be populated dynamically -->
       </div>
     </main>
   </div>
 
+
+  <script src="api.js"></script>
   <script>
+      // AUTH GUARD — paste at top of every protected page
+(function() {
+  const token = localStorage.getItem('token');
+  const user  = JSON.parse(localStorage.getItem('user') || 'null');
+  if (!token || !user) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  // Kanban page is accessible to authenticated users.
+})();
+    // Global navigation and utility functions
     function navigateTo(page) {
       window.location.href = page;
     }
-    
-    // Sidebar resize functionality
-    const root = document.documentElement;
-    const sidebar = document.getElementById('sidebar');
-    const resizeBtn = document.getElementById('sidebarResizeBtn');
-    
-    let sidebarState = 'normal';
-    
-    function setSidebarWidth(width) {
-      root.style.setProperty('--sidebar-width', width + 'px');
-      localStorage.setItem('sidebarWidth', width);
-      
-      if (sidebar) {
-        sidebar.classList.remove('compact', 'wide');
-        if (width <= 250) {
-          sidebar.classList.add('compact');
-          sidebarState = 'compact';
-        } else if (width >= 380) {
-          sidebar.classList.add('wide');
-          sidebarState = 'wide';
-        } else {
-          sidebarState = 'normal';
-        }
+
+    function logout() {
+      if (confirm('Are you sure you want to logout?')) {
+        localStorage.clear();
+        window.location.href = 'login.html';
       }
     }
-    
-    const savedWidth = localStorage.getItem('sidebarWidth');
-    if (savedWidth) {
-      setSidebarWidth(parseInt(savedWidth));
-    }
-    
-    if (resizeBtn) {
-      resizeBtn.addEventListener('click', () => {
-        if (sidebarState === 'compact') {
-          setSidebarWidth(300);
-        } else if (sidebarState === 'normal') {
-          setSidebarWidth(400);
-        } else {
-          setSidebarWidth(220);
-        }
-      });
-    }
-
-    // Make task cards draggable
-    document.querySelectorAll('.task-card').forEach(card => {
-      card.draggable = true;
-      
-      card.addEventListener('dragstart', function(e) {
-        this.style.opacity = '0.5';
-        e.dataTransfer.setData('text/html', this.outerHTML);
-      });
-      
-      card.addEventListener('dragend', function() {
-        this.style.opacity = '1';
-      });
-    });
-
-    // Make columns droppable
-    document.querySelectorAll('.column').forEach(column => {
-      column.addEventListener('dragover', function(e) {
-        e.preventDefault();
-      });
-      
-      column.addEventListener('drop', function(e) {
-        e.preventDefault();
-        const draggedHTML = e.dataTransfer.getData('text/html');
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = draggedHTML;
-        const draggedCard = tempDiv.firstChild;
-        
-        // Remove original card
-        document.querySelector('.task-card[style*="opacity: 0.5"]')?.remove();
-        
-        // Add to new column
-        const addBtn = this.querySelector('.add-task-btn');
-        this.insertBefore(draggedCard, addBtn);
-        
-        // Update task counts
-        updateTaskCounts();
-      });
-    });
-
-    function updateTaskCounts() {
-      document.querySelectorAll('.column').forEach(column => {
-        const taskCount = column.querySelectorAll('.task-card').length;
-        column.querySelector('.task-count').textContent = taskCount;
-      });
-    }
   </script>
+  <div id="kanbanAddTaskModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.22);z-index:1200;align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:24px 22px;border-radius:12px;box-shadow:0 14px 34px rgba(0,0,0,0.15);width:380px;max-width:92vw;">
+      <h3 style="margin:0 0 14px 0;color:#083344;">Add Task</h3>
+      <label style="display:block;font-size:0.92rem;color:#34A0A4;margin-bottom:6px;">Title</label>
+      <input id="kanbanTaskTitleInput" type="text" style="width:100%;margin-bottom:12px;padding:10px;border:1px solid #cfe9db;border-radius:8px;" />
+
+      <label style="display:block;font-size:0.92rem;color:#34A0A4;margin-bottom:6px;">Description</label>
+      <textarea id="kanbanTaskDescriptionInput" rows="3" style="width:100%;margin-bottom:12px;padding:10px;border:1px solid #cfe9db;border-radius:8px;resize:vertical;"></textarea>
+
+      <label style="display:block;font-size:0.92rem;color:#34A0A4;margin-bottom:6px;">Assign To (Multiple)</label>
+      <select id="kanbanTaskAssigneeInput" multiple size="5" style="width:100%;margin-bottom:12px;padding:10px;border:1px solid #cfe9db;border-radius:8px;">
+        <option value="">Unassigned</option>
+      </select>
+
+      <label style="display:block;font-size:0.92rem;color:#34A0A4;margin-bottom:6px;">Status</label>
+      <select id="kanbanTaskStatusInput" style="width:100%;margin-bottom:16px;padding:10px;border:1px solid #cfe9db;border-radius:8px;">
+        <option value="todo">To Do</option>
+        <option value="inprogress">In Progress</option>
+        <option value="review">Review</option>
+        <option value="blocked">Blocked</option>
+        <option value="done">Done</option>
+      </select>
+
+      <div style="display:flex;justify-content:flex-end;gap:10px;">
+        <button id="kanbanCancelTaskBtn" type="button" style="padding:9px 14px;border:none;border-radius:7px;background:#e2e8f0;cursor:pointer;">Cancel</button>
+        <button id="kanbanSaveTaskBtn" type="button" style="padding:9px 14px;border:none;border-radius:7px;background:linear-gradient(135deg,#76C893,#52B69A);color:#fff;cursor:pointer;font-weight:600;">Create Task</button>
+      </div>
+    </div>
+  </div>
+  <script src="kanban-board.js"></script>
 </body>
 </html>

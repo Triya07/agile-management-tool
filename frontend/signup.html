@@ -17,6 +17,8 @@
       align-items: center;
       justify-content: center;
       font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+      overflow-x: hidden;
+      position: relative;
     }
     .signup-container {
       background: rgba(255, 255, 255, 0.95);
@@ -76,28 +78,38 @@
       background: rgba(255, 255, 255, 0.8);
       box-shadow: 0 4px 15px rgba(82, 182, 154, 0.2);
     }
+    .account-note {
+      margin: -4px 0 8px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(118, 200, 147, 0.12);
+      border: 1px solid rgba(118, 200, 147, 0.25);
+      color: #0f766e;
+      font-size: 0.92rem;
+      line-height: 1.4;
+    }
     .role-select {
       display: flex;
       justify-content: center;
-      gap: 18px;
-      margin-bottom: 10px;
+      gap: 12px;
+      margin: 2px 0 6px;
     }
     .role-btn {
-      padding: 12px 28px;
-      border-radius: 25px;
+      padding: 10px 18px;
+      border-radius: 22px;
       border: 2px solid #76C893;
-      font-size: 1.05rem;
+      font-size: 0.95rem;
       font-weight: 600;
       cursor: pointer;
-      background: rgba(118, 200, 147, 0.1);
-      color: #34A0A4;
-      transition: all 0.3s;
+      background: rgba(118, 200, 147, 0.08);
+      color: #0f766e;
+      transition: all 0.25s;
     }
     .role-btn.active, .role-btn:focus {
-      background: linear-gradient(135deg, #76C893, #52B69A);
+      background: linear-gradient(135deg, #76C893 0%, #34A0A4 100%);
       color: #fff;
       border-color: transparent;
-      box-shadow: 0 4px 15px rgba(118, 200, 147, 0.3);
+      box-shadow: 0 4px 14px rgba(52, 160, 164, 0.25);
     }
     .signup-btn {
       background: linear-gradient(135deg, #76C893 0%, #52B69A 50%, #34A0A4 100%);
@@ -129,6 +141,82 @@
     .login-link:hover {
       color: #76C893;
     }
+
+    /* Floating Geometric Network */
+    .geometric-network {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 200vh;
+      overflow: hidden;
+      z-index: -1;
+    }
+    
+    .network-node {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: rgba(15, 118, 110, 0.4);
+      border-radius: 50%;
+      animation: nodeFloat 20s linear infinite;
+    }
+    
+    @keyframes nodeFloat {
+      0% {
+        transform: translate(0, 100vh) scale(0);
+        opacity: 0;
+      }
+      5% {
+        transform: translate(0, 95vh) scale(1);
+        opacity: 1;
+      }
+      95% {
+        transform: translate(0, 5vh) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(0, 0vh) scale(0);
+        opacity: 0;
+      }
+    }
+    
+    /* Matrix Rain Effect */
+    .matrix-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 200vh;
+      overflow: hidden;
+      z-index: -1;
+    }
+    
+    .matrix-column {
+      position: absolute;
+      color: rgba(15, 118, 110, 0.4);
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      animation: matrixFall 10s linear infinite;
+    }
+    
+    @keyframes matrixFall {
+      0% {
+        transform: translateY(-100vh);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      90% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(100vh);
+        opacity: 0;
+      }
+    }
+
     /* Custom scrollbar for signup page */
     ::-webkit-scrollbar {
       width: 10px;
@@ -151,6 +239,8 @@
   </style>
 </head>
 <body>
+  <div class="geometric-network" id="geometricNetwork"></div>
+  <div class="matrix-container" id="matrixContainer"></div>
   <div class="signup-container fade-in">
     <div class="signup-logo">
       <span class="signup-logo-text">FlowBoard</span>
@@ -160,15 +250,18 @@
       <input type="text" placeholder="Username" required>
       <input type="email" placeholder="Email" required>
       <input type="password" placeholder="Password" required>
-      <div class="role-select">
-        <button type="button" class="role-btn active" id="role-manager">Manager</button>
-        <button type="button" class="role-btn" id="role-worker">Worker</button>
+      <div class="role-select" id="roleSelect">
+        <button type="button" class="role-btn active" data-role="member">Team Member</button>
+        <button type="button" class="role-btn" data-role="manager">Manager</button>
       </div>
+      <input type="hidden" id="selectedRole" value="member">
+      <div class="account-note">Manager signup works only when backend enables it (`ALLOW_MANAGER_SELF_SIGNUP=true`).</div>
       <button type="submit" class="signup-btn">Sign Up</button>
     </form>
     <span class="login-link" onclick="window.location.href='login.html'">Already have an account? Login</span>
   </div>
   <script>
+<<<<<<< HEAD
     // Role selection toggle
     const managerBtn = document.getElementById('role-manager');
     const workerBtn = document.getElementById('role-worker');
@@ -290,29 +383,32 @@
     };
     
     // Notification system
+=======
+    // Notification system - MUST be defined first
+>>>>>>> fc4449ceef40ea6c408086f0363617c748e0f4a4
     function showNotification(message, type = 'info') {
       const notification = document.createElement('div');
       const colors = {
-        success: { bg: '#d4edda', color: '#155724', border: '#c3e6cb' },
-        error: { bg: '#f8d7da', color: '#721c24', border: '#f5c6cb' },
-        info: { bg: '#d1ecf1', color: '#0c5460', border: '#bee5eb' }
+        success: { bg: '#22c55e', color: '#fff' },
+        error: { bg: '#ef4444', color: '#fff' },
+        info: { bg: '#3b82f6', color: '#fff' }
       };
       
-      const colorScheme = colors[type];
+      const colorScheme = colors[type] || colors.info;
       notification.style.cssText = `
         position: fixed;
         top: 20px;
         right: 20px;
         background: ${colorScheme.bg};
         color: ${colorScheme.color};
-        padding: 12px 20px;
+        padding: 15px 20px;
         border-radius: 8px;
-        border: 1px solid ${colorScheme.border};
-        z-index: 1001;
+        z-index: 10000;
         animation: slideInDown 0.3s ease;
-        max-width: 350px;
+        max-width: 400px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         font-weight: 500;
+        font-size: 1rem;
       `;
       notification.textContent = message;
       
@@ -321,7 +417,7 @@
       setTimeout(() => {
         notification.style.animation = 'slideOutUp 0.3s ease';
         setTimeout(() => notification.remove(), 300);
-      }, 3000);
+      }, 4000);
     }
     
     // Add CSS animations
@@ -344,6 +440,137 @@
       }
     `;
     document.head.appendChild(style);
+    
+    // Role selection buttons
+    const roleButtons = document.querySelectorAll('#roleSelect .role-btn');
+    const selectedRoleInput = document.getElementById('selectedRole');
+    roleButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        roleButtons.forEach((item) => item.classList.remove('active'));
+        btn.classList.add('active');
+        selectedRoleInput.value = btn.dataset.role || 'member';
+      });
+    });
+
+    function resolveApiBaseUrl() {
+      const { protocol, hostname, port, origin } = window.location;
+      const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
+
+      if (isLocal) {
+        if (port === '5000') return `${origin}/api`;
+        return `${protocol}//${hostname}:5000/api`;
+      }
+
+      return `${origin}/api`;
+    }
+
+    // Signup form handling with backend
+    document.querySelector('.signup-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const username = this.querySelector('input[type="text"]').value.trim();
+      const email = this.querySelector('input[type="email"]').value.trim();
+      const password = this.querySelector('input[type="password"]').value;
+      const selectedRole = selectedRoleInput.value || 'member';
+      
+      // Basic validation
+      if (!username || !email || !password) {
+        showNotification('Please fill in all fields', 'error');
+        return;
+      }
+      
+      if (password.length < 6) {
+        showNotification('Password must be at least 6 characters long', 'error');
+        return;
+      }
+      
+      if (!email.includes('@')) {
+        showNotification('Please enter a valid email address', 'error');
+        return;
+      }
+      
+      try {
+        const response = await fetch(`${resolveApiBaseUrl()}/auth/signup`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            name: username,
+            email,
+            password,
+            role: selectedRole
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+          // Save user data
+          localStorage.setItem('token', result.token);
+          localStorage.setItem('user', JSON.stringify(result.user));
+          localStorage.setItem('currentUser', result.user.name);
+          localStorage.setItem('userEmail', result.user.email);
+          
+          showNotification('Account created successfully! Redirecting...', 'success');
+          
+          // Redirect based on role
+          setTimeout(() => {
+            if (result.user.role === 'manager') {
+              window.location.href = 'projects.html';
+            } else {
+              window.location.href = 'dashboard-team.html';
+            }
+          }, 1500);
+        } else {
+          showNotification(result.message || 'Signup failed', 'error');
+        }
+      } catch (err) {
+        console.error('Signup error:', err);
+        showNotification('Connection error. Please check backend availability and try again.', 'error');
+      }
+    });
+
+    // Create Geometric Network
+    function createGeometricNetwork() {
+      const container = document.getElementById('geometricNetwork');
+      
+      for (let i = 0; i < 25; i++) {
+        const node = document.createElement('div');
+        node.className = 'network-node';
+        node.style.left = Math.random() * 100 + '%';
+        node.style.animationDelay = Math.random() * 0.5 + 's';
+        node.style.animationDuration = (8 + Math.random() * 6) + 's';
+        
+        container.appendChild(node);
+      }
+    }
+    
+    // Create Matrix Rain
+    function createMatrixRain() {
+      const container = document.getElementById('matrixContainer');
+      const chars = '01ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      
+      for (let i = 0; i < 20; i++) {
+        const column = document.createElement('div');
+        column.className = 'matrix-column';
+        column.style.left = Math.random() * 100 + '%';
+        column.style.animationDelay = Math.random() * 0.1 + 's';
+        column.style.animationDuration = (5 + Math.random() * 2) + 's';
+        
+        let text = '';
+        for (let j = 0; j < 20; j++) {
+          text += chars[Math.floor(Math.random() * chars.length)] + '<br>';
+        }
+        column.innerHTML = text;
+        
+        container.appendChild(column);
+      }
+    }
+    
+    // Initialize animations
+    createGeometricNetwork();
+    createMatrixRain();
   </script>
 </body>
 </html>

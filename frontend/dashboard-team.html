@@ -158,9 +158,10 @@
       </div>
       <nav class="sidebar-nav">
         <button class="sidebar-btn active">Dashboard</button>
-        <button class="sidebar-btn" onclick="window.location.href='my-tasks.html'">My Tasks</button>
-        <button class="sidebar-btn" onclick="window.location.href='sprint-overview.html'">Sprint Overview</button>
-        <button class="sidebar-btn" onclick="window.location.href='scrum-updates.html'">Scrum Updates</button>
+        <button class="sidebar-btn" onclick="navigateTo('my-tasks.html')">My Tasks</button>
+        <button class="sidebar-btn" onclick="navigateTo('sprint-overview.html')">Sprint Overview</button>
+        <button class="sidebar-btn" onclick="navigateTo('scrum-updates.html')">Scrum Updates</button>
+        <button class="sidebar-btn" onclick="navigateTo('user-profile.html')">Profile</button>
         <button class="sidebar-btn" onclick="logout()">Logout</button>
       </nav>
     </aside>
@@ -214,40 +215,57 @@
       </form>
     </div>
   </div>
+ 
+  <script src="api.js"></script>
   <script>
-    // Authentication check - only team members allowed
-    function checkAuth() {
-      const isLoggedIn = localStorage.getItem('isLoggedIn');
-      const userRole = localStorage.getItem('userRole');
-      
-      if (!isLoggedIn || userRole !== 'worker') {
-        alert('Access denied. Team member login required.');
-        window.location.href = 'login.html';
-        return false;
-      }
-      return true;
+     // AUTH GUARD — paste at top of every protected page
+(function() {
+  const token = localStorage.getItem('token');
+  const user  = JSON.parse(localStorage.getItem('user') || 'null');
+  if (!token || !user) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  // Role-based protection
+  // This is the team member dashboard - managers should use dashboard.html
+  if (user.role === 'manager') window.location.href = 'dashboard.html';
+})();
+    // Global utility functions
+    function navigateTo(page) {
+      window.location.href = page;
     }
-    
-    // Check auth on page load
-    if (!checkAuth()) return;
+    function logout() {
+      if (confirm('Are you sure you want to logout?')) {
+        localStorage.clear();
+        window.location.href = 'login.html';
+      }
+    }
 
     // Get current user info
-    const currentUser = localStorage.getItem("currentUser");
-    document.querySelector('.dashboard-title').textContent = `Welcome back, ${currentUser}!`;
+    const authUser = getCurrentUser();
+    const displayName = authUser?.name || localStorage.getItem("currentUser") || "Team Member";
+    document.querySelector('.dashboard-title').textContent = `Welcome back, ${displayName}!`;
 
     // Load tasks for this specific user
-    function getUserTasks() {
-      return (JSON.parse(localStorage.getItem("tasks")) || []).filter(
-        t => t.assignee === currentUser
-      );
+    async function loadUserTasks() {
+      try {
+        const tasks = await getUserTasks();
+        return Array.isArray(tasks) ? tasks : (tasks.data || []);
+      } catch (error) {
+        console.error('Error loading tasks:', error);
+        return [];
+      }
     }
 
-    // Update summary cards with user-specific data
-    function updateSummaryCards() {
-      const myTasks = getUserTasks();
-      document.getElementById("myTasksCount").textContent = myTasks.length;
-      document.getElementById("completedCount").textContent = myTasks.filter(t => t.status === "done").length;
-      document.getElementById("inProgressCount").textContent = myTasks.filter(t => t.status === "inprogress").length;
+    // Navigate to task detail page
+    function openTaskModal(taskId) {
+      localStorage.setItem('viewTaskId', taskId);
+      window.location.href = 'task-details.html';
+    }
+
+    function getTaskId(task) {
+      return task._id || task.id;
     }
 
     function groupTasksByStatus(tasks) {
@@ -261,11 +279,11 @@
     function isDueToday(task) {
       if (!task.dueDate) return false;
       const today = new Date().toISOString().slice(0,10);
-      return task.dueDate === today;
+      return String(task.dueDate).slice(0, 10) === today;
     }
 
-    function renderTasks() {
-      const tasks = getUserTasks();
+    async function renderTasks() {
+      const tasks = await loadUserTasks();
       const grouped = groupTasksByStatus(tasks);
       const container = document.getElementById("tasksByStatus");
       container.innerHTML = "";
@@ -286,6 +304,8 @@
         `;
         
         grouped[status].forEach(task => {
+          const taskId = getTaskId(task);
+          if (!taskId) return;
           const card = document.createElement("div");
           card.className = "task-card";
           card.innerHTML = `
@@ -295,14 +315,14 @@
               ${isDueToday(task) ? '<span class="due-today">Due Today</span>' : ""}
             </span>
             <div>
-              <button class="btn" data-id="${task.id}" style="margin-right: 8px; padding: 6px 12px; font-size: 0.85rem;">View</button>
-              <button onclick="quickUpdateStatus('${task.id}', '${status}')" class="btn" style="background: #34A0A4; padding: 6px 12px; font-size: 0.85rem;">Update</button>
+              <button class="btn" data-id="${taskId}" style="margin-right: 8px; padding: 6px 12px; font-size: 0.85rem;">View</button>
+              <button onclick="quickUpdateStatus('${taskId}', '${status}')" class="btn" style="background: #34A0A4; padding: 6px 12px; font-size: 0.85rem;">Update</button>
             </div>
           `;
           
           // Add click event to view button
           const viewButton = card.querySelector('button[data-id]');
-          viewButton.addEventListener('click', () => openTaskModal(task.id));
+          viewButton.addEventListener('click', () => openTaskModal(taskId));
           
           groupDiv.appendChild(card);
         });
@@ -312,7 +332,7 @@
     }
     
     // Quick status update function
-    function quickUpdateStatus(taskId, currentStatus) {
+    async function quickUpdateStatus(taskId, currentStatus) {
       const statusOptions = {
         'todo': 'inprogress',
         'inprogress': 'done',
@@ -327,26 +347,21 @@
       };
       
       if (confirm(`Move task to "${statusNames[nextStatus]}"?`)) {
-        let allTasks = JSON.parse(localStorage.getItem("tasks")) || [];
-        const taskIndex = allTasks.findIndex(t => t.id == taskId);
-        
-        if (taskIndex !== -1) {
-          allTasks[taskIndex].status = nextStatus;
-          localStorage.setItem("tasks", JSON.stringify(allTasks));
-          
-          // Show success message
+        try {
+          await updateTaskStatus(taskId, nextStatus);
           showNotification(`Task moved to ${statusNames[nextStatus]}!`, 'success');
-          
-          // Re-render tasks
-          renderTasks();
-          updateSummaryCards();
+          await renderTasks();
+          await updateSummaryCards();
+        } catch (error) {
+          console.error('Failed to update task status:', error);
+          showNotification(error.message || 'Failed to update task status.', 'error');
         }
       }
     }
     
     // Enhanced summary cards update
-    function updateSummaryCards() {
-      const myTasks = getUserTasks();
+    async function updateSummaryCards(tasks = null) {
+      const myTasks = tasks || await loadUserTasks();
       
       // Animate value changes
       animateValue("myTasksCount", myTasks.length);
@@ -420,6 +435,14 @@
       }
     `;
     document.head.appendChild(style);
+    
+    // Initialize page on load
+    document.addEventListener('DOMContentLoaded', async () => {
+      const tasks = await loadUserTasks();
+      await renderTasks();
+      await updateSummaryCards(tasks);
+    });
+
   </script>
   
   <!-- Sidebar Resize Functionality -->

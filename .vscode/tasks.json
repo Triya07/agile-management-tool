@@ -1,0 +1,16 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "scan-missing-html-links",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"$root='frontend'; $files=Get-ChildItem $root -File -Recurse | Where-Object { $_.Extension -in '.html','.js' }; $refs=@(); foreach($f in $files){ $content=Get-Content $f.FullName -Raw; [regex]::Matches($content,'[A-Za-z0-9_-]+\\.html') | ForEach-Object { $refs += [pscustomobject]@{File=$f.Name; Ref=$_.Value} } }; $existing=(Get-ChildItem $root -File | Select-Object -ExpandProperty Name); $missing=$refs | Where-Object { $existing -notcontains $_.Ref } | Sort-Object Ref -Unique; if($missing.Count -eq 0){ 'No missing linked HTML files found.' } else { $missing | Select-Object -First 100 | Format-Table -AutoSize | Out-String }"
+			],
+			"isBackground": false
+		}
+	]
+}

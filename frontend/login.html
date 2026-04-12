@@ -6,13 +6,232 @@
   <link rel="stylesheet" href="style.css">
   <style>
     body {
-      background: linear-gradient(135deg, #0891b2 0%, #0e7490 50%, #083344 100%);
+      background: linear-gradient(135deg, #D9ED92 0%, #B5E48C 25%, #99D98C 50%, #76C893 75%, #52B69A 100%);
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
       font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      position: relative;
     }
+    
+    /* Animated Wave Background */
+    .animated-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -2;
+      background: linear-gradient(135deg, #B5E48C 0%, #99D98C 25%, #76C893 50%, #52B69A 75%, #34A0A4 100%);
+      background-size: 400% 400%;
+      animation: gradientFlow 15s ease infinite;
+    }
+    
+    @keyframes gradientFlow {
+      0%, 100% { background-position: 0% 50%; }
+      25% { background-position: 100% 50%; }
+      50% { background-position: 100% 100%; }
+      75% { background-position: 0% 100%; }
+    }
+    
+    /* Particle Wave System */
+    .wave-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      z-index: -1;
+    }
+    
+    .particle-wave {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: rgba(6, 182, 212, 0.8);
+      border-radius: 50%;
+      animation: waveMotion 8s ease-in-out infinite;
+      box-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+    }
+    
+    @keyframes waveMotion {
+      0%, 100% {
+        transform: translateY(100vh) translateX(0px);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      50% {
+        transform: translateY(50vh) translateX(100px);
+        opacity: 1;
+      }
+      90% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-10vh) translateX(-50px);
+        opacity: 0;
+      }
+    }
+    
+    /* Floating Geometric Network */
+    .geometric-network {
+      position: absolute;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      z-index: -1;
+    }
+    
+    .network-node {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: rgba(15, 118, 110, 0.4);
+      border-radius: 50%;
+      animation: nodeFloat 20s linear infinite;
+    }
+    
+    @keyframes nodeFloat {
+      0% {
+        transform: translate(0, 100vh) scale(0);
+        opacity: 0;
+      }
+      5% {
+        transform: translate(0, 95vh) scale(1);
+        opacity: 1;
+      }
+      95% {
+        transform: translate(0, 5vh) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(0, 0vh) scale(0);
+        opacity: 0;
+      }
+    }
+    
+    /* Orbital Rings */
+    .orbital-container {
+      position: absolute;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      z-index: -1;
+    }
+    
+    .orbital-ring {
+      position: absolute;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      border-radius: 50%;
+      animation: orbitalRotate 30s linear infinite;
+    }
+    
+    .ring-1 { 
+      width: 200px; 
+      height: 200px; 
+      top: 20%; 
+      left: 10%; 
+      animation-duration: 25s;
+    }
+    .ring-2 { 
+      width: 150px; 
+      height: 150px; 
+      top: 60%; 
+      right: 15%; 
+      animation-duration: 35s; 
+      animation-direction: reverse;
+    }
+    .ring-3 { 
+      width: 300px; 
+      height: 300px; 
+      bottom: 10%; 
+      left: 50%; 
+      animation-duration: 40s;
+    }
+    
+    @keyframes orbitalRotate {
+      0% { transform: rotate(0deg) scale(0.8); opacity: 0.3; }
+      50% { transform: rotate(180deg) scale(1.2); opacity: 0.8; }
+      100% { transform: rotate(360deg) scale(0.8); opacity: 0.3; }
+    }
+    
+    .orbital-ring::before {
+      content: '';
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background: rgba(15, 118, 110, 0.8);
+      border-radius: 50%;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      box-shadow: 0 0 15px rgba(15, 118, 110, 0.6);
+    }
+    
+    /* Energy Pulses */
+    .energy-pulse {
+      position: absolute;
+      width: 100px;
+      height: 100px;
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      border-radius: 50%;
+      animation: energyExpand 4s ease-out infinite;
+    }
+    
+    @keyframes energyExpand {
+      0% {
+        transform: scale(0);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(4);
+        opacity: 0;
+      }
+    }
+    
+    /* Matrix Rain Effect */
+    .matrix-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      z-index: -1;
+    }
+    
+    .matrix-column {
+      position: absolute;
+      color: rgba(15, 118, 110, 0.4);
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      animation: matrixFall 10s linear infinite;
+    }
+    
+    @keyframes matrixFall {
+      0% {
+        transform: translateY(-100vh);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      90% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(100vh);
+        opacity: 0;
+      }
+    }
+
     .login-container {
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(20px);
@@ -23,6 +242,8 @@
       max-width: 380px;
       text-align: center;
       border: 1px solid rgba(6, 182, 212, 0.2);
+      position: relative;
+      z-index: 10;
     }
     .login-logo {
       display: flex;
@@ -125,56 +346,216 @@
     .signup-link:hover {
       color: #22c55e;
     }
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    @keyframes slideOut {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+    }
   </style>
 </head>
 <body>
+  <!-- Animated Background -->
+  <div class="animated-bg"></div>
+  
+  <!-- Multi-layer Animation System -->
+  <div class="wave-container" id="waveContainer"></div>
+  <div class="geometric-network" id="geometricNetwork"></div>
+  <div class="orbital-container" id="orbitalContainer"></div>
+  <div class="matrix-container" id="matrixContainer"></div>
+
   <div class="login-container fade-in">
     <div class="login-logo">
       <span class="login-logo-text">FlowBoard</span>
     </div>
     <div class="login-title">Welcome Back</div>
     <form class="login-form">
-      <input type="text" placeholder="Username" required>
+      <input type="email" placeholder="Email" required>
       <input type="password" placeholder="Password" required>
-      <div class="role-select">
-        <button type="button" class="role-btn active" id="role-manager">Manager</button>
-        <button type="button" class="role-btn" id="role-worker">Worker</button>
+      <div class="role-select" id="loginRoleSelect">
+        <button type="button" class="role-btn active" data-role="member">Team Member</button>
+        <button type="button" class="role-btn" data-role="manager">Manager</button>
       </div>
-      <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;margin:8px 0;">
-        <input type="checkbox" id="rememberMe" style="margin:0;">
-        <span>Remember me</span>
-      </label>
+      <div style="font-size:0.92rem;color:#dbeafe;margin:4px 0 2px;">Role selection is for convenience. Access is always based on your real account role.</div>
       <button type="submit" class="login-btn">Login</button>
     </form>
     <span class="signup-link" onclick="window.location.href='signup.html'">Don't have an account? Sign up</span>
   </div>
   <script>
-    // Role selection toggle
-    const managerBtn = document.getElementById('role-manager');
-    const workerBtn = document.getElementById('role-worker');
-    let selectedRole = 'manager';
+    // Create Wave Particle System
+    function createWaveSystem() {
+      const container = document.getElementById('waveContainer');
+      
+      for (let i = 0; i < 60; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle-wave';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 0.3 + 's';
+        particle.style.animationDuration = (5 + Math.random() * 3) + 's';
+        
+        // Updated color palette
+        const colors = ['rgba(255,255,255,0.8)', 'rgba(255,255,255,0.6)', 'rgba(15,118,110,0.6)', 'rgba(52,160,164,0.6)'];
+        particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+        
+        container.appendChild(particle);
+      }
+    }
     
-    managerBtn.onclick = function() {
-      managerBtn.classList.add('active');
-      workerBtn.classList.remove('active');
-      selectedRole = 'manager';
-    };
-    workerBtn.onclick = function() {
-      workerBtn.classList.add('active');
-      managerBtn.classList.remove('active');
-      selectedRole = 'worker';
-    };
+    // Create Geometric Network
+    function createGeometricNetwork() {
+      const container = document.getElementById('geometricNetwork');
+      
+      for (let i = 0; i < 25; i++) {
+        const node = document.createElement('div');
+        node.className = 'network-node';
+        node.style.left = Math.random() * 100 + '%';
+        node.style.animationDelay = Math.random() * 0.5 + 's';
+        node.style.animationDuration = (8 + Math.random() * 6) + 's';
+        
+        container.appendChild(node);
+      }
+    }
     
+<<<<<<< HEAD
     // Backend configuration
     const BACKEND_URL = 'http://localhost:5000';
     
     // Enhanced login form handling with backend integration
     document.querySelector('.login-form').onsubmit = async function(e) {
+=======
+    // Create Orbital Rings
+    function createOrbitalSystem() {
+      const container = document.getElementById('orbitalContainer');
+      
+      // Create energy pulses
+      for (let i = 0; i < 8; i++) {
+        const pulse = document.createElement('div');
+        pulse.className = 'energy-pulse';
+        pulse.style.top = Math.random() * 100 + '%';
+        pulse.style.left = Math.random() * 100 + '%';
+        pulse.style.animationDelay = Math.random() * 0.3 + 's';
+        
+        container.appendChild(pulse);
+      }
+      
+      // Add orbital rings
+      const rings = ['ring-1', 'ring-2', 'ring-3'];
+      rings.forEach(ringClass => {
+        const ring = document.createElement('div');
+        ring.className = `orbital-ring ${ringClass}`;
+        container.appendChild(ring);
+      });
+    }
+    
+    // Create Matrix Rain
+    function createMatrixRain() {
+      const container = document.getElementById('matrixContainer');
+      const chars = '01ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      
+      for (let i = 0; i < 20; i++) {
+        const column = document.createElement('div');
+        column.className = 'matrix-column';
+        column.style.left = Math.random() * 100 + '%';
+        column.style.animationDelay = Math.random() * 0.1 + 's';
+        column.style.animationDuration = (5 + Math.random() * 2) + 's';
+        
+        let text = '';
+        for (let j = 0; j < 20; j++) {
+          text += chars[Math.floor(Math.random() * chars.length)] + '<br>';
+        }
+        column.innerHTML = text;
+        
+        container.appendChild(column);
+      }
+    }
+    
+    // Initialize all animation systems
+    createWaveSystem();
+    createGeometricNetwork();
+    createOrbitalSystem();
+    createMatrixRain();
+
+    // Role selection buttons (UI only)
+    const loginRoleButtons = document.querySelectorAll('#loginRoleSelect .role-btn');
+    let selectedLoginRole = 'member';
+    loginRoleButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        loginRoleButtons.forEach((item) => item.classList.remove('active'));
+        btn.classList.add('active');
+        selectedLoginRole = btn.dataset.role || 'member';
+      });
+    });
+    
+    // Notification function
+    function showNotification(message, type) {
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        z-index: 9999;
+        animation: slideIn 0.3s ease;
+        max-width: 300px;
+      `;
+      
+      if (type === 'error') {
+        notification.style.background = '#ef4444';
+        notification.style.color = '#fff';
+      } else if (type === 'success') {
+        notification.style.background = '#22c55e';
+        notification.style.color = '#fff';
+      }
+      
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+      }, 3000);
+    }
+
+    function resolveApiBaseUrl() {
+      const { protocol, hostname, port, origin } = window.location;
+      const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
+
+      if (isLocal) {
+        if (port === '5000') return `${origin}/api`;
+        return `${protocol}//${hostname}:5000/api`;
+      }
+
+      return `${origin}/api`;
+    }
+
+    // Simple login form handling with backend
+    document.querySelector('.login-form').addEventListener('submit', async function(e) {
+>>>>>>> fc4449ceef40ea6c408086f0363617c748e0f4a4
       e.preventDefault();
       
       const email = this.querySelector('input[type="email"]').value.trim();
       const password = this.querySelector('input[type="password"]').value;
+<<<<<<< HEAD
       const rememberMe = this.querySelector('input[type="checkbox"]')?.checked || false;
+=======
+>>>>>>> fc4449ceef40ea6c408086f0363617c748e0f4a4
       
       // Basic validation
       if (!email || !password) {
@@ -182,6 +563,7 @@
         return;
       }
       
+<<<<<<< HEAD
       // Show loading state
       const submitBtn = this.querySelector('.login-btn');
       const originalText = submitBtn.textContent;
@@ -271,8 +653,51 @@
         // Reset button
         submitBtn.textContent = originalText;
         submitBtn.disabled = false;
+=======
+      if (!email.includes('@')) {
+        showNotification('Please enter a valid email address', 'error');
+        return;
+>>>>>>> fc4449ceef40ea6c408086f0363617c748e0f4a4
       }
-    };
+      
+      try {
+        const response = await fetch(`${resolveApiBaseUrl()}/auth/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            email,
+            password
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+          // Save user data
+          localStorage.setItem('token', result.token);
+          localStorage.setItem('user', JSON.stringify(result.user));
+          localStorage.setItem('currentUser', result.user.name);
+          localStorage.setItem('userEmail', result.user.email);
+
+          showNotification('Login successful! Redirecting...', 'success');
+          
+          setTimeout(() => {
+            const role = (result.user.role || '').toLowerCase();
+            if (selectedLoginRole && selectedLoginRole !== role) {
+              showNotification(`Logged in as ${role}. Redirecting to your ${role} dashboard.`, 'info');
+            }
+            window.location.href = role === 'manager' ? 'dashboard.html' : 'dashboard-team.html';
+          }, 1000);
+        } else {
+          showNotification(result.message || 'Invalid email or password', 'error');
+        }
+      } catch (err) {
+        console.error('Login error:', err);
+        showNotification('Connection error. Please check backend availability and try again.', 'error');
+      }
+    });
   </script>
 </body>
 </html>

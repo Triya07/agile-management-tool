@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Settings | FlowBoard</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body.settings-body { background: linear-gradient(135deg,#f6fffa,#eef2ff); }
+    .main-container { display:flex; min-height:100vh; }
+    aside.sidebar { width: var(--sidebar-width, 280px); background: #fff; border-right:1px solid rgba(0,0,0,0.04); }
+    #main-content { flex:1; padding:36px; max-width:1100px; margin:0 auto; width:100%; }
+    .page-title { font-size:1.8rem; font-weight:700; margin-bottom:18px; }
+    .card { background: white; padding:20px; border-radius:10px; box-shadow:0 6px 20px rgba(8,51,68,0.06); margin-bottom:20px; }
+    .form-grid { display:grid; gap:12px; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); }
+    label { font-weight:600; color:#0f172a; font-size:0.95rem; }
+    input[type="text"], input[type="email"], input[type="password"], select { width:100%; padding:10px 12px; border-radius:8px; border:1px solid #e6eef2; }
+    .btn { padding:10px 16px; border-radius:8px; border:none; cursor:pointer; font-weight:600; }
+    .btn-primary { background: linear-gradient(135deg,#0891b2,#22c55e); color:#fff; }
+    .btn-danger { background:#ef4444; color:#fff; }
+    .pref-row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid #f1f5f9; }
+    .muted { color:#64748b; font-size:0.95rem; }
+  </style>
+</head>
+<body class="settings-body">
+  <div class="main-container">
+    <aside class="sidebar">
+      <div class="sidebar-logo" style="padding:18px;">
+        <span style="font-size:1.4rem;font-weight:900;color:#0891b2;">FlowBoard</span>
+      </div>
+      <nav class="sidebar-nav" style="padding:12px; display:flex;flex-direction:column; gap:6px;">
+        <button class="sidebar-btn" onclick="navigateTo('kanban-board.html')">Kanban Board</button>
+        <button class="sidebar-btn" onclick="navigateTo('projects.html')">Projects</button>
+        <button class="sidebar-btn" onclick="navigateTo('dashboard.html')">Dashboard</button>
+        <button class="sidebar-btn" onclick="navigateTo('sprint.html')">Sprints</button>
+        <button class="sidebar-btn" onclick="navigateTo('team.html')">Team</button>
+        <button class="sidebar-btn" onclick="navigateTo('user-profile.html')">Profile</button>
+        <button class="sidebar-btn active">Settings</button>
+        <button class="sidebar-btn" onclick="logout()">Logout</button>
+      </nav>
+    </aside>
+
+    <main id="main-content">
+      <div class="page-title">Settings</div>
+
+      <div class="card" id="accountCard">
+        <h3 style="margin:0 0 12px 0;">Account</h3>
+        <div class="muted" style="margin-bottom:12px;">Update your profile details and manage account preferences.</div>
+        <form id="accountForm">
+          <div class="form-grid">
+            <div>
+              <label for="nameInput">Full name</label>
+              <input id="nameInput" type="text" placeholder="Your name" />
+            </div>
+            <div>
+              <label for="emailInput">Email</label>
+              <input id="emailInput" type="email" placeholder="you@example.com" />
+            </div>
+          </div>
+          <div style="margin-top:12px; display:flex; gap:8px;">
+            <button class="btn btn-primary" type="submit">Save profile</button>
+            <button class="btn" type="button" id="changePasswordBtn">Change password</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card" id="preferencesCard">
+        <h3 style="margin:0 0 12px 0;">Preferences</h3>
+        <div class="pref-row">
+          <div>
+            <div style="font-weight:700;">Theme</div>
+            <div class="muted">Select light or dark theme</div>
+          </div>
+          <div>
+            <select id="themeSelect">
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="pref-row">
+          <div>
+            <div style="font-weight:700;">Language</div>
+            <div class="muted">Select your preferred language</div>
+          </div>
+          <div>
+            <select id="langSelect">
+              <option value="en">English</option>
+              <option value="es">Español</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="pref-row">
+          <div>
+            <div style="font-weight:700;">Email notifications</div>
+            <div class="muted">Receive email updates for assignments and mentions</div>
+          </div>
+          <div>
+            <input type="checkbox" id="notifyEmail" />
+          </div>
+        </div>
+
+        <div class="pref-row" style="border-bottom:none;">
+          <div>
+            <div style="font-weight:700;">Push notifications</div>
+            <div class="muted">Enable desktop push notifications</div>
+          </div>
+          <div>
+            <input type="checkbox" id="notifyPush" />
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="dangerZone">
+        <h3 style="margin:0 0 12px 0; color:#ef4444;">Danger zone</h3>
+        <div class="muted" style="margin-bottom:12px;">Delete account or sign out from all devices.</div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-danger" id="deleteAccountBtn">Delete account</button>
+          <button class="btn" id="signOutAllBtn">Sign out everywhere</button>
+        </div>
+      </div>
+
+      <div id="alertContainer"></div>
+    </main>
+  </div>
+  
+  <script src="api.js"></script>
+  <script>
+    // AUTH GUARD — paste at top of every protected page
+(function() {
+  const token = localStorage.getItem('token');
+  const user  = JSON.parse(localStorage.getItem('user') || 'null');
+  if (!token || !user) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  // Role-based protection
+  // On manager-only pages (dashboard.html, team.html, reports.html):
+  if (user.role !== 'manager') window.location.href = 'dashboard-team.html';
+
+  // On worker-only pages (dashboard-team.html, my-tasks.html):
+  // if (user.role !== 'worker') window.location.href = 'dashboard.html';
+})();
+
+    function showAlert(msg, type='success'){
+      const c = document.getElementById('alertContainer');
+      c.innerHTML = `<div style=\"padding:12px;border-radius:8px;margin-top:12px;background:${type==='error'? '#fee2e2':'#ecfdf5'};color:${type==='error'?'#b91c1c':'#064e3b'}\">${msg}</div>`;
+      setTimeout(()=> c.innerHTML='',3000);
+    }
+
+    // Populate form with current user data
+    async function loadSettings(){
+      try{
+        const res = await getUserProfile();
+        if (!res) return;
+        const user = res.user || res;
+        document.getElementById('nameInput').value = user.name || '';
+        document.getElementById('emailInput').value = user.email || '';
+      }catch(e){ console.error(e); showAlert('Unable to load profile','error'); }
+
+      // Load preferences from localStorage
+      const theme = localStorage.getItem('theme') || 'light';
+      const lang = localStorage.getItem('lang') || 'en';
+      const notifyEmail = localStorage.getItem('notifyEmail') === 'true';
+      const notifyPush = localStorage.getItem('notifyPush') === 'true';
+      document.getElementById('themeSelect').value = theme;
+      document.getElementById('langSelect').value = lang;
+      document.getElementById('notifyEmail').checked = notifyEmail;
+      document.getElementById('notifyPush').checked = notifyPush;
+      applyTheme(theme);
+    }
+
+    document.getElementById('accountForm').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const name = document.getElementById('nameInput').value.trim();
+      const email = document.getElementById('emailInput').value.trim();
+      if(!name || !email){ showAlert('Please fill name and email','error'); return; }
+      try{
+        const resp = await updateUserProfile(name,email);
+        showAlert('Profile updated');
+        // Update localStorage user object
+        const u = JSON.parse(localStorage.getItem('user')||'{}');
+        u.name = name; u.email = email; localStorage.setItem('user', JSON.stringify(u));
+      }catch(err){ console.error(err); showAlert(err.message || 'Update failed','error'); }
+    });
+
+    document.getElementById('themeSelect').addEventListener('change',(e)=>{
+      const v = e.target.value; localStorage.setItem('theme',v); applyTheme(v); showAlert('Theme updated');
+    });
+    document.getElementById('langSelect').addEventListener('change',(e)=>{ localStorage.setItem('lang', e.target.value); showAlert('Language updated'); });
+    document.getElementById('notifyEmail').addEventListener('change',(e)=>{ localStorage.setItem('notifyEmail', e.target.checked); showAlert('Notification preference saved'); });
+    document.getElementById('notifyPush').addEventListener('change',(e)=>{ localStorage.setItem('notifyPush', e.target.checked); showAlert('Notification preference saved'); });
+
+    document.getElementById('changePasswordBtn').addEventListener('click', ()=>{
+      const currentPassword = prompt('Enter your current password:');
+      if (!currentPassword) return;
+
+      const newPassword = prompt('Enter your new password (min 6 chars):');
+      if (!newPassword) return;
+
+      if (newPassword.length < 6) {
+        showAlert('New password must be at least 6 characters', 'error');
+        return;
+      }
+
+      changePassword(currentPassword, newPassword)
+        .then(() => {
+          showAlert('Password changed successfully');
+        })
+        .catch((err) => {
+          showAlert(err.message || 'Unable to change password', 'error');
+        });
+    });
+
+    document.getElementById('deleteAccountBtn').addEventListener('click', ()=>{
+      if(!confirm('Delete your account permanently? This cannot be undone.')) return;
+
+      deleteMyAccount()
+        .then(() => {
+          localStorage.clear();
+          showAlert('Account deleted. Redirecting...');
+          setTimeout(()=> window.location.href='index.html',1200);
+        })
+        .catch((err) => {
+          showAlert(err.message || 'Unable to delete account', 'error');
+        });
+    });
+
+    document.getElementById('signOutAllBtn').addEventListener('click', ()=>{
+      if(!confirm('Sign out from all devices?')) return;
+      // No backend session revocation implemented; just clear localStorage and redirect to login.
+      localStorage.removeItem('token'); localStorage.removeItem('user');
+      showAlert('Signed out everywhere (local). Redirecting...');
+      setTimeout(()=> window.location.href='login.html',800);
+    });
+
+    function applyTheme(theme){
+      if(theme === 'dark'){
+        document.documentElement.style.background = '#06121b';
+        document.body.classList.add('dark');
+      } else {
+        document.documentElement.style.background = '';
+        document.body.classList.remove('dark');
+      }
+    }
+
+    function navigateTo(page) {
+      window.location.href = page;
+    }
+
+    function logout(){
+      if(confirm('Logout?')){ localStorage.clear(); window.location.href='index.html'; }
+    }
+
+    // Initialize
+    loadSettings();
+  </script>
+</body>
+</html>

@@ -5,142 +5,391 @@
   <title>Task Details | Agile Management Tool</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    body { background: #f7f8fa; font-family: 'Segoe UI', Arial, sans-serif; color: #222; }
-    .main-container { display: flex; min-height: 100vh; }
-    #main-content { flex: 1; padding: 32px 40px; }
-    .task-section { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); padding: 24px; margin-bottom: 28px; }
-    .status-select { padding: 8px; border-radius: 6px; border: 1px solid #e5e7eb; }
-    .btn { background: #3182ce; color: #fff; border: none; border-radius: 7px; padding: 10px 22px; cursor: pointer; }
-    .comment-box { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #e5e7eb; margin: 10px 0; }
+    :root { --sidebar-width: 300px; }
+    body {
+      background: linear-gradient(135deg, #F7FCEB 0%, #ECFDF0 25%, #D1FAE5 50%, #A7F3D0 75%, #6EE7B7 100%);
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: #083344;
+    }
+    .main-container {
+      display: flex;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #F7FCEB 0%, #ECFDF0 50%, #D1FAE5 100%);
+      margin-left: var(--sidebar-width);
+      width: calc(100% - var(--sidebar-width));
+      transition: margin-left 0.3s ease, width 0.3s ease;
+    }
+    #main-content {
+      flex: 1;
+      padding: 32px 40px;
+      background: transparent;
+    }
+    .task-section {
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 15px;
+      box-shadow: 0 4px 20px rgba(8, 51, 68, 0.08);
+      padding: 28px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(118, 200, 147, 0.2);
+    }
+    .page-title {
+      margin: 0 0 10px 0;
+      background: linear-gradient(135deg, #76C893, #52B69A);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+    }
+    .task-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px 24px;
+      margin: 24px 0;
+    }
+    .meta-card {
+      background: linear-gradient(135deg, rgba(118, 200, 147, 0.08), rgba(82, 182, 154, 0.04));
+      border: 1px solid rgba(118, 200, 147, 0.2);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+    .meta-card strong {
+      display: block;
+      color: #168AAD;
+      margin-bottom: 6px;
+      font-size: 0.95rem;
+    }
+    .control-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0;
+    }
+    .panel {
+      margin: 24px 0;
+      padding: 20px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(247, 252, 235, 0.9), rgba(236, 253, 240, 0.85));
+      border: 1px solid rgba(118, 200, 147, 0.2);
+    }
+    .panel h3 {
+      margin-top: 0;
+      color: #34A0A4;
+    }
+    .status-select {
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(118, 200, 147, 0.35);
+      background: rgba(255, 255, 255, 0.95);
+      color: #083344;
+    }
+    .btn {
+      background: linear-gradient(135deg, #76C893, #52B69A);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 22px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn-secondary {
+      background: linear-gradient(135deg, #64748b, #475569);
+    }
+    .comment-box {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(118, 200, 147, 0.3);
+      margin: 10px 0 14px;
+      box-sizing: border-box;
+      background: rgba(255, 255, 255, 0.95);
+      color: #083344;
+    }
+    .activity-item,
+    .comment-item {
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.9);
+      margin: 10px 0;
+      border-radius: 10px;
+      border: 1px solid rgba(118, 200, 147, 0.16);
+    }
+    .muted {
+      color: #4b5563;
+      font-size: 0.9rem;
+    }
   </style>
 </head>
 <body>
   <div class="main-container">
-    <aside class="sidebar">
+    <aside class="sidebar" id="sidebar">
       <div class="sidebar-logo">
-        <img src="img/logo.png" alt="FlowBoard Logo">
+        <span style="font-size:1.8rem;font-weight:900;background:linear-gradient(135deg,#D9ED92,#76C893,#34A0A4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">FlowBoard</span>
+        <button class="sidebar-resize-btn" id="sidebarResizeBtn" title="Toggle sidebar size">||</button>
       </div>
       <nav class="sidebar-nav">
-        <button class="sidebar-btn" onclick="window.location.href='dashboard-team.html'">Dashboard</button>
-        <button class="sidebar-btn" onclick="window.location.href='my-tasks.html'">My Tasks</button>
-        <button class="sidebar-btn" onclick="window.location.href='sprint-overview.html'">Sprint Overview</button>
-        <button class="sidebar-btn" onclick="window.location.href='scrum-updates.html'">Scrum Updates</button>
+        <button class="sidebar-btn" onclick="navigateTo('dashboard-team.html')">Dashboard</button>
+        <button class="sidebar-btn active" onclick="navigateTo('my-tasks.html')">My Tasks</button>
+        <button class="sidebar-btn" onclick="navigateTo('sprint-overview.html')">Sprint Overview</button>
+        <button class="sidebar-btn" onclick="navigateTo('scrum-updates.html')">Scrum Updates</button>
+        <button class="sidebar-btn" onclick="navigateTo('user-profile.html')">Profile</button>
         <button class="sidebar-btn" onclick="logout()">Logout</button>
       </nav>
     </aside>
     <main id="main-content">
       <div class="task-section">
         <div style="margin-bottom:20px;">
-          <button class="btn" onclick="window.location.href='my-tasks.html'" style="background:#6b7280;">← Back to My Tasks</button>
+          <button class="btn btn-secondary" onclick="window.location.href='my-tasks.html'">Back to My Tasks</button>
         </div>
-        
+
         <div id="taskDetails"></div>
       </div>
     </main>
   </div>
-  
+
+  <script src="api.js"></script>
   <script>
-    // Team member auth check
-    if (localStorage.getItem('userRole') !== 'worker') {
-      window.location.href = 'login.html';
-    }
-    
-    const currentUser = localStorage.getItem("currentUser");
+    (function() {
+      const token = localStorage.getItem("token");
+      const user = JSON.parse(localStorage.getItem("user") || "null");
+      if (!token || !user) {
+        window.location.href = "login.html";
+      }
+    })();
+
     const taskId = localStorage.getItem("viewTaskId");
-    
-    function renderTaskDetails() {
-      const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-      const task = tasks.find(t => t.id === taskId);
-      
-      if (!task || task.assignee !== currentUser) {
-        alert('Task not found or not assigned to you.');
-        window.location.href = 'my-tasks.html';
-        return;
-      }
-      
-      document.getElementById('taskDetails').innerHTML = `
-        <h2>${task.title}</h2>
-        <p><strong>Description:</strong> ${task.description || 'No description provided'}</p>
-        <p><strong>Priority:</strong> ${task.priority || 'Medium'}</p>
-        <p><strong>Due Date:</strong> ${task.dueDate || 'Not set'}</p>
-        
-        <div style="margin:20px 0;">
-          <label><strong>Status:</strong></label>
-          <select class="status-select" id="statusSelect">
-            <option value="todo" ${task.status === 'todo' ? 'selected' : ''}>To Do</option>
-            <option value="inprogress" ${task.status === 'inprogress' ? 'selected' : ''}>In Progress</option>
-            <option value="done" ${task.status === 'done' ? 'selected' : ''}>Done</option>
-          </select>
-          <button class="btn" onclick="updateTaskStatus()" style="margin-left:10px;">Update Status</button>
-        </div>
-        
-        <div>
-          <h3>Add Comment</h3>
-          <textarea class="comment-box" id="commentBox" placeholder="Add your comment..."></textarea>
-          <button class="btn" onclick="addComment()">Add Comment</button>
-        </div>
-        
-        <div id="comments"></div>
-      `;
-      
-      renderComments();
+    let currentTask = null;
+    let currentActivity = [];
+
+    function navigateTo(page) {
+      window.location.href = page;
     }
-    
-    function updateTaskStatus() {
-      const newStatus = document.getElementById('statusSelect').value;
-      let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-      const taskIndex = tasks.findIndex(t => t.id === taskId);
-      
-      if (taskIndex !== -1) {
-        tasks[taskIndex].status = newStatus;
-        if (newStatus === 'done') {
-          tasks[taskIndex].completedDate = new Date().toISOString().split('T')[0];
-        }
-        localStorage.setItem('tasks', JSON.stringify(tasks));
-        alert('Task status updated!');
-      }
-    }
-    
-    function addComment() {
-      const comment = document.getElementById('commentBox').value;
-      if (!comment) return;
-      
-      const comments = JSON.parse(localStorage.getItem('taskComments')) || {};
-      if (!comments[taskId]) comments[taskId] = [];
-      
-      comments[taskId].unshift({
-        user: currentUser,
-        comment: comment,
-        date: new Date().toLocaleDateString(),
-        time: new Date().toLocaleTimeString()
-      });
-      
-      localStorage.setItem('taskComments', JSON.stringify(comments));
-      document.getElementById('commentBox').value = '';
-      renderComments();
-    }
-    
-    function renderComments() {
-      const comments = JSON.parse(localStorage.getItem('taskComments')) || {};
-      const taskComments = comments[taskId] || [];
-      
-      document.getElementById('comments').innerHTML = `
-        <h3>Comments</h3>
-        ${taskComments.map(c => `
-          <div style="padding:10px;background:#f7fafc;margin:8px 0;border-radius:6px;">
-            <strong>${c.user}</strong> - ${c.date} ${c.time}
-            <p style="margin:4px 0 0 0;">${c.comment}</p>
-          </div>
-        `).join('') || '<p>No comments yet.</p>'}
-      `;
-    }
-    
+
     function logout() {
       localStorage.clear();
-      window.location.href = 'index.html';
+      window.location.href = "login.html";
     }
-    
-    renderTaskDetails();
+
+    function formatDate(value) {
+      if (!value) return "Not set";
+      return new Date(value).toLocaleString();
+    }
+
+    function getStatusLabel(status) {
+      const labels = {
+        todo: "To Do",
+        inprogress: "In Progress",
+        review: "Review",
+        blocked: "Blocked",
+        done: "Done"
+      };
+      return labels[status] || status;
+    }
+
+    async function loadTaskDetails() {
+      if (!taskId) {
+        alert("No task selected.");
+        window.location.href = "my-tasks.html";
+        return;
+      }
+
+      try {
+        const [task, activity] = await Promise.all([
+          getTask(taskId),
+          getTaskActivityHistory(taskId)
+        ]);
+
+        currentTask = task;
+        currentActivity = Array.isArray(activity) ? activity : [];
+        renderTaskDetails();
+      } catch (error) {
+        console.error("Error loading task:", error);
+        alert("Unable to load task details.");
+        window.location.href = "my-tasks.html";
+      }
+    }
+
+    function renderComments() {
+      const comments = currentTask.comments || [];
+      return comments.length
+        ? comments.map(comment => `
+          <div class="comment-item">
+            <strong>${comment.author?.name || "Unknown user"}</strong> - ${formatDate(comment.createdAt)}
+            <p style="margin:4px 0 0 0;">${comment.text}</p>
+          </div>
+        `).join("")
+        : "<p>No comments yet.</p>";
+    }
+
+    function renderActivity() {
+      return currentActivity.length
+        ? currentActivity.map(item => `
+          <div class="activity-item">
+            <strong>${item.changedBy?.name || "System"}</strong>
+            <span class="muted">${item.action.replaceAll("_", " ")}</span>
+            <div class="muted">${formatDate(item.changedAt)}</div>
+          </div>
+        `).join("")
+        : "<p>No activity yet.</p>";
+    }
+
+    function renderTaskDetails() {
+      document.getElementById("taskDetails").innerHTML = `
+        <h2 class="page-title">${currentTask.title}</h2>
+        <p style="margin:0 0 18px 0;">${currentTask.description || "No description provided"}</p>
+
+        <div class="task-meta">
+          <div class="meta-card">
+            <strong>Project</strong>
+            <span>${currentTask.projectId?.name || "Unknown project"}</span>
+          </div>
+          <div class="meta-card">
+            <strong>Sprint</strong>
+            <span>${currentTask.sprint?.sprintName || "Backlog"}</span>
+          </div>
+          <div class="meta-card">
+            <strong>Priority</strong>
+            <span>${currentTask.priority || "medium"}</span>
+          </div>
+          <div class="meta-card">
+            <strong>Due Date</strong>
+            <span>${formatDate(currentTask.dueDate)}</span>
+          </div>
+          <div class="meta-card">
+            <strong>Blocked</strong>
+            <span>${currentTask.isBlocked ? `Yes${currentTask.blockedReason ? ` - ${currentTask.blockedReason}` : ""}` : "No"}</span>
+          </div>
+          <div class="meta-card">
+            <strong>Current Status</strong>
+            <span>${getStatusLabel(currentTask.status)}</span>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Status</h3>
+          <div class="control-row">
+          <label><strong>Status:</strong></label>
+          <select class="status-select" id="statusSelect">
+            <option value="todo" ${currentTask.status === "todo" ? "selected" : ""}>To Do</option>
+            <option value="inprogress" ${currentTask.status === "inprogress" ? "selected" : ""}>In Progress</option>
+            <option value="review" ${currentTask.status === "review" ? "selected" : ""}>Review</option>
+            <option value="blocked" ${currentTask.status === "blocked" ? "selected" : ""}>Blocked</option>
+            <option value="done" ${currentTask.status === "done" ? "selected" : ""}>Done</option>
+          </select>
+          <button class="btn" onclick="handleStatusUpdate()">Update Status</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Blocker</h3>
+          <textarea class="comment-box" id="blockedReasonBox" placeholder="Add blocker details if needed...">${currentTask.blockedReason || ""}</textarea>
+          <button class="btn" onclick="handleBlockerUpdate()">Save Blocker State</button>
+        </div>
+
+        <div class="panel">
+          <h3>Add Comment</h3>
+          <textarea class="comment-box" id="commentBox" placeholder="Add your comment..."></textarea>
+          <button class="btn" onclick="handleAddComment()">Add Comment</button>
+        </div>
+
+        <div id="comments" class="panel">
+          <h3>Comments</h3>
+          ${renderComments()}
+        </div>
+
+        <div id="activity" class="panel">
+          <h3>Activity</h3>
+          ${renderActivity()}
+        </div>
+      `;
+    }
+
+    async function handleStatusUpdate() {
+      const newStatus = document.getElementById("statusSelect").value;
+
+      try {
+        await updateTaskStatus(taskId, newStatus);
+        if (newStatus !== "blocked" && currentTask.isBlocked) {
+          await toggleTaskBlocked(taskId, false, "");
+        }
+        await loadTaskDetails();
+        alert(`Task moved to ${getStatusLabel(newStatus)}.`);
+      } catch (error) {
+        console.error("Error updating status:", error);
+        alert(error.message || "Unable to update task status.");
+      }
+    }
+
+    async function handleBlockerUpdate() {
+      const reason = document.getElementById("blockedReasonBox").value.trim();
+      const isBlocked = reason.length > 0 || document.getElementById("statusSelect").value === "blocked";
+
+      try {
+        await toggleTaskBlocked(taskId, isBlocked, reason);
+        if (isBlocked && currentTask.status !== "blocked") {
+          await updateTaskStatus(taskId, "blocked");
+        }
+        await loadTaskDetails();
+        alert("Blocker state saved.");
+      } catch (error) {
+        console.error("Error updating blocker:", error);
+        alert(error.message || "Unable to save blocker state.");
+      }
+    }
+
+    async function handleAddComment() {
+      const comment = document.getElementById("commentBox").value.trim();
+      if (!comment) return;
+
+      try {
+        await addTaskComment(taskId, comment);
+        await loadTaskDetails();
+      } catch (error) {
+        console.error("Error adding comment:", error);
+        alert(error.message || "Unable to add comment.");
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadTaskDetails();
+    });
+
+    const root = document.documentElement;
+    const sidebar = document.getElementById("sidebar");
+    const resizeBtn = document.getElementById("sidebarResizeBtn");
+    let sidebarState = "normal";
+
+    function setSidebarWidth(width) {
+      root.style.setProperty("--sidebar-width", width + "px");
+      localStorage.setItem("sidebarWidth", width);
+      if (!sidebar) return;
+      sidebar.classList.remove("compact", "wide");
+      if (width <= 250) {
+        sidebar.classList.add("compact");
+        sidebarState = "compact";
+      } else if (width >= 380) {
+        sidebar.classList.add("wide");
+        sidebarState = "wide";
+      } else {
+        sidebarState = "normal";
+      }
+    }
+
+    const savedWidth = localStorage.getItem("sidebarWidth");
+    if (savedWidth) {
+      setSidebarWidth(parseInt(savedWidth, 10));
+    }
+
+    if (resizeBtn) {
+      resizeBtn.addEventListener("click", () => {
+        if (sidebarState === "compact") {
+          setSidebarWidth(300);
+        } else if (sidebarState === "normal") {
+          setSidebarWidth(400);
+        } else {
+          setSidebarWidth(220);
+        }
+      });
+    }
   </script>
 </body>
 </html>

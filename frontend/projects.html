@@ -91,8 +91,13 @@
       <nav class="sidebar-nav">
         <button class="sidebar-btn" onclick="navigateTo('kanban-board.html')" id="nav-board">Kanban Board</button>
         <button class="sidebar-btn active" id="nav-projects">Projects</button>
+        <button class="sidebar-btn" onclick="navigateTo('backlog.html')">Backlog</button>
         <button class="sidebar-btn" onclick="navigateTo('dashboard.html')" id="nav-dashboard">Dashboard</button>
+        <button class="sidebar-btn" onclick="navigateTo('sprint.html')" id="nav-sprints">Sprints</button>
+        <button class="sidebar-btn" onclick="navigateTo('team.html')">Team</button>
+        <button class="sidebar-btn" onclick="navigateTo('user-profile.html')">Profile</button>
         <button class="sidebar-btn" onclick="navigateTo('settings.html')" id="nav-settings">Settings</button>
+        <button class="sidebar-btn" onclick="logout()">Logout</button>
       </nav>
     </aside>
 
@@ -165,46 +170,16 @@
           <textarea id="projectDescription" rows="3" placeholder="Enter project description..." style="width: 100%; padding: 12px 16px; border: 2px solid rgba(118, 200, 147, 0.3); border-radius: 8px; font-size: 1rem; background: rgba(118, 200, 147, 0.05); box-sizing: border-box; resize: vertical; font-family: inherit; transition: all 0.3s;"></textarea>
         </div>
 
-        <div class="form-group" style="margin-bottom: 20px;">
-          <label style="display: block; font-weight: 600; color: #34A0A4; margin-bottom: 8px; font-size: 0.95rem;">Tags</label>
-          <select id="projectTags" multiple style="width: 100%; padding: 12px 16px; border: 2px solid rgba(118, 200, 147, 0.3); border-radius: 8px; font-size: 1rem; background: rgba(118, 200, 147, 0.05); box-sizing: border-box; min-height: 80px;">
-            <option value="web-development">Web Development</option>
-            <option value="mobile-app">Mobile App</option>
-            <option value="ui-ux">UI/UX Design</option>
-            <option value="backend">Backend</option>
-            <option value="frontend">Frontend</option>
-            <option value="testing">Testing</option>
-            <option value="devops">DevOps</option>
-            <option value="research">Research</option>
-          </select>
-          <small style="color: #666; font-size: 0.85rem; margin-top: 4px; display: block;">Hold Ctrl/Cmd to select multiple tags</small>
-        </div>
-
         <div style="background: linear-gradient(135deg, rgba(118, 200, 147, 0.1), rgba(82, 182, 154, 0.05)); border-radius: 12px; padding: 20px; margin-bottom: 24px; border: 1px solid rgba(118, 200, 147, 0.2);">
-          <h4 style="margin: 0 0 16px 0; font-size: 1.1rem; font-weight: 600; color: #34A0A4;">Default Section</h4>
+          <h4 style="margin: 0 0 16px 0; font-size: 1.1rem; font-weight: 600; color: #34A0A4;">Project Settings</h4>
           
-          <div class="form-group" style="margin-bottom: 16px;">
+          <div class="form-group">
             <label style="display: block; font-weight: 600; color: #34A0A4; margin-bottom: 8px; font-size: 0.9rem;">Owner</label>
             <div style="display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: rgba(255, 255, 255, 0.8); border-radius: 8px; border: 1px solid rgba(118, 200, 147, 0.2);">
               <span style="font-size: 1.2rem;">👤</span>
-              <span style="font-weight: 500; color: #083344;">Me</span>
+              <span style="font-weight: 500; color: #083344;" id="ownerDisplay">You</span>
               <span style="margin-left: auto; background: rgba(118, 200, 147, 0.2); color: #34A0A4; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600;">DEFAULT</span>
             </div>
-          </div>
-
-          <div class="form-group" style="margin-bottom: 16px;">
-            <label style="display: block; font-weight: 600; color: #34A0A4; margin-bottom: 8px; font-size: 0.9rem;">Group</label>
-            <select id="projectGroup" style="width: 100%; padding: 10px 14px; border: 1px solid rgba(118, 200, 147, 0.2); border-radius: 8px; font-size: 1rem; background: rgba(255, 255, 255, 0.8); box-sizing: border-box;">
-              <option value="ungrouped">Ungrouped Projects</option>
-              <option value="development">Development Team</option>
-              <option value="design">Design Team</option>
-              <option value="marketing">Marketing Team</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label style="display: block; font-weight: 600; color: #34A0A4; margin-bottom: 8px; font-size: 0.9rem;">Project Prefix</label>
-            <input type="text" id="projectPrefix" placeholder="e.g., PROJ" maxlength="10" style="width: 100%; padding: 10px 14px; border: 1px solid rgba(118, 200, 147, 0.2); border-radius: 8px; font-size: 1rem; background: rgba(255, 255, 255, 0.8); box-sizing: border-box; text-transform: uppercase;">
           </div>
         </div>
 
@@ -215,9 +190,45 @@
       </form>
     </div>
   </div>
+  
 
-  <script src="projects.js"></script>
+  <script src="api.js"></script>
   <script>
+    // AUTH GUARD — paste at top of every protected page
+(function() {
+  const token = localStorage.getItem('token');
+  const user  = JSON.parse(localStorage.getItem('user') || 'null');
+  if (!token || !user) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  // Role-based protection
+  // On manager-only pages (dashboard.html, team.html, reports.html):
+  if (user.role !== 'manager') window.location.href = 'dashboard-team.html';
+
+  // On worker-only pages (dashboard-team.html, my-tasks.html):
+  // if (user.role !== 'worker') window.location.href = 'dashboard.html';
+})();
+    // Check authentication and load user data
+    async function initializeUserSession() {
+      const token = localStorage.getItem('token');
+      const user = JSON.parse(localStorage.getItem('user') || 'null');
+      
+      if (!token || !user || !user.role) {
+        window.location.href = 'login.html';
+        return;
+      }
+      
+      // Get current user info
+      const currentUserName = user.name || localStorage.getItem('currentUser') || 'User';
+      const userRole = user.role;
+      
+      console.log('Current User:', currentUserName, 'Role:', userRole);
+      
+      // Load projects after verifying authentication
+      await loadProjects();
+    }
     // Initialize CSS variables first
     const root = document.documentElement;
     if (!root.style.getPropertyValue('--sidebar-width')) {
@@ -324,7 +335,7 @@
           
           dropdown.innerHTML = `
             <div style="padding: 12px 16px; border-bottom: 1px solid #eee; font-weight: 600; color: #34A0A4;">Account</div>
-            <a href="profile.html" style="display: block; padding: 12px 16px; color: #333; text-decoration: none; transition: background 0.2s;">👤 Profile</a>
+            <a href="user-profile.html" style="display: block; padding: 12px 16px; color: #333; text-decoration: none; transition: background 0.2s;">👤 Profile</a>
             <a href="settings.html" style="display: block; padding: 12px 16px; color: #333; text-decoration: none; transition: background 0.2s;">⚙️ Settings</a>
             <div style="border-top: 1px solid #eee; margin-top: 4px; padding-top: 4px;">
               <button onclick="logout()" style="display: block; width: 100%; padding: 12px 16px; color: #dc3545; background: none; border: none; text-align: left; cursor: pointer; transition: background 0.2s;">🚪 Logout</button>
@@ -406,8 +417,25 @@
 
     // Close modal
     function closeModal() {
-      createProjectModal.style.display = 'none';
+      createProjectModal.setAttribute('style', 'display: none !important;');
       createProjectForm.reset();
+    }
+
+    // Ensure close button works
+    if (closeCreateModal) {
+      closeCreateModal.onclick = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        closeModal();
+      };
+    }
+    
+    if (cancelCreate) {
+      cancelCreate.onclick = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        closeModal();
+      };
     }
 
     closeCreateModal.addEventListener('click', closeModal);
@@ -420,35 +448,181 @@
       }
     });
 
-    // Handle form submission
-    createProjectForm.addEventListener('submit', (e) => {
+    // Handle form submission - save to API
+    createProjectForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       
-      const formData = {
-        name: document.getElementById('projectName').value,
-        type: document.querySelector('input[name="projectType"]:checked').value,
-        description: document.getElementById('projectDescription').value,
-        tags: Array.from(document.getElementById('projectTags').selectedOptions).map(opt => opt.value),
-        group: document.getElementById('projectGroup').value,
-        prefix: document.getElementById('projectPrefix').value,
-        owner: 'Me',
-        createdAt: new Date().toISOString(),
-        id: Date.now().toString()
-      };
+      const name = document.getElementById('projectName').value;
+      const type = document.querySelector('input[name="projectType"]:checked').value;
+      const description = document.getElementById('projectDescription').value;
 
-      // Save to localStorage (demo)
-      let projects = JSON.parse(localStorage.getItem('projects') || '[]');
-      projects.push(formData);
-      localStorage.setItem('projects', JSON.stringify(projects));
-
-      // Show success message
-      alert(`✅ Project "${formData.name}" created successfully!`);
-      
-      // Close modal and refresh projects
-      closeModal();
-      loadProjects();
+      try {
+        // Call API to create project
+        const response = await createProject(name, description, type);
+        showNotification(`✅ Project "${name}" created successfully!`, 'success');
+        closeModal();
+        await loadProjects();
+      } catch (error) {
+        console.error('Create project error:', error);
+        showNotification(`❌ Error creating project: ${error.message}`, 'error');
+      }
     });
 
+    async function loadProjects() {
+      try {
+        // Fetch projects from backend API
+        const response = await getProjects();
+        const projects = Array.isArray(response) ? response : (response.data || response.projects || []);
+        
+        console.log('Fetched projects:', projects);
+        const grid = document.getElementById('projectsGrid');
+        const emptyState = document.getElementById('emptyState');
+
+        // Read current filter and search
+        const activeTab = document.querySelector('.tab.active');
+        const filter = activeTab ? activeTab.dataset.filter : 'all';
+        const query = (document.getElementById('searchInput')?.value || '').trim().toLowerCase();
+
+        // Clear existing project cards
+        grid.querySelectorAll('.project-card').forEach(n => n.remove());
+
+        const filtered = projects.filter(p => {
+          if (filter !== 'all' && p.type !== filter) return false;
+          if (query) {
+            return (p.name || '').toLowerCase().includes(query) || (p.description || '').toLowerCase().includes(query);
+          }
+          return true;
+        });
+
+        if (!filtered.length) {
+          emptyState.style.display = 'block';
+          return;
+        }
+
+        emptyState.style.display = 'none';
+
+        // Fetch sprint and task counts for each project
+        for (const p of filtered) {
+          try {
+            const sprints = await getProjectSprints(p._id);
+            const tasks = await getProjectTasks(p._id);
+            p.sprints = Array.isArray(sprints) ? sprints : (sprints.data || []);
+            p.tasks = Array.isArray(tasks) ? tasks : (tasks.data || []);
+          } catch (e) {
+            console.log("Could not fetch sprints/tasks for project", p._id);
+            p.sprints = [];
+            p.tasks = [];
+          }
+        }
+
+        filtered.forEach(p => {
+          const card = document.createElement('div');
+          card.className = 'project-card';
+          card.style.cssText = 'background: rgba(255,255,255,0.9); padding:16px; border-radius:12px; margin:12px; box-shadow:0 6px 18px rgba(0,0,0,0.06); width:300px; display:inline-block; vertical-align:top; cursor:pointer; transition:all 0.3s;';
+          
+          // Project type badge
+          const typeBadge = p.type === 'scrum' ? '🔄' : '📋';
+          
+          // Calculate project stats
+          const sprintCount = p.sprints ? p.sprints.length : 0;
+          const taskCount = p.tasks ? p.tasks.length : 0;
+          const sprintStatsHtml = p.type === 'scrum'
+            ? `
+              <div style="text-align:center;">
+                <div style="font-size:1.2rem; font-weight:700; color:#0891b2;">${sprintCount}</div>
+                <div style="font-size:0.75rem; color:#666;">Sprints</div>
+              </div>
+            `
+            : '';
+          
+          // Get owner name
+          const ownerName = p.createdBy?.name || p.createdBy || 'Unknown';
+          
+          card.innerHTML = `
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+              <span style="font-size:1.2rem;">${typeBadge}</span>
+              <span style="font-weight:600; color:#34A0A4; font-size:0.85rem;">${p.type.toUpperCase()}</span>
+            </div>
+            <h4 style="margin:0 0 8px 0; font-size:1.1rem; color:#083344;">${p.name}</h4>
+            <p style="margin:0 0 12px 0; color:#666; font-size:0.95rem;">${p.description || 'No description'}</p>
+            <div style="display:flex; gap:12px; margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid #e6eef2;">
+              ${sprintStatsHtml}
+              <div style="text-align:center;">
+                <div style="font-size:1.2rem; font-weight:700; color:#0891b2;">${taskCount}</div>
+                <div style="font-size:0.75rem; color:#666;">Tasks</div>
+              </div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; color:#666;">
+              <small>Owner: ${ownerName}</small>
+              <small>${new Date(p.createdAt).toLocaleDateString()}</small>
+            </div>
+            <div style="display:flex; justify-content:flex-end; margin-top:10px;">
+              <button class="create-btn edit-project-btn" data-project-id="${p._id}" style="padding:6px 12px; border-radius:6px; font-size:0.85rem;">Edit</button>
+            </div>
+          `;
+          
+          // Add click handler to navigate to project sprints
+          card.addEventListener('click', () => {
+            // Store project info in unified context for downstream pages
+            setActiveContext({ projectId: p._id, projectType: p.type });
+            localStorage.setItem('currentProjectName', p.name);
+
+            if (p.type === 'scrum') {
+              window.location.href = `sprint.html?projectId=${p._id}`;
+            } else {
+              window.location.href = 'kanban-board.html';
+            }
+          });
+
+          const editBtn = card.querySelector('.edit-project-btn');
+          if (editBtn) {
+            editBtn.addEventListener('click', async (event) => {
+              event.preventDefault();
+              event.stopPropagation();
+
+              const nextName = prompt('Edit project name:', p.name || '');
+              if (nextName === null) return;
+              const trimmedName = nextName.trim();
+              if (!trimmedName) {
+                showNotification('Project name is required.', 'error');
+                return;
+              }
+
+              const nextDescription = prompt('Edit project description:', p.description || '');
+              if (nextDescription === null) return;
+
+              try {
+                await updateProject(p._id, trimmedName, nextDescription.trim(), p.type);
+                showNotification('Project updated successfully.', 'success');
+                await loadProjects();
+              } catch (error) {
+                showNotification(`Failed to update project: ${error.message}`, 'error');
+              }
+            });
+          }
+          
+          // Add hover effect
+          card.addEventListener('mouseenter', () => {
+            card.style.transform = 'translateY(-4px)';
+            card.style.boxShadow = '0 12px 28px rgba(0,0,0,0.12)';
+          });
+          
+          card.addEventListener('mouseleave', () => {
+            card.style.transform = 'translateY(0)';
+            card.style.boxShadow = '0 6px 18px rgba(0,0,0,0.06)';
+          });
+
+          grid.appendChild(card);
+        });
+      } catch (error) {
+        console.error('Error loading projects:', error);
+        
+        // If unauthorized, redirect to login
+        if (error.message && error.message.includes('401')) {
+          window.location.href = 'login.html';
+        }
+      }
+    }
     // Handle radio button styling
     document.querySelectorAll('input[name="projectType"]').forEach(radio => {
       radio.addEventListener('change', (e) => {
@@ -478,22 +652,82 @@
       });
     });
 
-    // Auto-generate prefix from project name
-    document.getElementById('projectName').addEventListener('input', (e) => {
-      const prefix = e.target.value
-        .split(' ')
-        .map(word => word.charAt(0))
-        .join('')
-        .toUpperCase()
-        .substring(0, 4);
-      document.getElementById('projectPrefix').value = prefix;
+    // Tabs: filter projects
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        loadProjects();
+      });
     });
 
-    // Demo function to load projects
-    function loadProjects() {
-      // This would normally load projects from your backend
-      console.log('Loading projects...');
+    // Search
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) searchInput.addEventListener('input', () => loadProjects());
+
+    // Empty state create button
+    const emptyCreate = document.querySelector('#emptyState .create-btn');
+    if (emptyCreate) emptyCreate.addEventListener('click', (e) => {
+      e.preventDefault();
+      createProjectModal.style.display = 'flex';
+    });
+
+    // Load projects on page load and ensure modal is hidden
+    document.addEventListener('DOMContentLoaded', () => {
+      // Initialize user session and load projects
+      initializeUserSession();
+      
+      // Ensure create modal is hidden on initial load
+      if (createProjectModal) createProjectModal.setAttribute('style', 'display: none !important;');
+    });
+
+    // Notification function
+    function showNotification(message, type = 'info') {
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        z-index: 9999;
+        animation: slideIn 0.3s ease;
+        max-width: 300px;
+      `;
+      
+      if (type === 'error') {
+        notification.style.background = '#ef4444';
+        notification.style.color = '#fff';
+      } else if (type === 'success') {
+        notification.style.background = '#22c55e';
+        notification.style.color = '#fff';
+      }
+      
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+      }, 3000);
     }
+
+    // Add animations
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideIn {
+        from { transform: translateX(400px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(400px); opacity: 0; }
+      }
+    `;
+    document.head.appendChild(style);
   </script>
 </body>
 </html>
+

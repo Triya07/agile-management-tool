@@ -5,33 +5,20 @@
   <title>Daily Scrum Updates | Agile Management Tool</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    /* Initialize CSS variables */
-    :root {
-      --sidebar-width: 300px;
-    }
-    
+    :root { --sidebar-width: 300px; }
     body {
       background: linear-gradient(135deg, #F7FCEB 0%, #ECFDF0 50%, #D1FAE5 100%);
-      font-family: 'Segoe UI', Arial, sans-serif;
+      font-family: "Segoe UI", Arial, sans-serif;
       color: #083344;
       margin: 0;
-      padding: 0;
     }
-    
     .main-container {
       display: flex;
       min-height: 100vh;
       margin-left: var(--sidebar-width);
       width: calc(100% - var(--sidebar-width));
-      transition: margin-left 0.3s ease, width 0.3s ease;
     }
-    
-    #main-content {
-      flex: 1;
-      padding: 32px 40px;
-      background: transparent;
-    }
-    
+    #main-content { flex: 1; padding: 32px 40px; }
     .page-header {
       background: linear-gradient(135deg, #76C893, #52B69A);
       -webkit-background-clip: text;
@@ -39,9 +26,9 @@
       background-clip: text;
       font-size: 2rem;
       font-weight: 700;
-      margin-bottom: 32px;
+      margin-bottom: 12px;
     }
-    
+    .subtext { color: #4b5563; margin-bottom: 24px; }
     .add-update-btn {
       background: linear-gradient(135deg, #76C893, #52B69A);
       color: white;
@@ -51,16 +38,8 @@
       font-size: 1rem;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.3s;
       margin-bottom: 24px;
     }
-    
-    .add-update-btn:hover {
-      background: linear-gradient(135deg, #52B69A, #34A0A4);
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(82, 182, 154, 0.25);
-    }
-    
     .update-card {
       background: rgba(255, 255, 255, 0.9);
       border-radius: 12px;
@@ -70,20 +49,14 @@
       border-left: 4px solid #76C893;
       border: 1px solid rgba(118, 200, 147, 0.2);
     }
-    
     .update-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: flex-start;
+      gap: 16px;
       margin-bottom: 12px;
     }
-    
-    .update-user {
-      font-weight: 600;
-      color: #34A0A4;
-      font-size: 1.1rem;
-    }
-    
+    .update-user { font-weight: 600; color: #34A0A4; font-size: 1.1rem; }
     .update-role {
       background: linear-gradient(135deg, #B5E48C, #99D98C);
       color: #1A759F;
@@ -93,31 +66,18 @@
       font-weight: 600;
       margin-left: 8px;
     }
-    
-    .update-time {
-      color: #666;
-      font-size: 0.9rem;
-    }
-    
-    .update-content {
-      color: #083344;
-      line-height: 1.5;
-    }
-    
-    /* Modal styles */
+    .update-time { color: #666; font-size: 0.9rem; }
+    .update-content { color: #083344; line-height: 1.6; }
     .modal {
       display: none;
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
+      inset: 0;
       background: rgba(0, 0, 0, 0.5);
       z-index: 1000;
       align-items: center;
       justify-content: center;
     }
-    
+    .modal.show { display: flex; }
     .modal-content {
       background: white;
       border-radius: 12px;
@@ -126,25 +86,14 @@
       max-width: 90vw;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     }
-    
-    .modal h3 {
-      margin-top: 0;
-      color: #34A0A4;
-      margin-bottom: 20px;
-    }
-    
-    .form-group {
-      margin-bottom: 20px;
-    }
-    
+    .form-group { margin-bottom: 20px; }
     .form-group label {
       display: block;
       font-weight: 600;
       color: #34A0A4;
       margin-bottom: 8px;
     }
-    
-    .form-group textarea {
+    .form-group textarea, .form-group select {
       width: 100%;
       padding: 12px 16px;
       border: 2px solid rgba(118, 200, 147, 0.3);
@@ -152,34 +101,11 @@
       font-size: 1rem;
       background: rgba(118, 200, 147, 0.05);
       box-sizing: border-box;
-      resize: vertical;
-      min-height: 100px;
       font-family: inherit;
     }
-    
-    .form-group textarea:focus {
-      outline: none;
-      border-color: #52B69A;
-      background: rgba(255, 255, 255, 0.9);
-      box-shadow: 0 4px 15px rgba(82, 182, 154, 0.15);
-    }
-    
-    .modal-actions {
-      display: flex;
-      gap: 12px;
-      justify-content: flex-end;
-    }
-    
-    .btn-cancel {
-      background: #e2e8f0;
-      color: #34A0A4;
-      border: 2px solid rgba(118, 200, 147, 0.3);
-    }
-    
-    .btn-submit {
-      background: linear-gradient(135deg, #76C893, #52B69A);
-      color: white;
-    }
+    .form-group textarea { resize: vertical; min-height: 100px; }
+    .modal-actions { display: flex; gap: 12px; justify-content: flex-end; }
+    .btn-cancel { background: #e2e8f0; color: #34A0A4; border: 2px solid rgba(118, 200, 147, 0.3); }
   </style>
 </head>
 <body>
@@ -187,200 +113,260 @@
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-logo">
         <span style="font-size:1.8rem;font-weight:900;color:#D9ED92;">FlowBoard</span>
-        <button class="sidebar-resize-btn" id="sidebarResizeBtn" title="Toggle sidebar size">⟷</button>
+        <button class="sidebar-resize-btn" id="sidebarResizeBtn" title="Toggle sidebar size">||</button>
       </div>
       <nav class="sidebar-nav">
         <button class="sidebar-btn" onclick="navigateTo('dashboard-team.html')">Dashboard</button>
         <button class="sidebar-btn" onclick="navigateTo('my-tasks.html')">My Tasks</button>
         <button class="sidebar-btn" onclick="navigateTo('sprint-overview.html')">Sprint Overview</button>
         <button class="sidebar-btn active">Scrum Updates</button>
+        <button class="sidebar-btn" onclick="navigateTo('user-profile.html')">Profile</button>
         <button class="sidebar-btn" onclick="logout()">Logout</button>
       </nav>
     </aside>
 
     <main id="main-content">
       <h1 class="page-header">Daily Scrum Updates</h1>
-      
-      <button class="add-update-btn" onclick="openAddUpdateModal()">+ Add Update</button>
-      
-      <div id="updatesList">
-        <div class="update-card">
-          <div class="update-header">
-            <div>
-              <span class="update-user">prachi</span>
-              <span class="update-role">(worker)</span>
-            </div>
-            <span class="update-time">1/24/2026 3:32:51 PM</span>
-          </div>
-          <div class="update-content">njvfnj</div>
-        </div>
-      </div>
+      <div class="subtext" id="activeProjectLabel">Loading project updates...</div>
+
+      <button class="add-update-btn" onclick="openAddUpdateModal()">Add Update</button>
+
+      <div id="updatesList"></div>
     </main>
   </div>
 
-  <!-- Add Update Modal -->
   <div id="addUpdateModal" class="modal">
     <div class="modal-content">
-      <h3>Add Daily Update</h3>
+      <h3 style="margin-top:0; color:#34A0A4;">Add Daily Update</h3>
       <form id="addUpdateForm">
         <div class="form-group">
-          <label>What did you accomplish yesterday?</label>
-          <textarea id="yesterdayWork" placeholder="Describe your completed tasks..." rows="3"></textarea>
+          <label>Project</label>
+          <select id="projectSelect"></select>
         </div>
-        
+        <div class="form-group">
+          <label>What did you accomplish yesterday?</label>
+          <textarea id="yesterdayWork" rows="3" required></textarea>
+        </div>
         <div class="form-group">
           <label>What are you working on today?</label>
-          <textarea id="todayWork" placeholder="Describe your planned work..." rows="3"></textarea>
+          <textarea id="todayWork" rows="3" required></textarea>
         </div>
-        
         <div class="form-group">
           <label>Any blockers or challenges?</label>
-          <textarea id="blockers" placeholder="Describe any issues or blockers..." rows="2"></textarea>
+          <textarea id="blockers" rows="2"></textarea>
         </div>
-        
         <div class="modal-actions">
           <button type="button" class="add-update-btn btn-cancel" onclick="closeAddUpdateModal()">Cancel</button>
-          <button type="submit" class="add-update-btn btn-submit">Submit Update</button>
+          <button type="submit" class="add-update-btn">Submit Update</button>
         </div>
       </form>
     </div>
   </div>
 
+  <script src="api.js"></script>
   <script>
-    // Initialize sidebar functionality
+    (function() {
+      const token = localStorage.getItem("token");
+      const user = JSON.parse(localStorage.getItem("user") || "null");
+      if (!token || !user) {
+        window.location.href = "login.html";
+      }
+    })();
+
     const root = document.documentElement;
-    const sidebar = document.getElementById('sidebar');
-    const resizeBtn = document.getElementById('sidebarResizeBtn');
-    
-    let sidebarState = 'normal';
-    
-    function setSidebarWidth(width) {
-      root.style.setProperty('--sidebar-width', width + 'px');
-      localStorage.setItem('sidebarWidth', width);
-      
-      if (sidebar) {
-        sidebar.classList.remove('compact', 'wide');
-        if (width <= 250) {
-          sidebar.classList.add('compact');
-          sidebarState = 'compact';
-        } else if (width >= 380) {
-          sidebar.classList.add('wide');
-          sidebarState = 'wide';
-        } else {
-          sidebarState = 'normal';
-        }
+    const sidebar = document.getElementById("sidebar");
+    const resizeBtn = document.getElementById("sidebarResizeBtn");
+    let sidebarState = "normal";
+    let accessibleProjects = [];
+    let activeProjectId = "";
+
+    function navigateTo(page) {
+      window.location.href = page;
+    }
+
+    function logout() {
+      if (confirm("Are you sure you want to logout?")) {
+        localStorage.clear();
+        window.location.href = "login.html";
       }
     }
-    
-    // Load saved width
-    const savedWidth = localStorage.getItem('sidebarWidth');
-    if (savedWidth) {
-      setSidebarWidth(parseInt(savedWidth));
+
+    function setSidebarWidth(width) {
+      root.style.setProperty("--sidebar-width", width + "px");
+      localStorage.setItem("sidebarWidth", width);
+      if (!sidebar) return;
+      sidebar.classList.remove("compact", "wide");
+      if (width <= 250) {
+        sidebar.classList.add("compact");
+        sidebarState = "compact";
+      } else if (width >= 380) {
+        sidebar.classList.add("wide");
+        sidebarState = "wide";
+      } else {
+        sidebarState = "normal";
+      }
     }
-    
+
+    const savedWidth = localStorage.getItem("sidebarWidth");
+    if (savedWidth) {
+      setSidebarWidth(parseInt(savedWidth, 10));
+    }
+
     if (resizeBtn) {
-      resizeBtn.addEventListener('click', () => {
-        if (sidebarState === 'compact') {
+      resizeBtn.addEventListener("click", () => {
+        if (sidebarState === "compact") {
           setSidebarWidth(300);
-        } else if (sidebarState === 'normal') {
+        } else if (sidebarState === "normal") {
           setSidebarWidth(400);
         } else {
           setSidebarWidth(220);
         }
       });
     }
-    
-    // Navigation function
-    function navigateTo(page) {
-      window.location.href = page;
-    }
-    
-    // Modal functionality
-    function openAddUpdateModal() {
-      document.getElementById('addUpdateModal').style.display = 'flex';
-    }
-    
-    function closeAddUpdateModal() {
-      document.getElementById('addUpdateModal').style.display = 'none';
-      document.getElementById('addUpdateForm').reset();
-    }
-    
-    // Handle form submission
-    document.getElementById('addUpdateForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      
-      const currentUser = localStorage.getItem('currentUser') || 'Anonymous';
-      const userRole = localStorage.getItem('userRole') || 'worker';
-      const now = new Date().toLocaleString();
-      
-      const yesterday = document.getElementById('yesterdayWork').value.trim();
-      const today = document.getElementById('todayWork').value.trim();
-      const blockers = document.getElementById('blockers').value.trim();
-      
-      const updateText = `Yesterday: ${yesterday}\nToday: ${today}${blockers ? `\nBlockers: ${blockers}` : ''}`;
-      
-      // Create update card
-      const updateCard = document.createElement('div');
-      updateCard.className = 'update-card';
-      updateCard.innerHTML = `
-        <div class="update-header">
-          <div>
-            <span class="update-user">${currentUser}</span>
-            <span class="update-role">(${userRole})</span>
-          </div>
-          <span class="update-time">${now}</span>
-        </div>
-        <div class="update-content">${updateText.replace(/\n/g, '<br>')}</div>
-      `;
-      
-      // Add to top of updates list
-      const updatesList = document.getElementById('updatesList');
-      updatesList.insertBefore(updateCard, updatesList.firstChild);
-      
-      // Close modal and show success
-      closeAddUpdateModal();
-      showNotification('Update posted successfully!', 'success');
-    });
-    
-    // Close modal when clicking outside
-    document.getElementById('addUpdateModal').addEventListener('click', function(e) {
-      if (e.target === this) {
-        closeAddUpdateModal();
-      }
-    });
-    
-    // Notification system
-    function showNotification(message, type = 'info') {
-      const notification = document.createElement('div');
+
+    function showNotification(message, type = "info") {
+      const colors = {
+        success: { bg: "#d4edda", color: "#155724", border: "#c3e6cb" },
+        error: { bg: "#f8d7da", color: "#721c24", border: "#f5c6cb" },
+        info: { bg: "#d1ecf1", color: "#0c5460", border: "#bee5eb" }
+      };
+
+      const color = colors[type] || colors.info;
+      const notification = document.createElement("div");
       notification.style.cssText = `
         position: fixed;
         top: 20px;
         right: 20px;
-        background: ${type === 'success' ? '#d4edda' : '#d1ecf1'};
-        color: ${type === 'success' ? '#155724' : '#0c5460'};
+        background: ${color.bg};
+        color: ${color.color};
         padding: 12px 20px;
         border-radius: 8px;
-        border: 1px solid ${type === 'success' ? '#c3e6cb' : '#bee5eb'};
+        border: 1px solid ${color.border};
         z-index: 1001;
-        animation: slideIn 0.3s ease;
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         font-weight: 500;
       `;
       notification.textContent = message;
-      
       document.body.appendChild(notification);
-      
-      setTimeout(() => {
-        notification.remove();
-      }, 3000);
+      setTimeout(() => notification.remove(), 3000);
     }
-    
-    function logout() {
-      if (confirm('Are you sure you want to logout?')) {
-        localStorage.clear();
-        window.location.href = 'login.html';
+
+    function openAddUpdateModal() {
+      document.getElementById("addUpdateModal").classList.add("show");
+    }
+
+    function closeAddUpdateModal() {
+      document.getElementById("addUpdateModal").classList.remove("show");
+      document.getElementById("addUpdateForm").reset();
+      document.getElementById("projectSelect").value = activeProjectId;
+    }
+
+    async function loadProjects() {
+      const response = await getProjects();
+      accessibleProjects = Array.isArray(response) ? response : (response.projects || []);
+
+      const savedProject = getActiveContext().projectId;
+      activeProjectId = accessibleProjects.find(project => project._id === savedProject)?._id || accessibleProjects[0]?._id || "";
+      if (activeProjectId) {
+        setActiveContext({ projectId: activeProjectId });
+      }
+
+      const projectSelect = document.getElementById("projectSelect");
+      projectSelect.innerHTML = accessibleProjects.map(project => `
+        <option value="${project._id}">${project.name}</option>
+      `).join("");
+      projectSelect.value = activeProjectId;
+
+      const activeProject = accessibleProjects.find(project => project._id === activeProjectId);
+      document.getElementById("activeProjectLabel").textContent = activeProject
+        ? `Showing updates for ${activeProject.name}`
+        : "No accessible project found for scrum updates.";
+    }
+
+    function renderUpdates(updates) {
+      const updatesList = document.getElementById("updatesList");
+      if (!updates.length) {
+        updatesList.innerHTML = `
+          <div class="update-card">
+            <div class="update-content">No scrum updates yet for this project. Post the first update to get the team in sync.</div>
+          </div>
+        `;
+        return;
+      }
+
+      updatesList.innerHTML = updates.map(update => `
+        <div class="update-card">
+          <div class="update-header">
+            <div>
+              <span class="update-user">${update.author?.name || "Unknown user"}</span>
+              <span class="update-role">(${update.author?.role || "member"})</span>
+              <div style="font-size:0.85rem; color:#4b5563; margin-top:4px;">${update.projectId?.name || "Project"}</div>
+            </div>
+            <span class="update-time">${new Date(update.createdAt).toLocaleString()}</span>
+          </div>
+          <div class="update-content">
+            <strong>Yesterday:</strong> ${update.yesterday}<br>
+            <strong>Today:</strong> ${update.today}<br>
+            <strong>Blockers:</strong> ${update.blockers || "None"}
+          </div>
+        </div>
+      `).join("");
+    }
+
+    async function loadUpdates() {
+      try {
+        const updates = await getScrumUpdates(activeProjectId);
+        renderUpdates(Array.isArray(updates) ? updates : []);
+      } catch (error) {
+        console.error("Error loading scrum updates:", error);
+        showNotification(error.message || "Unable to load scrum updates.", "error");
       }
     }
+
+    document.getElementById("projectSelect").addEventListener("change", (event) => {
+      activeProjectId = event.target.value;
+      if (activeProjectId) {
+        setActiveContext({ projectId: activeProjectId });
+      }
+    });
+
+    document.getElementById("addUpdateForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const projectId = document.getElementById("projectSelect").value;
+      const yesterday = document.getElementById("yesterdayWork").value.trim();
+      const today = document.getElementById("todayWork").value.trim();
+      const blockers = document.getElementById("blockers").value.trim();
+
+      try {
+        await createScrumUpdate(projectId, yesterday, today, blockers);
+        activeProjectId = projectId;
+        setActiveContext({ projectId });
+        closeAddUpdateModal();
+        await loadProjects();
+        await loadUpdates();
+        showNotification("Update posted successfully!", "success");
+      } catch (error) {
+        console.error("Error posting scrum update:", error);
+        showNotification(error.message || "Unable to post scrum update.", "error");
+      }
+    });
+
+    document.getElementById("addUpdateModal").addEventListener("click", (event) => {
+      if (event.target.id === "addUpdateModal") {
+        closeAddUpdateModal();
+      }
+    });
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      try {
+        await loadProjects();
+        await loadUpdates();
+      } catch (error) {
+        console.error("Error initializing scrum updates:", error);
+        showNotification(error.message || "Unable to initialize scrum updates.", "error");
+      }
+    });
   </script>
 </body>
 </html>

@@ -124,9 +124,13 @@
       <nav class="sidebar-nav">
         <button class="sidebar-btn" onclick="navigateTo('kanban-board.html')">Kanban Board</button>
         <button class="sidebar-btn" onclick="navigateTo('projects.html')">Projects</button>
+        <button class="sidebar-btn" onclick="navigateTo('backlog.html')">Backlog</button>
         <button class="sidebar-btn active">Dashboard</button>
-        <button class="sidebar-btn" onclick="navigateTo('sprints.html')">Sprints</button>
+        <button class="sidebar-btn" onclick="navigateTo('sprint.html')">Sprints</button>
+        <button class="sidebar-btn" onclick="navigateTo('team.html')">Team</button>
+        <button class="sidebar-btn" onclick="navigateTo('user-profile.html')">Profile</button>
         <button class="sidebar-btn" onclick="navigateTo('settings.html')">Settings</button>
+        <button class="sidebar-btn" onclick="logout()">Logout</button>
       </nav>
     </aside>
     
@@ -138,15 +142,15 @@
           <div class="stat-number" id="totalProjects">3</div>
           <div class="stat-label">Active Projects</div>
         </div>
-        <div class="stat-card" onclick="navigateTo('sprints.html')">
+        <div class="stat-card" onclick="navigateTo('sprint.html')">
           <div class="stat-number" id="totalSprints">2</div>
           <div class="stat-label">Active Sprints</div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" onclick="navigateTo('kanban-board.html')">
           <div class="stat-number" id="totalTasks">15</div>
           <div class="stat-label">Total Tasks</div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" onclick="navigateTo('team.html')">
           <div class="stat-number" id="teamMembers">8</div>
           <div class="stat-label">Team Members</div>
         </div>
@@ -155,33 +159,214 @@
       <div class="dashboard-section">
         <h3 class="section-title">Quick Actions</h3>
         <button class="btn" onclick="navigateTo('projects.html')">Create New Project</button>
-        <button class="btn" onclick="navigateTo('sprints.html')">Start New Sprint</button>
+        <button class="btn" onclick="navigateTo('sprint.html')">Start New Sprint</button>
         <button class="btn" onclick="navigateTo('kanban-board.html')">View Kanban Board</button>
+        <button class="btn" onclick="navigateTo('backlog.html')">Open Backlog</button>
+        <button class="btn" onclick="navigateTo('reports.html')">View Reports</button>
         <button class="btn" onclick="navigateTo('scrum-updates.html')">View Team Updates</button>
       </div>
       
       <div class="dashboard-section">
         <h3 class="section-title">Recent Activity</h3>
         <div id="recentActivity">
-          <div style="padding: 12px 0; border-bottom: 1px solid rgba(118, 200, 147, 0.2);">
-            <strong>Project "Mobile App"</strong> was created 2 hours ago
-          </div>
-          <div style="padding: 12px 0; border-bottom: 1px solid rgba(118, 200, 147, 0.2);">
-            <strong>Sprint 2</strong> completed successfully yesterday
-          </div>
-          <div style="padding: 12px 0;">
-            <strong>5 new tasks</strong> added to backlog today
-          </div>
+          <div style="padding: 12px 0; color: #64748b;">Loading recent activity...</div>
         </div>
       </div>
     </main>
   </div>
 
+  <script src="api.js"></script>
   <script>
-    // Navigation function
-    function navigateTo(page) {
-      window.location.href = page;
+    // ── AUTH GUARD ──────────────────────────────────────────────
+    const token = localStorage.getItem('token');
+    const user  = JSON.parse(localStorage.getItem('user') || 'null');
+
+    if (!token || !user) {
+      window.location.href = 'login.html';
     }
+
+    // Redirect workers away from manager dashboard
+    if (user && user.role !== 'manager') {
+      window.location.href = 'dashboard-team.html';
+    }
+
+    // ── GLOBAL UTILITIES ────────────────────────────────────────
+
+  // ── NAVIGATION & SIDEBAR ────────────────────────────────────
+  function navigateTo(page) {
+    window.location.href = page;
+  }
+
+  function logout() {
+    if (confirm('Are you sure you want to logout?')) {
+      localStorage.clear();
+      window.location.href = 'login.html';
+    }
+  }
+    
+  // Load dashboard data from API
+  async function loadDashboardData() {
+    try {
+      // Check if user is authenticated
+      const token = localStorage.getItem('token');
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      console.log('Loading dashboard data from API...');
+      console.log('Token exists:', !!token);
+      console.log('API Base URL: http://localhost:5000/api');
+        
+        // Get all projects
+        let projects = [];
+        try {
+          console.log('Fetching /projects endpoint...');
+          const projectsData = await getProjects();
+          console.log('Raw projects response:', projectsData);
+          projects = Array.isArray(projectsData) ? projectsData : (projectsData?.data || projectsData?.projects || []);
+          console.log('Projects loaded:', projects.length);
+        } catch (e) {
+          console.error("Could not fetch projects:", e);
+          projects = [];
+        }
+        
+        // Get all sprints
+        let sprints = [];
+        try {
+          const sprintsData = await getAllSprints();
+          sprints = Array.isArray(sprintsData) ? sprintsData : (sprintsData?.data || sprintsData?.sprints || []);
+          console.log('Sprints loaded:', sprints.length);
+        } catch (e) {
+          console.error("Could not fetch sprints:", e);
+          sprints = [];
+        }
+        
+        // Get all tasks
+        let allTasks = [];
+        for (const project of projects) {
+          try {
+            const tasksData = await getProjectTasks(project._id);
+            const tasks = Array.isArray(tasksData) ? tasksData : (tasksData?.data || []);
+            allTasks = allTasks.concat(tasks || []);
+          } catch (e) {
+            console.log("Could not fetch tasks for project", project._id, e);
+          }
+        }
+        console.log('Total tasks loaded:', allTasks.length);
+        
+        // Update dashboard stats
+        document.getElementById('totalProjects').textContent = projects.length;
+        document.getElementById('totalSprints').textContent = sprints.length;
+        document.getElementById('totalTasks').textContent = allTasks.length;
+        
+        // Calculate team members (unique members across all projects)
+        const memberSet = new Set();
+        projects.forEach(p => {
+          if (p.members && Array.isArray(p.members)) {
+            p.members.forEach(m => {
+              const memberId = typeof m === 'object' ? (m._id || m.id) : m;
+              if (memberId) memberSet.add(memberId);
+            });
+          }
+        });
+        document.getElementById('teamMembers').textContent = memberSet.size;
+        
+        console.log('Dashboard stats updated');
+        
+        // Load recent activity
+        await loadRecentActivity(projects, sprints, allTasks);
+      } catch (error) {
+        console.error('Error loading dashboard data:', error);
+        showDashboardEmptyState('Unable to load dashboard data from backend right now.');
+      }
+    }
+    
+    // Show empty state only when backend data is unavailable
+    function showDashboardEmptyState(message) {
+      document.getElementById('totalProjects').textContent = '0';
+      document.getElementById('totalSprints').textContent = '0';
+      document.getElementById('totalTasks').textContent = '0';
+      document.getElementById('teamMembers').textContent = '0';
+      
+      const activityDiv = document.getElementById('recentActivity');
+      activityDiv.innerHTML = `<div style="padding: 12px 0; color: #999;">${message || 'No data yet. Create a project to get started.'}</div>`;
+    }
+    
+    // Load recent activity
+    async function loadRecentActivity(projects, sprints, tasks) {
+      const activityDiv = document.getElementById('recentActivity');
+      const activities = [];
+      
+      // Add recent projects (last 3)
+      projects.slice(0, 3).forEach(p => {
+        const date = new Date(p.createdAt);
+        activities.push({
+          text: `Project "${p.name}" was created ${getTimeAgo(date)}`,
+          time: date
+        });
+      });
+      
+      // Add recent sprints (last 2)
+      sprints.slice(0, 2).forEach(s => {
+        if (s.status === 'completed') {
+          const date = new Date(s.completedAt || s.updatedAt);
+          activities.push({
+            text: `Sprint "${s.sprintName}" completed ${getTimeAgo(date)}`,
+            time: date
+          });
+        }
+      });
+
+      // Add backlog activity for today
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      const backlogAddedToday = tasks.filter(task => {
+        const createdAt = new Date(task.createdAt);
+        return (!task.sprint) && createdAt >= startOfDay;
+      }).length;
+
+      if (backlogAddedToday > 0) {
+        activities.push({
+          text: `${backlogAddedToday} backlog ${backlogAddedToday === 1 ? 'item was' : 'items were'} added today`,
+          time: new Date()
+        });
+      }
+      
+      // Sort by time and take last 5
+      activities.sort((a, b) => b.time - a.time);
+      
+      if (activities.length === 0) {
+        activityDiv.innerHTML = '<p style="color: #999;">No recent activity</p>';
+        return;
+      }
+      
+      activityDiv.innerHTML = activities
+        .slice(0, 5)
+        .map(activity => `
+          <div style="padding: 12px 0; border-bottom: 1px solid rgba(118, 200, 147, 0.2);">
+            <strong>${activity.text}</strong>
+          </div>
+        `)
+        .join('');
+    }
+    
+    // Helper function to format time ago
+    function getTimeAgo(date) {
+      const now = new Date();
+      const seconds = Math.floor((now - date) / 1000);
+      
+      if (seconds < 60) return 'just now';
+      if (seconds < 3600) return Math.floor(seconds / 60) + ' minutes ago';
+      if (seconds < 86400) return Math.floor(seconds / 3600) + ' hours ago';
+      if (seconds < 604800) return Math.floor(seconds / 86400) + ' days ago';
+      return 'a while ago';
+    }
+    
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      loadDashboardData();
+    });
     
     // Sidebar functionality
     const root = document.documentElement;
@@ -224,6 +409,9 @@
         }
       });
     }
-  </script>
+
+  // ── INIT ────────────────────────────────────────────────────
+  loadDashboardData();
+</script>
 </body>
 </html>

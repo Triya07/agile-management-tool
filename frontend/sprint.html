@@ -204,11 +204,15 @@
         <button class="sidebar-resize-btn" id="sidebarResizeBtn" title="Toggle sidebar size">⟷</button>
       </div>
       <nav class="sidebar-nav">
-        <button class="sidebar-btn" id="nav-board">Kanban Board</button>
-        <button class="sidebar-btn" id="nav-projects">Projects</button>
-        <button class="sidebar-btn" id="nav-dashboard">Dashboard</button>
+        <button class="sidebar-btn" id="nav-board" onclick="navigateTo('kanban-board.html')">Kanban Board</button>
+        <button class="sidebar-btn" id="nav-projects" onclick="navigateTo('projects.html')">Projects</button>
+        <button class="sidebar-btn" onclick="navigateTo('backlog.html')">Backlog</button>
+        <button class="sidebar-btn" id="nav-dashboard" onclick="navigateTo('dashboard.html')">Dashboard</button>
         <button class="sidebar-btn active" id="nav-sprints">Sprints</button>
-        <button class="sidebar-btn" id="nav-settings">Settings</button>
+        <button class="sidebar-btn" onclick="navigateTo('team.html')">Team</button>
+        <button class="sidebar-btn" onclick="navigateTo('user-profile.html')">Profile</button>
+        <button class="sidebar-btn" id="nav-settings" onclick="navigateTo('settings.html')">Settings</button>
+        <button class="sidebar-btn" onclick="logout()">Logout</button>
       </nav>
     </aside>
 
@@ -223,16 +227,24 @@
         </div>
       </div>
 
+      <section style="margin-bottom:16px;padding:12px 16px;background:rgba(118,200,147,0.08);border-radius:10px;border:1px solid rgba(118,200,147,0.2);display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <strong style="color:#34A0A4;">Scrum Project:</strong>
+        <select id="scrumProjectSelect" style="min-width:260px;padding:8px 10px;border-radius:8px;border:1px solid #c7e9d3;background:#fff;color:#083344;">
+          <option value="">Select a scrum project...</option>
+        </select>
+        <span id="scrumProjectHint" style="font-size:0.9rem;color:#5b7380;">Choose a project to create or view its sprints.</span>
+      </section>
+
       <!-- Sprint Info & Progress Tracking -->
-      <section class="sprint-info" style="background: linear-gradient(135deg, rgba(118, 200, 147, 0.1), rgba(82, 182, 154, 0.05)); border-radius: 12px; padding: 18px 28px; margin-bottom: 28px; border: 1px solid rgba(118, 200, 147, 0.2); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+      <section class="sprint-info" id="sprintInfoSection" style="background: linear-gradient(135deg, rgba(118, 200, 147, 0.1), rgba(82, 182, 154, 0.05)); border-radius: 12px; padding: 18px 28px; margin-bottom: 28px; border: 1px solid rgba(118, 200, 147, 0.2); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
         <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
           <div>
             <strong style="color: #34A0A4;">Sprint Name:</strong> 
-            <span style="color: #083344;" id="sprintName">Sprint 1 - Development Phase</span>
+            <span style="color: #083344;" id="sprintName">No sprint selected</span>
           </div>
           <div>
             <strong style="color: #34A0A4;">Dates:</strong> 
-            <span style="color: #083344;" id="sprintDates">Jan 22 - Feb 5</span>
+            <span style="color: #083344;" id="sprintDates">Please select a sprint</span>
           </div>
           <div>
             <strong style="color: #34A0A4;">Team:</strong> 
@@ -246,7 +258,7 @@
       </section>
 
       <!-- Add Task Button (Sprint Board) -->
-      <div style="display:flex;justify-content:flex-end;margin-bottom:18px;">
+      <div id="addTaskBtnRow" style="display:none;justify-content:center;margin-bottom:18px;">
         <button class="btn" id="openAddTaskModal" style="min-width:120px; background: linear-gradient(135deg, #76C893, #52B69A); color: #fff; border: none; border-radius: 8px; padding: 12px 24px; font-size: 1rem; font-weight: 600; cursor: pointer;">+ Add Task</button>
       </div>
 
@@ -257,27 +269,83 @@
           <form id="addTaskForm">
             <label style="font-size:1rem;">Title</label>
             <input id="taskTitleInput" type="text" required style="width:100%;margin-bottom:14px;padding:9px 10px;border-radius:7px;border:1px solid #e2e8f0;font-size:1rem;background:#f7fafc;">
+            <label style="font-size:1rem;">Assign To (Multiple)</label>
+            <select id="taskAssigneeInput" multiple size="5" style="width:100%;margin-bottom:14px;padding:9px 10px;border-radius:7px;border:1px solid #e2e8f0;font-size:1rem;background:#f7fafc;">
+              <option value="">Unassigned</option>
+            </select>
             <label style="font-size:1rem;">Status</label>
             <select id="taskStatusInput" style="width:100%;margin-bottom:18px;padding:9px 10px;border-radius:7px;border:1px solid #e2e8f0;font-size:1rem;background:#f7fafc;">
               <option value="todo">To Do</option>
               <option value="inprogress">In Progress</option>
               <option value="done">Done</option>
             </select>
-            <div style="display:flex;justify-content:flex-end;gap:10px;">
+            <div style="display:flex;justify-content:flex-end;gap:10px;margin-bottom:14px;">
               <button type="button" class="btn" id="cancelAddTask" style="background:#e2e8f0;color:#222;">Cancel</button>
-              <button type="submit" class="btn">Add</button>
+              <button type="submit" class="btn" style="background:linear-gradient(135deg,#76C893,#52B69A);color:#fff;">Add Task</button>
             </div>
           </form>
         </div>
       </div>
 
+      <!-- Create Sprint Form (hidden by default, shown for managers) -->
+      <div id="createSprintForm" style="display:none; margin-bottom:18px; padding:16px; background:rgba(118,200,147,0.08); border-radius:8px; border:1px solid rgba(118,200,147,0.3);">
+        <h4 style="margin:0 0 12px 0; color:#34A0A4;">Create New Sprint</h4>
+        <label style="font-size:0.9rem; color:#083344; font-weight:600;">Sprint Name</label>
+        <input id="newSprintName" type="text" placeholder="e.g. Sprint 1"
+          style="width:100%;padding:9px 10px;border-radius:7px;border:1px solid #e2e8f0;font-size:1rem;background:#fff;margin:6px 0 12px 0;box-sizing:border-box;">
+        <label style="font-size:0.9rem; color:#083344; font-weight:600;">Sprint Goal</label>
+        <textarea id="newSprintGoal" placeholder="What should this sprint achieve?" rows="3"
+          style="width:100%;padding:9px 10px;border-radius:7px;border:1px solid #e2e8f0;font-size:1rem;background:#fff;margin:6px 0 12px 0;box-sizing:border-box;font-family:inherit;resize:vertical;"></textarea>
+        <div style="display:flex;gap:12px;">
+          <div style="flex:1;">
+            <label style="font-size:0.9rem;color:#083344;font-weight:600;">Start Date</label>
+            <input id="newSprintStart" type="date"
+              style="width:100%;padding:9px 10px;border-radius:7px;border:1px solid #e2e8f0;font-size:1rem;background:#fff;margin-top:6px;box-sizing:border-box;">
+          </div>
+          <div style="flex:1;">
+            <label style="font-size:0.9rem;color:#083344;font-weight:600;">End Date</label>
+            <input id="newSprintEnd" type="date"
+              style="width:100%;padding:9px 10px;border-radius:7px;border:1px solid #e2e8f0;font-size:1rem;background:#fff;margin-top:6px;box-sizing:border-box;">
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:14px;">
+          <button type="button" onclick="document.getElementById('createSprintForm').style.display='none'"
+            style="background:#e2e8f0;color:#222;border:none;border-radius:7px;padding:9px 18px;cursor:pointer;font-size:0.95rem;">Cancel</button>
+          <button type="button" onclick="submitCreateSprint()"
+            style="background:linear-gradient(135deg,#76C893,#52B69A);color:#fff;border:none;border-radius:7px;padding:9px 18px;cursor:pointer;font-size:0.95rem;font-weight:600;">Create Sprint</button>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:10px;">
+        <button type="button" class="btn" onclick="window.location.href='projects.html'"
+          style="background:#e2e8f0;color:#222;">Back to Projects</button>
+        <button type="button" id="showCreateSprintBtn" class="btn"
+          style="display:none; background:linear-gradient(135deg,#76C893,#52B69A);color:#fff;">
+          + Create Sprint
+        </button>
+      </div>
+
+      <!-- Sprint Selection Modal -->
+      <div id="sprintSelectionModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.18);z-index:1000;align-items:center;justify-content:center;">
+        <div style="background:#fff;padding:32px 28px 24px 28px;border-radius:10px;box-shadow:0 2px 16px rgba(0,0,0,0.12);width:400px;max-width:90vw;position:relative;">
+          <h3 style="margin-top:0;margin-bottom:18px;font-size:1.15rem;font-weight:600;color:#1a202c;">Select a Sprint</h3>
+          <p style="margin-bottom:18px;color:#666;">Please select a sprint to work with:</p>
+          <div id="sprintList" style="max-height:200px;overflow-y:auto;margin-bottom:18px;">
+            <!-- Sprint options will be populated here -->
+          </div>
+          <div style="display:flex;justify-content:flex-end;gap:10px;">
+            <button type="button" class="btn" onclick="window.location.href='projects.html'" style="background:#e2e8f0;color:#222;">Back to Projects</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Sprint Kanban Board -->
-      <div class="board fade-in" id="sprintBoard">
+      <div class="board fade-in" id="sprintBoard" style="display:none;">
         <div class="column">
           <div class="column-title">To Do</div>
           <div id="todo" class="column-tasks">
             <div class="column-placeholder" style="color: #6b7280; font-style: italic; text-align: center; padding: 20px 16px; background: rgba(118, 200, 147, 0.03); border-radius: 8px; border: 2px dashed rgba(118, 200, 147, 0.2);">
-              📝 No tasks yet. Add a task to get started.
+              No tasks yet. Add a task to get started.
             </div>
           </div>
         </div>
@@ -285,7 +353,7 @@
           <div class="column-title">In Progress</div>
           <div id="inprogress" class="column-tasks">
             <div class="column-placeholder" style="color: #6b7280; font-style: italic; text-align: center; padding: 20px 16px; background: rgba(118, 200, 147, 0.03); border-radius: 8px; border: 2px dashed rgba(118, 200, 147, 0.2);">
-              🚀 Drag tasks here when work starts
+              Drag tasks here when work starts.
             </div>
           </div>
         </div>
@@ -293,7 +361,7 @@
           <div class="column-title">Done</div>
           <div id="done" class="column-tasks">
             <div class="column-placeholder" style="color: #6b7280; font-style: italic; text-align: center; padding: 20px 16px; background: rgba(118, 200, 147, 0.03); border-radius: 8px; border: 2px dashed rgba(118, 200, 147, 0.2);">
-              ✅ Completed tasks appear here
+              Completed tasks appear here.
             </div>
           </div>
         </div>
@@ -312,59 +380,65 @@
       <section class="sprint-retro">
         <h3>Sprint Retrospective</h3>
         <textarea id="retroGood" placeholder="What went well?" rows="2"></textarea>
-        <textarea id="retroBad" placeholder="What didn’t go well?" rows="2"></textarea>
+        <textarea id="retroBad" placeholder="What didn't go well?" rows="2"></textarea>
         <textarea id="retroImprove" placeholder="What to improve next sprint?" rows="2"></textarea>
         <button class="btn" id="saveRetro">Save Retrospective</button>
       </section>
     </main>
-  </div>
-  
+ </div> <!-- end .main-container -->
+
+  <script src="api.js"></script>
   <script>
-    // Initialize CSS variables and resize functionality first
-    const root = document.documentElement;
-    const sidebar = document.getElementById('sidebar');
+    // ── AUTH GUARD ─────────────────────────────────────────────
+    (function() {
+      const token = localStorage.getItem('token');
+      const user  = JSON.parse(localStorage.getItem('user') || 'null');
+      if (!token || !user) {
+        window.location.href = 'login.html';
+        return;
+      }
+      // Sprint page is accessible by both managers AND workers
+      // so no role redirect needed here
+    })();
+
+    // ── NAVIGATION & SIDEBAR ───────────────────────────────────
+    function navigateTo(page) { window.location.href = page; }
+
+    function logout() {
+      if (confirm('Are you sure you want to logout?')) {
+        localStorage.clear();
+        window.location.href = 'login.html';
+      }
+    }
+
+    const root      = document.documentElement;
+    const sidebar   = document.getElementById('sidebar');
     const resizeBtn = document.getElementById('sidebarResizeBtn');
-    
     let sidebarState = 'normal';
-    
+
     function setSidebarWidth(width) {
       root.style.setProperty('--sidebar-width', width + 'px');
       localStorage.setItem('sidebarWidth', width);
-      
       if (sidebar) {
         sidebar.classList.remove('compact', 'wide');
-        if (width <= 250) {
-          sidebar.classList.add('compact');
-          sidebarState = 'compact';
-        } else if (width >= 380) {
-          sidebar.classList.add('wide');
-          sidebarState = 'wide';
-        } else {
-          sidebarState = 'normal';
-        }
+        if (width <= 250)      { sidebar.classList.add('compact'); sidebarState = 'compact'; }
+        else if (width >= 380) { sidebar.classList.add('wide');    sidebarState = 'wide'; }
+        else                   { sidebarState = 'normal'; }
       }
     }
-    
-    // Load saved width first
+
     const savedWidth = localStorage.getItem('sidebarWidth');
-    if (savedWidth) {
-      setSidebarWidth(parseInt(savedWidth));
-    }
-    
+    if (savedWidth) setSidebarWidth(parseInt(savedWidth));
+
     if (resizeBtn) {
       resizeBtn.addEventListener('click', () => {
-        if (sidebarState === 'compact') {
-          setSidebarWidth(300);
-        } else if (sidebarState === 'normal') {
-          setSidebarWidth(400);
-        } else {
-          setSidebarWidth(220);
-        }
+        if (sidebarState === 'compact')     setSidebarWidth(300);
+        else if (sidebarState === 'normal') setSidebarWidth(400);
+        else                                setSidebarWidth(220);
       });
     }
-    
+
     let isResizing = false;
-    
     if (sidebar) {
       sidebar.addEventListener('mousedown', (e) => {
         if (e.offsetX > sidebar.offsetWidth - 10) {
@@ -374,48 +448,529 @@
         }
       });
     }
-    
     document.addEventListener('mousemove', (e) => {
-      if (isResizing) {
-        const newWidth = Math.min(Math.max(e.clientX, 220), 450);
-        setSidebarWidth(newWidth);
-      }
+      if (isResizing) setSidebarWidth(Math.min(Math.max(e.clientX, 220), 450));
     });
-    
     document.addEventListener('mouseup', () => {
-      if (isResizing) {
-        isResizing = false;
-        document.body.style.cursor = 'default';
-      }
+      if (isResizing) { isResizing = false; document.body.style.cursor = 'default'; }
     });
-    
-    // Update task count when tasks change
-    function updateTaskCount() {
-      const tasks = document.querySelectorAll('.task-card');
-      const placeholders = document.querySelectorAll('.column-placeholder');
-      
-      // Hide placeholders if there are tasks, show if no tasks
+
+    // ── SPRINT & TASK LOGIC ────────────────────────────────────
+    const user        = JSON.parse(localStorage.getItem('user') || 'null');
+    const userRole    = normalizeUserRole(user?.role);
+
+    // Get projectId and sprintId passed from projects/context
+    const params      = new URLSearchParams(window.location.search);
+    const context = getActiveContext();
+    let currentProjectId = params.get('projectId') || context.projectId;
+    let currentSprintId  = params.get('sprintId')  || context.sprintId;
+    let draggingTaskId   = null;
+    let scrumProjects    = [];
+    let assignableMembers = [];
+
+    if (currentProjectId || currentSprintId) {
+      setActiveContext({ projectId: currentProjectId, sprintId: currentSprintId, projectType: 'scrum' });
+    }
+
+    const isManager = userRole === 'manager';
+
+    function getTaskAssigneeNames(task) {
+      if (Array.isArray(task?.assignedUsers) && task.assignedUsers.length > 0) {
+        return task.assignedUsers.map((member) => member?.name || 'Unknown');
+      }
+
+      if (task?.assignedTo) {
+        return [task.assignedTo.name || task.assignedTo];
+      }
+
+      return [];
+    }
+
+    async function loadAssignableMembers(projectId) {
+      const assigneeSelect = document.getElementById('taskAssigneeInput');
+      if (!assigneeSelect || !projectId) return;
+
+      try {
+        const directoryMembers = await getMemberDirectory();
+        const members = Array.isArray(directoryMembers) ? directoryMembers : [];
+        const currentUserId = String(user?.id || user?._id || '');
+
+        assignableMembers = members
+          .filter((member) => member && member._id && String(member._id) !== currentUserId)
+          .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+
+        assigneeSelect.innerHTML = '';
+        assignableMembers.forEach((member) => {
+          const option = document.createElement('option');
+          option.value = member._id;
+          option.textContent = `${member.name || 'Unknown'}${member.email ? ` (${member.email})` : ''}`;
+          assigneeSelect.appendChild(option);
+        });
+      } catch (error) {
+        console.error('Failed to load global member directory for assignment:', error);
+
+        // Fallback to current project members if directory endpoint fails
+        try {
+          const project = await getProject(projectId);
+          const members = Array.isArray(project?.members) ? project.members : [];
+          const currentUserId = String(user?.id || user?._id || '');
+
+          assignableMembers = members
+            .filter((member) => member && member._id && String(member._id) !== currentUserId)
+            .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+
+          assigneeSelect.innerHTML = '';
+          assignableMembers.forEach((member) => {
+            const option = document.createElement('option');
+            option.value = member._id;
+            option.textContent = `${member.name || 'Unknown'}${member.email ? ` (${member.email})` : ''}`;
+            assigneeSelect.appendChild(option);
+          });
+        } catch (fallbackError) {
+          console.error('Fallback member loading failed:', fallbackError);
+          assigneeSelect.innerHTML = '';
+        }
+      }
+    }
+
+    async function ensureAssigneeInProject(projectId, assigneeId) {
+      if (!projectId) return;
+      if (!isManager) return;
+      const assigneeIds = Array.isArray(assigneeId)
+        ? assigneeId.filter(Boolean)
+        : (assigneeId ? [assigneeId] : []);
+      if (!assigneeIds.length) return;
+
+      const project = await getProject(projectId);
+      const memberIds = (Array.isArray(project?.members) ? project.members : []).map((member) =>
+        String(member && member._id ? member._id : member)
+      );
+
+      for (const id of assigneeIds) {
+        if (!memberIds.includes(String(id))) {
+          await addProjectMember(projectId, id);
+        }
+      }
+    }
+
+    async function loadScrumProjectOptions() {
+      const select = document.getElementById('scrumProjectSelect');
+      const hint = document.getElementById('scrumProjectHint');
+      if (!select) return;
+
+      try {
+        const projectsResponse = await getProjects();
+        const projects = Array.isArray(projectsResponse) ? projectsResponse : (projectsResponse?.data || []);
+        scrumProjects = projects.filter(project => project.type === 'scrum');
+
+        select.innerHTML = '<option value="">Select a scrum project...</option>';
+        scrumProjects.forEach((project) => {
+          const option = document.createElement('option');
+          option.value = project._id;
+          option.textContent = project.name;
+          select.appendChild(option);
+        });
+
+        if (currentProjectId) {
+          select.value = currentProjectId;
+        }
+
+        if (!scrumProjects.length && hint) {
+          hint.textContent = 'No scrum projects found. Create one from Projects page.';
+        }
+      } catch (error) {
+        console.error('Failed to load scrum projects:', error);
+      }
+    }
+
+    document.getElementById('scrumProjectSelect')?.addEventListener('change', async (event) => {
+      const selectedProjectId = event.target.value;
+      currentProjectId = selectedProjectId || null;
+      currentSprintId = null;
+
+      if (currentProjectId) {
+        setActiveContext({ projectId: currentProjectId, sprintId: null, projectType: 'scrum' });
+      }
+
+      const showBtn = document.getElementById('showCreateSprintBtn');
+      if (showBtn) {
+        showBtn.style.display = currentProjectId && isManager ? 'inline-block' : 'none';
+      }
+
+      await loadSprint();
+    });
+
+    // Allow task creation only for managers on this page
+    const addTaskBtnRow = document.getElementById('addTaskBtnRow');
+    if (addTaskBtnRow && isManager) {
+      addTaskBtnRow.style.display = 'flex';
+    }
+    // ── CREATE SPRINT ──────────────────────────────────────────
+    // Show sprint creation only for project managers.
+    const showBtn = document.getElementById('showCreateSprintBtn');
+    if (showBtn && currentProjectId && isManager) {
+      showBtn.style.display = 'inline-block';
+    }
+
+document.getElementById('showCreateSprintBtn')?.addEventListener('click', () => {
+  document.getElementById('createSprintForm').style.display = 'block';
+  // Pre-fill today's date
+  const today = new Date().toISOString().split('T')[0];
+  const twoWeeks = new Date(Date.now() + 14*24*60*60*1000).toISOString().split('T')[0];
+  document.getElementById('newSprintStart').value = today;
+  document.getElementById('newSprintEnd').value   = twoWeeks;
+});
+
+async function submitCreateSprint() {
+  const name  = document.getElementById('newSprintName').value.trim();
+  const goal  = document.getElementById('newSprintGoal').value.trim();
+  const start = document.getElementById('newSprintStart').value;
+  const end   = document.getElementById('newSprintEnd').value;
+
+  if (!name || !start || !end) {
+    alert('Please fill in sprint name, start date, and end date.');
+    return;
+  }
+  if (!isManager) {
+    alert('Only managers can create sprints.');
+    return;
+  }
+  if (!currentProjectId) {
+    alert('No project selected.');
+    return;
+  }
+
+  try {
+    await createSprint(name, goal, start, end, currentProjectId);
+    // Hide form and reload sprints
+    document.getElementById('createSprintForm').style.display = 'none';
+    document.getElementById('newSprintName').value = '';
+    document.getElementById('newSprintGoal').value = '';
+    document.getElementById('sprintSelectionModal').style.display = 'none';
+    await loadSprint(); // will now find the new sprint and load it
+  } catch (err) {
+    console.error('Error creating sprint:', err);
+    alert('Failed to create sprint: ' + err.message);
+  }
+}
+
+    // ── LOAD SPRINT DATA ───────────────────────────────────────
+    async function loadSprint() {
+      if (!currentProjectId) {
+        document.getElementById('sprintName').textContent  = 'No scrum project selected';
+        document.getElementById('sprintDates').textContent = 'Select a project from the dropdown above';
+        document.getElementById('sprintBoard').style.display = 'none';
+        return;
+      }
+
+      try {
+        // Load sprints for this project
+        const sprintResponse = await getProjectSprints(currentProjectId);
+        const sprints = Array.isArray(sprintResponse)
+          ? sprintResponse
+          : (sprintResponse && sprintResponse.data ? sprintResponse.data : []);
+
+        if (!sprints || sprints.length === 0) {
+          document.getElementById('sprintName').textContent  = 'No sprints found';
+          document.getElementById('sprintDates').textContent = 'Use + Create Sprint to start';
+          showSprintSelectionModal(sprints);
+          return;
+        }
+
+        // If no sprintId in URL/localStorage, auto-select latest sprint
+        if (!currentSprintId && sprints.length > 0) {
+          currentSprintId = sprints[0]._id;
+          setActiveContext({ projectId: currentProjectId, sprintId: currentSprintId, projectType: 'scrum' });
+        }
+
+        const sprint = sprints.find(s => s._id === currentSprintId) || sprints[0];
+        currentSprintId = sprint._id;
+        setActiveContext({ projectId: currentProjectId, sprintId: currentSprintId, projectType: 'scrum' });
+
+        // Update sprint header
+        document.getElementById('sprintName').textContent =
+          sprint.sprintName || sprint.name || 'Sprint';
+        document.getElementById('sprintDates').textContent =
+          `${new Date(sprint.startDate).toLocaleDateString()} - ${new Date(sprint.endDate).toLocaleDateString()}`;
+
+        // Load tasks for this sprint
+        await loadTasks();
+
+        document.getElementById('sprintBoard').style.display = 'flex';
+
+      } catch (err) {
+        console.error('Error loading sprint:', err);
+        alert('Could not load sprint data. Please refresh or re-open this project from Projects.');
+      }
+    }
+
+    async function loadTasks() {
+      try {
+        const tasks = await getSprintTasks(currentSprintId, currentProjectId);
+        renderTasks(tasks || []);
+      } catch (err) {
+        console.error('Error loading tasks:', err);
+      }
+    }
+
+    function renderTasks(tasks) {
+      // Clear columns
       ['todo', 'inprogress', 'done'].forEach(status => {
-        const column = document.getElementById(status);
-        const placeholder = column.querySelector('.column-placeholder');
-        const tasksInColumn = column.querySelectorAll('.task-card');
-        
-        if (tasksInColumn.length > 0) {
-          placeholder.style.display = 'none';
-        } else {
-          placeholder.style.display = 'block';
+        const col = document.getElementById(status);
+        col.innerHTML = `<div class="column-placeholder" style="color:#6b7280;font-style:italic;text-align:center;padding:20px 16px;background:rgba(118,200,147,0.03);border-radius:8px;border:2px dashed rgba(118,200,147,0.2);">
+          ${status === 'todo' ? 'No tasks yet.' : status === 'inprogress' ? 'Drag tasks here' : 'Completed tasks'}
+        </div>`;
+      });
+
+      tasks.forEach(task => {
+        const colId = task.status === 'inprogress' ? 'inprogress'
+                    : task.status === 'done'       ? 'done'
+                    : 'todo';
+        addTaskCard(task, colId);
+      });
+
+      updateTaskCount();
+    }
+
+    function addTaskCard(task, colId) {
+      const col         = document.getElementById(colId);
+      const placeholder = col.querySelector('.column-placeholder');
+      if (placeholder) placeholder.style.display = 'none';
+
+      const card = document.createElement('div');
+      card.className      = 'task-card';
+      card.draggable      = true;
+      card.dataset.taskId = task._id;
+      card.innerHTML = `
+        <div style="font-weight:600;margin-bottom:4px;">${task.title}</div>
+        ${getTaskAssigneeNames(task).length ? `<div style="font-size:0.85rem;color:#52B69A;">👤 ${getTaskAssigneeNames(task).join(', ')}</div>` : ''}
+        <div style="font-size:0.8rem;color:#888;margin-top:4px;">
+          <span style="padding:2px 8px;border-radius:10px;background:rgba(118,200,147,0.2);">${task.priority || 'medium'}</span>
+        </div>
+      `;
+
+      // Drag events
+      card.addEventListener('dragstart', e => {
+        draggingTaskId = task._id;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', task._id);
+        e.dataTransfer.setData('taskId', task._id);
+        card.style.opacity = '0.5';
+      });
+      card.addEventListener('dragend', () => {
+        card.style.opacity = '1';
+        draggingTaskId = null;
+      });
+
+      col.appendChild(card);
+    }
+
+    // ── DRAG AND DROP ──────────────────────────────────────────
+    ['todo', 'inprogress', 'done'].forEach(colId => {
+      const col = document.getElementById(colId);
+
+      col.addEventListener('dragover', e => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        col.style.background = 'rgba(118,200,147,0.1)';
+      });
+      col.addEventListener('dragleave', ()  => { col.style.background = ''; });
+      col.addEventListener('drop', async e => {
+        e.preventDefault();
+        col.style.background = '';
+
+        const taskId =
+          e.dataTransfer.getData('text/plain') ||
+          e.dataTransfer.getData('taskId') ||
+          draggingTaskId;
+
+        if (!taskId) return;
+        if (!['todo', 'inprogress', 'done'].includes(colId)) return;
+
+        const card = document.querySelector(`.task-card[data-task-id="${taskId}"]`);
+        const fromColId = card?.parentElement?.id;
+        if (fromColId === colId) return;
+
+        try {
+          await updateTaskStatus(taskId, colId);
+          await loadTasks(); // reload to reflect new status
+        } catch (err) {
+          console.error('Error updating task status:', err);
         }
       });
-      
-      // Update progress counter
-      const totalTasks = tasks.length;
-      const completedTasks = document.querySelectorAll('#done .task-card').length;
-      document.getElementById('sprintProgress').textContent = `${completedTasks}/${totalTasks} tasks completed`;
+    });
+
+    // ── ADD TASK MODAL ─────────────────────────────────────────
+    document.getElementById('openAddTaskModal').addEventListener('click', async () => {
+      if (!currentProjectId) {
+        alert('No project selected. Open this page from a project first.');
+        window.location.href = 'projects.html';
+        return;
+      }
+
+      if (!currentSprintId) {
+        try {
+          const sprintResponse = await getProjectSprints(currentProjectId);
+          const sprints = Array.isArray(sprintResponse)
+            ? sprintResponse
+            : (sprintResponse && sprintResponse.data ? sprintResponse.data : []);
+
+          if (!sprints.length) {
+            alert('No sprint found for this project. Create a sprint first.');
+            return;
+          }
+
+          showSprintSelectionModal(sprints);
+          return;
+        } catch (error) {
+          console.error('Error checking sprints:', error);
+          alert('Unable to load sprints right now.');
+          return;
+        }
+      }
+
+      await loadAssignableMembers(currentProjectId);
+      document.getElementById('addTaskModal').style.display = 'flex';
+    });
+    const cancelAddTaskBtn = document.getElementById('cancelAddTask');
+    if (cancelAddTaskBtn) {
+      cancelAddTaskBtn.addEventListener('click', () => {
+        document.getElementById('addTaskModal').style.display = 'none';
+      });
     }
-    
-    // Call updateTaskCount initially and whenever tasks change
-    updateTaskCount();
+
+    document.getElementById('addTaskForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const title  = document.getElementById('taskTitleInput').value.trim();
+      const status = document.getElementById('taskStatusInput').value;
+      const assigneeId = Array.from(document.getElementById('taskAssigneeInput').selectedOptions || [])
+        .map((option) => option.value)
+        .filter(Boolean);
+
+      if (!title) return;
+
+      if (!currentProjectId) {
+        alert('No project selected. Open this page from a project first.');
+        return;
+      }
+
+      if (!currentSprintId) {
+        alert('Please select a sprint first.');
+        return;
+      }
+
+      try {
+        await ensureAssigneeInProject(currentProjectId, assigneeId);
+
+        await createTask(
+          title,
+          '',               // description
+          assigneeId,
+          currentSprintId,
+          currentProjectId,
+          'medium',
+          null,
+          status
+        );
+
+        document.getElementById('taskTitleInput').value = '';
+        Array.from(document.getElementById('taskAssigneeInput').options || []).forEach((option) => {
+          option.selected = false;
+        });
+        document.getElementById('addTaskModal').style.display = 'none';
+        await loadTasks(); // refresh board
+      } catch (err) {
+        console.error('Error creating task:', err);
+        alert('Failed to create task. Make sure you have manager access to this project.');
+      }
+    });
+
+    // ── SPRINT SELECTION MODAL ─────────────────────────────────
+    function showSprintSelectionModal(sprints = []) {
+      const modal    = document.getElementById('sprintSelectionModal');
+      const listEl   = document.getElementById('sprintList');
+      modal.style.display = 'flex';
+
+      if (!sprints.length) {
+        if (isManager && currentProjectId) {
+          listEl.innerHTML = `
+            <p style="color:#666;margin-bottom:10px;">No sprints available for this scrum project yet.</p>
+            <button type="button" onclick="openCreateSprintFromSelectionModal()"
+              style="background:linear-gradient(135deg,#76C893,#52B69A);color:#fff;border:none;border-radius:7px;padding:9px 14px;cursor:pointer;font-size:0.9rem;font-weight:600;">
+              + Create Sprint
+            </button>
+          `;
+        } else {
+          listEl.innerHTML = '<p style="color:#666;">No sprints available for this scrum project.</p>';
+        }
+        return;
+      }
+
+      listEl.innerHTML = sprints.map(s => `
+        <div onclick="selectSprint('${s._id}')"
+          style="padding:12px 16px;border-radius:8px;cursor:pointer;margin-bottom:8px;
+                 background:rgba(118,200,147,0.1);border:1px solid rgba(118,200,147,0.3);
+                 transition:background 0.2s;"
+          onmouseover="this.style.background='rgba(118,200,147,0.25)'"
+          onmouseout="this.style.background='rgba(118,200,147,0.1)'">
+          <strong>${s.sprintName || s.name}</strong>
+          <div style="font-size:0.85rem;color:#666;">
+            ${new Date(s.startDate).toLocaleDateString()} - ${new Date(s.endDate).toLocaleDateString()}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function openCreateSprintFromSelectionModal() {
+      document.getElementById('sprintSelectionModal').style.display = 'none';
+      document.getElementById('createSprintForm').style.display = 'block';
+      const today = new Date().toISOString().split('T')[0];
+      const twoWeeks = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      document.getElementById('newSprintStart').value = today;
+      document.getElementById('newSprintEnd').value = twoWeeks;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function selectSprint(sprintId) {
+      currentSprintId = sprintId;
+      setActiveContext({ projectId: currentProjectId, sprintId, projectType: 'scrum' });
+      document.getElementById('sprintSelectionModal').style.display = 'none';
+      loadSprint();
+    }
+
+    // ── TASK COUNT ─────────────────────────────────────────────
+    function updateTaskCount() {
+      const total     = document.querySelectorAll('.task-card').length;
+      const completed = document.querySelectorAll('#done .task-card').length;
+      document.getElementById('sprintProgress').textContent = `${completed}/${total} tasks completed`;
+    }
+
+    // ── RETROSPECTIVE ──────────────────────────────────────────
+    document.getElementById('saveRetro').addEventListener('click', async () => {
+      if (!currentSprintId) {
+        alert('Please select a sprint first.');
+        return;
+      }
+
+      const good = document.getElementById('retroGood').value.trim();
+      const bad = document.getElementById('retroBad').value.trim();
+      const improve = document.getElementById('retroImprove').value.trim();
+      const feedback = document.getElementById('reviewFeedback').value.trim();
+
+      try {
+        await saveSprintRetrospective(currentSprintId, good, bad, improve, feedback);
+        alert('Retrospective saved!');
+      } catch (err) {
+        console.error('Error saving retrospective:', err);
+        alert('Failed to save retrospective: ' + err.message);
+      }
+    });
+
+    // ── INIT ───────────────────────────────────────────────────
+    (async () => {
+      await loadScrumProjectOptions();
+      await loadSprint();
+    })();
   </script>
-  <script src="sprint.js"></script>
 </body>
 </html>

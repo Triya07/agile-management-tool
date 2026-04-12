@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard | FlowBoard</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(135deg, #f0fdfa 0%, #e6fffa 50%, #ccfdf7 100%);
+      font-family: 'Segoe UI', Arial, sans-serif;
+      color: #083344;
+      min-height: 100vh;
+    }
+
+    #main-content {
+      padding: 40px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 40px;
+    }
+
+    .header-title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #0891b2, #22c55e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header-user {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .user-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0891b2, #22c55e);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 1.2rem;
+    }
+
+    .user-info {
+      text-align: right;
+    }
+
+    .user-name {
+      font-weight: 600;
+      color: #083344;
+    }
+
+    .user-role {
+      font-size: 0.85rem;
+      color: #666;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 4px 15px rgba(8, 51, 68, 0.08);
+      border-left: 5px solid #0891b2;
+      transition: all 0.3s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 25px rgba(8, 51, 68, 0.12);
+    }
+
+    .stat-card.kanban {
+      border-left-color: #f59e0b;
+    }
+
+    .stat-card.scrum {
+      border-left-color: #10b981;
+    }
+
+    .stat-value {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #0891b2;
+      margin-bottom: 8px;
+    }
+
+    .stat-label {
+      color: #666;
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+
+    .dashboard-section {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 4px 20px rgba(8, 51, 68, 0.08);
+      margin-bottom: 30px;
+      border: 1px solid rgba(118, 200, 147, 0.2);
+    }
+
+    .section-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #083344;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      margin-bottom: 0;
+    }
+
+    .project-card {
+      background: linear-gradient(135deg, rgba(8, 145, 178, 0.05), rgba(34, 197, 94, 0.05));
+      border-radius: 12px;
+      padding: 20px;
+      border: 2px solid rgba(8, 145, 178, 0.2);
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .project-card:hover {
+      border-color: #0891b2;
+      box-shadow: 0 8px 20px rgba(8, 145, 178, 0.15);
+      transform: translateY(-4px);
+    }
+
+    .project-badge {
+      display: inline-block;
+      width: fit-content;
+      background: #0891b2;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .project-badge.kanban {
+      background: #f59e0b;
+    }
+
+    .project-name {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #083344;
+      margin-bottom: 8px;
+    }
+
+    .project-description {
+      color: #666;
+      font-size: 0.9rem;
+      margin-bottom: 16px;
+      flex-grow: 1;
+    }
+
+    .project-footer {
+      display: flex;
+      justify-content: space-between;
+      padding-top: 12px;
+      border-top: 1px solid rgba(8, 145, 178, 0.2);
+      font-size: 0.85rem;
+      color: #666;
+    }
+
+    .tasks-list {
+      list-style: none;
+    }
+
+    .task-item {
+      background: linear-gradient(135deg, rgba(8, 145, 178, 0.05), rgba(34, 197, 94, 0.05));
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      border-left: 4px solid #0891b2;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.3s;
+    }
+
+    .task-item:hover {
+      transform: translateX(4px);
+      box-shadow: 0 4px 12px rgba(8, 145, 178, 0.1);
+    }
+
+    .task-info {
+      flex-grow: 1;
+    }
+
+    .task-title {
+      font-weight: 600;
+      color: #083344;
+      margin-bottom: 4px;
+    }
+
+    .task-meta {
+      font-size: 0.85rem;
+      color: #666;
+    }
+
+    .task-status {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-left: 12px;
+    }
+
+    .status-todo {
+      background: rgba(107, 114, 128, 0.2);
+      color: #374151;
+    }
+
+    .status-inprogress {
+      background: rgba(245, 158, 11, 0.2);
+      color: #92400e;
+    }
+
+    .status-done {
+      background: rgba(16, 185, 129, 0.2);
+      color: #065f46;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+
+    .btn-create {
+      display: inline-block;
+      background: linear-gradient(135deg, #0891b2, #22c55e);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+      margin-right: 12px;
+      margin-bottom: 20px;
+    }
+
+    .btn-create:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(8, 145, 178, 0.3);
+    }
+
+    @media (max-width: 768px) {
+      #main-content {
+        padding: 20px;
+      }
+
+      .dashboard-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
+      }
+
+      .header-user {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .projects-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="main-content">
+    <div class="dashboard-header">
+      <div class="header-title">📊 Dashboard</div>
+      <div class="header-user">
+        <div class="user-info">
+          <div class="user-name" id="userName">Loading...</div>
+          <div class="user-role" id="userRole">Member</div>
+        </div>
+        <div class="user-avatar" id="userAvatar">U</div>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value" id="totalProjects">0</div>
+        <div class="stat-label">Total Projects</div>
+      </div>
+      <div class="stat-card scrum">
+        <div class="stat-value" id="scrumProjects">0</div>
+        <div class="stat-label">Scrum Projects</div>
+      </div>
+      <div class="stat-card kanban">
+        <div class="stat-value" id="kanbanProjects">0</div>
+        <div class="stat-label">Kanban Projects</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="activeSprints">0</div>
+        <div class="stat-label">Active Sprints</div>
+      </div>
+    </div>
+
+    <!-- Manager-Only Section -->
+    <div id="managerSection" style="display:none;">
+      <div class="dashboard-section">
+        <div class="section-title">
+          <span>👥</span>
+          <span>Team Overview</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;" id="teamOverview">
+          <div class="empty-state">Loading team data...</div>
+        </div>
+      </div>
+
+      <div class="dashboard-section">
+        <div class="section-title">
+          <span>📈</span>
+          <span>Project Health</span>
+        </div>
+        <ul class="tasks-list" id="projectHealthList">
+          <div class="empty-state">No data available</div>
+        </ul>
+      </div>
+
+      <div class="dashboard-section">
+        <div class="section-title">
+          <span>⏱️</span>
+          <span>Sprint Progress</span>
+        </div>
+        <div id="sprintProgress">
+          <div class="empty-state">No active sprints</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Team Member Section -->
+    <div id="memberSection" style="display:none;">
+      <div class="dashboard-section">
+        <div class="section-title">
+          <span>🎯</span>
+          <span>My Current Sprint</span>
+        </div>
+        <div id="currentSprintInfo">
+          <div class="empty-state">No active sprint assigned</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Common Projects Section -->
+    <div class="dashboard-section">
+      <div class="section-title">
+        <span>📋</span>
+        <span id="projectsTitle">My Projects</span>
+      </div>
+      <a href="/projects.html" class="btn-create">+ Create New Project</a>
+      <div class="projects-grid" id="projectsList">
+        <div class="empty-state">Loading projects...</div>
+      </div>
+    </div>
+
+    <!-- Common Tasks Section -->
+    <div class="dashboard-section">
+      <div class="section-title">
+        <span>✅</span>
+        <span>Tasks Assigned to Me</span>
+      </div>
+      <ul class="tasks-list" id="tasksList">
+        <div class="empty-state">Loading tasks...</div>
+      </ul>
+    </div>
+  </div>
+ 
+
+  <script src="api.js"></script>
+  <script>
+     // AUTH GUARD — paste at top of every protected page
+(function() {
+  const token = localStorage.getItem('token');
+  const user  = JSON.parse(localStorage.getItem('user') || 'null');
+  if (!token || !user) {
+    window.location.href = 'login.html';
+    return;
+  }
+})();
+    let currentUser = null;
+    let dashboardData = null;
+
+    async function initializeDashboard() {
+      try {
+        const user = getCurrentUser();
+        if (!user) {
+          window.location.href = "/login.html";
+          return;
+        }
+
+        currentUser = user;
+
+        // Load dashboard data
+        dashboardData = await getUserDashboard();
+
+        updateUI();
+        updateRoleBasedView();
+        loadProjects();
+        loadTasks();
+      } catch (error) {
+        console.error("Error loading dashboard:", error);
+        document.getElementById("projectsList").innerHTML = `<div class="empty-state">Error loading data</div>`;
+      }
+    }
+
+    function updateRoleBasedView() {
+      const isManager = currentUser.role === 'manager' || currentUser.role === 'admin';
+      const managerSection = document.getElementById('managerSection');
+      const memberSection = document.getElementById('memberSection');
+
+      if (isManager) {
+        // Show manager-specific content
+        managerSection.style.display = 'block';
+        memberSection.style.display = 'none';
+        document.getElementById('projectsTitle').textContent = 'All Projects';
+        loadTeamOverview();
+        loadProjectHealth();
+        loadSprintProgress();
+      } else {
+        // Show team member-specific content
+        managerSection.style.display = 'none';
+        memberSection.style.display = 'block';
+        document.getElementById('projectsTitle').textContent = 'My Projects';
+        loadCurrentSprint();
+      }
+    }
+
+    function updateUI() {
+      // Update user info
+      document.getElementById("userName").textContent = currentUser.name;
+      const roleText = currentUser.role === "manager" || currentUser.role === "admin" ? "Manager" : "Team Member";
+      document.getElementById("userRole").textContent = roleText;
+      document.getElementById("userAvatar").textContent = currentUser.name.charAt(0).toUpperCase();
+
+      // Update stats
+      if (dashboardData && dashboardData.stats) {
+        document.getElementById("totalProjects").textContent = dashboardData.stats.totalProjects;
+        document.getElementById("scrumProjects").textContent = dashboardData.stats.scrumProjects;
+        document.getElementById("kanbanProjects").textContent = dashboardData.stats.kanbanProjects;
+      }
+
+      // Active sprints
+      if (dashboardData && dashboardData.sprints) {
+        const activeSprints = dashboardData.sprints.filter(s => ['active', 'planning'].includes(s.status)).length;
+        document.getElementById("activeSprints").textContent = activeSprints;
+      }
+    }
+
+    function loadTeamOverview() {
+      // Load team member info for managers
+      if (!dashboardData || !dashboardData.teamMembers) {
+        document.getElementById("teamOverview").innerHTML = '<div class="empty-state" style="grid-column:1/-1;">No team members</div>';
+        return;
+      }
+
+      let html = '';
+      (dashboardData.teamMembers || []).forEach(member => {
+        html += `
+          <div style="background:rgba(255,255,255,0.8);padding:16px;border-radius:10px;border:1px solid rgba(8,145,178,0.2);">
+            <div style="font-weight:600;margin-bottom:8px;">${member.name}</div>
+            <div style="font-size:0.85rem;color:#666;margin-bottom:8px;">${member.role}</div>
+            <div style="font-size:0.8rem;color:#999;">Tasks: ${member.taskCount || 0}</div>
+          </div>
+        `;
+      });
+
+      document.getElementById("teamOverview").innerHTML = html || '<div class="empty-state" style="grid-column:1/-1;">No team members</div>';
+    }
+
+    function loadProjectHealth() {
+      // Load project health metrics for managers
+      if (!dashboardData || !dashboardData.projects) {
+        document.getElementById("projectHealthList").innerHTML = '<div class="empty-state">No projects to analyze</div>';
+        return;
+      }
+
+      let html = '';
+      (dashboardData.projects || []).forEach(project => {
+        const health = project.stats || {};
+        const onTrack = (health.tasksCompleted || 0) / (health.totalTasks || 1);
+        const healthStatus = onTrack >= 0.75 ? '✅ On Track' : onTrack >= 0.5 ? '⚠️ At Risk' : '🔴 Behind';
+        
+        html += `
+          <li class="task-item">
+            <div class="task-info">
+              <div class="task-title">${project.name}</div>
+              <div class="task-meta">${health.totalTasks || 0} tasks • ${health.tasksCompleted || 0} completed</div>
+            </div>
+            <span class="task-status" style="background:${onTrack >= 0.75 ? 'rgba(16,185,129,0.2)' : onTrack >= 0.5 ? 'rgba(245,158,11,0.2)' : 'rgba(239,68,68,0.2)'}color:${onTrack >= 0.75 ? '#065f46' : onTrack >= 0.5 ? '#92400e' : '#7f1d1d'};">${healthStatus}</span>
+          </li>
+        `;
+      });
+
+      document.getElementById("projectHealthList").innerHTML = html || '<div class="empty-state">No project health data</div>';
+    }
+
+    function loadSprintProgress() {
+      // Load sprint progress for managers
+      if (!dashboardData || !dashboardData.sprints || dashboardData.sprints.length === 0) {
+        document.getElementById("sprintProgress").innerHTML = '<div class="empty-state">No active sprints</div>';
+        return;
+      }
+
+      let html = '';
+      (dashboardData.sprints || []).forEach(sprint => {
+        if (['active', 'planning'].includes(sprint.status)) {
+          const progress = sprint.totalTasks ? (sprint.completedTasks / sprint.totalTasks * 100).toFixed(0) : 0;
+          html += `
+            <div style="background:rgba(255,255,255,0.8);padding:16px;border-radius:10px;border-left:4px solid #0891b2;margin-bottom:12px;">
+              <div style="font-weight:600;margin-bottom:8px;">${sprint.name}</div>
+              <div style="font-size:0.85rem;color:#666;margin-bottom:8px;">${sprint.completedTasks || 0}/${sprint.totalTasks || 0} tasks completed</div>
+              <div style="width:100%;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                <div style="width:${progress}%;height:100%;background:linear-gradient(135deg,#0891b2,#22c55e);transition:width 0.3s;"></div>
+              </div>
+            </div>
+          `;
+        }
+      });
+
+      document.getElementById("sprintProgress").innerHTML = html || '<div class="empty-state">No active sprints</div>';
+    }
+
+    function loadCurrentSprint() {
+      // Load current sprint for team members
+      if (!dashboardData || !dashboardData.sprints || dashboardData.sprints.length === 0) {
+        document.getElementById("currentSprintInfo").innerHTML = '<div class="empty-state">No sprint assigned</div>';
+        return;
+      }
+
+      const activeSprint = (dashboardData.sprints || []).find(s => s.status === 'active')
+        || (dashboardData.sprints || []).find(s => s.status === 'planning');
+      if (!activeSprint) {
+        document.getElementById("currentSprintInfo").innerHTML = '<div class="empty-state">No active sprint assigned</div>';
+        return;
+      }
+
+      const progress = activeSprint.totalTasks ? (activeSprint.completedTasks / activeSprint.totalTasks * 100).toFixed(0) : 0;
+      const html = `
+        <div style="background:rgba(255,255,255,0.8);padding:20px;border-radius:12px;border:2px solid rgba(8,145,178,0.2);">
+          <h3 style="margin:0 0 12px 0;color:#083344;">${activeSprint.name}</h3>
+          <p style="margin:0 0 16px 0;color:#666;">
+            Dates: ${new Date(activeSprint.startDate).toLocaleDateString()} - ${new Date(activeSprint.endDate).toLocaleDateString()}
+          </p>
+          <div style="margin-bottom:12px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+              <span style="color:#666;">Progress</span>
+              <strong style="color:#0891b2;">${progress}%</strong>
+            </div>
+            <div style="width:100%;height:10px;background:#e5e7eb;border-radius:5px;overflow:hidden;">
+              <div style="width:${progress}%;height:100%;background:linear-gradient(135deg,#0891b2,#22c55e);transition:width 0.3s;"></div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;">
+            <div>
+              <div style="font-size:0.85rem;color:#666;">Your Tasks</div>
+              <strong style="font-size:1.4rem;color:#0891b2;">${activeSprint.userTaskCount || 0}</strong>
+            </div>
+            <div>
+              <div style="font-size:0.85rem;color:#666;">Completed</div>
+              <strong style="font-size:1.4rem;color:#22c55e;">${activeSprint.userCompletedCount || 0}</strong>
+            </div>
+          </div>
+        </div>
+      `;
+
+      document.getElementById("currentSprintInfo").innerHTML = html;
+    }
+
+    function loadProjects() {
+      if (!dashboardData || !dashboardData.projects) {
+        document.getElementById("projectsList").innerHTML = '<div class="empty-state">No projects yet</div>';
+        return;
+      }
+
+      const projects = dashboardData.projects;
+
+      if (projects.length === 0) {
+        document.getElementById("projectsList").innerHTML = '<div class="empty-state">No projects. Click "Create New Project" to get started!</div>';
+        return;
+      }
+
+      let html = '';
+      projects.forEach(project => {
+        const badge = project.type === "scrum" ? "🔄 Scrum" : "📋 Kanban";
+        const badgeClass = project.type === "scrum" ? "scrum" : "kanban";
+        
+        html += `
+          <div class="project-card" onclick="selectProject('${project._id}', '${project.type}')">
+            <span class="project-badge ${badgeClass}">${badge}</span>
+            <div class="project-name">${project.name}</div>
+            <div class="project-description">${project.description || 'No description'}</div>
+            <div class="project-footer">
+              <span>${project.members?.length || 0} members</span>
+              <span>📊 ${project.stats?.tasks || 0} tasks</span>
+            </div>
+          </div>
+        `;
+      });
+
+      document.getElementById("projectsList").innerHTML = html;
+    }
+
+    function loadTasks() {
+      if (!dashboardData || !dashboardData.assignedTasks) {
+        document.getElementById("tasksList").innerHTML = '<div class="empty-state">No tasks assigned</div>';
+        return;
+      }
+
+      const tasks = dashboardData.assignedTasks;
+
+      if (tasks.length === 0) {
+        document.getElementById("tasksList").innerHTML = '<div class="empty-state">No tasks assigned to you yet</div>';
+        return;
+      }
+
+      let html = '';
+      tasks.forEach(task => {
+        const statusClass = `status-${task.status}`;
+        html += `
+          <li class="task-item">
+            <div class="task-info">
+              <div class="task-title">${task.title}</div>
+              <div class="task-meta">
+                <strong>${task.projectId?.name || 'N/A'}</strong> 
+                ${task.sprint?.sprintName ? `• Sprint: ${task.sprint.sprintName}` : ''}
+              </div>
+            </div>
+            <span class="task-status ${statusClass}">${task.status.toUpperCase()}</span>
+          </li>
+        `;
+      });
+
+      document.getElementById("tasksList").innerHTML = html;
+    }
+
+    function selectProject(projectId, projectType) {
+      setActiveContext({ projectId, projectType });
+      
+      if (projectType === "scrum") {
+        window.location.href = `/sprint.html?projectId=${projectId}`;
+      } else {
+        window.location.href = "/kanban-board.html";
+      }
+    }
+
+    // Initialize on page load
+    initializeDashboard();
+  </script>
+</body>
+</html>
