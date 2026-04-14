@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Backend API Test | FlowBoard</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #F7FCEB 0%, #ECFDF0 50%, #D1FAE5 100%);
+      margin: 0;
+      padding: 20px;
+      color: #083344;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 4px 20px rgba(8, 51, 68, 0.08);
+    }
+    
+    h1 {
+      background: linear-gradient(135deg, #76C893, #52B69A);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .test-section {
+      background: rgba(118, 200, 147, 0.05);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(118, 200, 147, 0.2);
+    }
+    
+    .test-title {
+      color: #34A0A4;
+      font-weight: 600;
+      font-size: 1.2rem;
+      margin-bottom: 15px;
+    }
+    
+    .test-btn {
+      background: linear-gradient(135deg, #76C893, #52B69A);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-weight: 600;
+      margin-right: 10px;
+      margin-bottom: 10px;
+      transition: all 0.3s;
+    }
+    
+    .test-btn:hover {
+      background: linear-gradient(135deg, #52B69A, #34A0A4);
+      transform: translateY(-2px);
+    }
+    
+    .result-box {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 15px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      max-height: 300px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+    
+    .success {
+      border-color: #28a745;
+      background-color: #d4edda;
+      color: #155724;
+    }
+    
+    .error {
+      border-color: #dc3545;
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    
+    .warning {
+      border-color: #ffc107;
+      background-color: #fff3cd;
+      color: #856404;
+    }
+    
+    .status-indicator {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    
+    .status-online { background: #28a745; }
+    .status-offline { background: #dc3545; }
+    .status-testing { background: #ffc107; animation: pulse 1s infinite; }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    .endpoint-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+    
+    .endpoint-card {
+      background: white;
+      border: 1px solid rgba(118, 200, 147, 0.3);
+      border-radius: 8px;
+      padding: 15px;
+      transition: all 0.3s;
+    }
+    
+    .endpoint-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(8, 51, 68, 0.1);
+    }
+    
+    .endpoint-method {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-right: 8px;
+    }
+    
+    .method-get { background: #28a745; color: white; }
+    .method-post { background: #007bff; color: white; }
+    .method-put { background: #ffc107; color: black; }
+    .method-delete { background: #dc3545; color: white; }
+    
+    .config-section {
+      background: rgba(52, 160, 164, 0.1);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .config-input {
+      width: 300px;
+      padding: 8px 12px;
+      border: 1px solid rgba(118, 200, 147, 0.3);
+      border-radius: 6px;
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚀 Backend API Testing Dashboard</h1>
+    
+    <!-- Configuration Section -->
+    <div class="config-section">
+      <div class="test-title">Backend Configuration</div>
+      <label>
+        Backend URL: 
+        <input type="text" id="backendUrl" class="config-input" value="http://localhost:5000" placeholder="http://localhost:5000">
+      </label>
+      <button class="test-btn" onclick="updateBackendUrl()">Update URL</button>
+      <div id="currentConfig" class="result-box" style="margin-top: 10px;">
+Backend URL: http://localhost:5000
+Status: <span class="status-indicator status-offline"></span>Not tested yet
+      </div>
+    </div>
+    
+    <!-- Connection Test -->
+    <div class="test-section">
+      <div class="test-title">
+        <span class="status-indicator" id="connectionStatus"></span>
+        Connection Test
+      </div>
+      <button class="test-btn" onclick="testConnection()">Test Connection</button>
+      <button class="test-btn" onclick="testHealthCheck()">Health Check</button>
+      <button class="test-btn" onclick="testCORS()">Test CORS</button>
+      <div id="connectionResult" class="result-box">Click "Test Connection" to check if backend is running...</div>
+    </div>
+    
+    <!-- Authentication Tests -->
+    <div class="test-section">
+      <div class="test-title">Authentication API Tests</div>
+      <button class="test-btn" onclick="testSignup()">Test Signup</button>
+      <button class="test-btn" onclick="testLogin()">Test Login</button>
+      <button class="test-btn" onclick="testLogout()">Test Logout</button>
+      <button class="test-btn" onclick="testAuthToken()">Verify Token</button>
+      <div id="authResult" class="result-box">Authentication tests will appear here...</div>
+    </div>
+    
+    <!-- Projects API Tests -->
+    <div class="test-section">
+      <div class="test-title">Projects API Tests</div>
+      <button class="test-btn" onclick="testCreateProject()">Create Project</button>
+      <button class="test-btn" onclick="testGetProjects()">Get All Projects</button>
+      <button class="test-btn" onclick="testUpdateProject()">Update Project</button>
+      <button class="test-btn" onclick="testDeleteProject()">Delete Project</button>
+      <div id="projectsResult" class="result-box">Projects API tests will appear here...</div>
+    </div>
+    
+    <!-- Tasks API Tests -->
+    <div class="test-section">
+      <div class="test-title">Tasks API Tests</div>
+      <button class="test-btn" onclick="testCreateTask()">Create Task</button>
+      <button class="test-btn" onclick="testGetTasks()">Get All Tasks</button>
+      <button class="test-btn" onclick="testUpdateTask()">Update Task</button>
+      <button class="test-btn" onclick="testDeleteTask()">Delete Task</button>
+      <div id="tasksResult" class="result-box">Tasks API tests will appear here...</div>
+    </div>
+    
+    <!-- API Endpoints Reference -->
+    <div class="test-section">
+      <div class="test-title">Available API Endpoints</div>
+      <div class="endpoint-list">
+        <div class="endpoint-card">
+          <span class="endpoint-method method-post">POST</span>
+          <strong>/api/auth/register</strong>
+          <p>Register new user</p>
+        </div>
+        <div class="endpoint-card">
+          <span class="endpoint-method method-post">POST</span>
+          <strong>/api/auth/login</strong>
+          <p>User login</p>
+        </div>
+        <div class="endpoint-card">
+          <span class="endpoint-method method-post">POST</span>
+          <strong>/api/auth/logout</strong>
+          <p>User logout</p>
+        </div>
+        <div class="endpoint-card">
+          <span class="endpoint-method method-get">GET</span>
+          <strong>/api/projects</strong>
+          <p>Get all projects</p>
+        </div>
+        <div class="endpoint-card">
+          <span class="endpoint-method method-post">POST</span>
+          <strong>/api/projects</strong>
+          <p>Create new project</p>
+        </div>
+        <div class="endpoint-card">
+          <span class="endpoint-method method-get">GET</span>
+          <strong>/api/tasks</strong>
+          <p>Get all tasks</p>
+        </div>
+        <div class="endpoint-card">
+          <span class="endpoint-method method-post">POST</span>
+          <strong>/api/tasks</strong>
+          <p>Create new task</p>
+        </div>
+        <div class="endpoint-card">
+          <span class="endpoint-method method-put">PUT</span>
+          <strong>/api/tasks/:id</strong>
+          <p>Update task</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Performance Tests -->
+    <div class="test-section">
+      <div class="test-title">Performance & Load Tests</div>
+      <button class="test-btn" onclick="testResponseTime()">Response Time Test</button>
+      <button class="test-btn" onclick="testMultipleRequests()">Multiple Requests Test</button>
+      <button class="test-btn" onclick="testLargeDataset()">Large Dataset Test</button>
+      <div id="performanceResult" class="result-box">Performance test results will appear here...</div>
+    </div>
+  </div>
+
+  <script>
+    let backendUrl = 'http://localhost:5000';
+    let authToken = null;
+    let testProjectId = null;
+    let testTaskId = null;
+    
+    // Utility function to update result box
+    function updateResult(elementId, message, type = 'info') {
+      const element = document.getElementById(elementId);
+      element.textContent = message;
+      element.className = `result-box ${type}`;
+    }
+    
+    // Update backend URL
+    function updateBackendUrl() {
+      backendUrl = document.getElementById('backendUrl').value;
+      document.getElementById('currentConfig').innerHTML = `
+Backend URL: ${backendUrl}
+Status: <span class="status-indicator status-offline"></span>Updated - Test connection to verify
+      `;
+    }
+    
+    // Test basic connection
+    async function testConnection() {
+      const statusEl = document.getElementById('connectionStatus');
+      statusEl.className = 'status-indicator status-testing';
+      
+      const startTime = Date.now();
+      try {
+        const response = await fetch(`${backendUrl}/api/health`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const responseTime = Date.now() - startTime;
+        
+        if (response.ok) {
+          const data = await response.json();
+          statusEl.className = 'status-indicator status-online';
+          updateResult('connectionResult', 
+            `✅ Connection successful!\n` +
+            `Response Time: ${responseTime}ms\n` +
+            `Status: ${response.status}\n` +
+            `Data: ${JSON.stringify(data, null, 2)}`, 
+            'success'
+          );
+        } else {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+      } catch (error) {
+        statusEl.className = 'status-indicator status-offline';
+        updateResult('connectionResult', 
+          `❌ Connection failed!\n` +
+          `Error: ${error.message}\n` +
+          `Time: ${Date.now() - startTime}ms\n\n` +
+          `Troubleshooting:\n` +
+          `1. Check if backend server is running\n` +
+          `2. Verify the backend URL is correct\n` +
+          `3. Check for CORS issues\n` +
+          `4. Ensure port 5000 is not blocked`, 
+          'error'
+        );
+      }
+    }
+    
+    // Test health check endpoint
+    async function testHealthCheck() {
+      try {
+        const response = await fetch(`${backendUrl}/api/health`);
+        const data = await response.json();
+        
+        updateResult('connectionResult',
+          `🏥 Health Check Results:\n` +
+          `Status: ${response.status}\n` +
+          `Server: ${data.status || 'Unknown'}\n` +
+          `Timestamp: ${new Date().toISOString()}\n` +
+          `Response: ${JSON.stringify(data, null, 2)}`,
+          'success'
+        );
+      } catch (error) {
+        updateResult('connectionResult',
+          `❌ Health check failed: ${error.message}`,
+          'error'
+        );
+      }
+    }
+    
+    // Test CORS
+    async function testCORS() {
+      try {
+        const response = await fetch(`${backendUrl}/api/health`, {
+          method: 'OPTIONS',
+          headers: {
+            'Origin': window.location.origin,
+            'Access-Control-Request-Method': 'GET'
+          }
+        });
+        
+        updateResult('connectionResult',
+          `🌐 CORS Test Results:\n` +
+          `Status: ${response.status}\n` +
+          `Access-Control-Allow-Origin: ${response.headers.get('Access-Control-Allow-Origin')}\n` +
+          `Access-Control-Allow-Methods: ${response.headers.get('Access-Control-Allow-Methods')}\n` +
+          `CORS Headers: ${JSON.stringify(Object.fromEntries(response.headers.entries()), null, 2)}`,
+          response.status < 400 ? 'success' : 'warning'
+        );
+      } catch (error) {
+        updateResult('connectionResult',
+          `❌ CORS test failed: ${error.message}`,
+          'error'
+        );
+      }
+    }
+    
+    // Test user signup
+    async function testSignup() {
+      const testUser = {
+        username: `testuser_${Date.now()}`,
+        email: `test_${Date.now()}@example.com`,
+        password: 'testpassword123',
+        role: 'worker'
+      };
+      
+      try {
+        const response = await fetch(`${backendUrl}/api/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(testUser)
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          authToken = data.token;
+          updateResult('authResult',
+            `✅ Signup successful!\n` +
+            `User: ${testUser.username}\n` +
+            `Email: ${testUser.email}\n` +
+            `Token: ${authToken ? 'Received' : 'Not provided'}\n` +
+            `Response: ${JSON.stringify(data, null, 2)}`,
+            'success'
+          );
+        } else {
+          updateResult('authResult',
+            `⚠️ Signup failed!\n` +
+            `Status: ${response.status}\n` +
+            `Error: ${JSON.stringify(data, null, 2)}`,
+            'warning'
+          );
+        }
+      } catch (error) {
+        updateResult('authResult',
+          `❌ Signup error: ${error.message}`,
+          'error'
+        );
+      }
+    }
+    
+    // Test user login
+    async function testLogin() {
+      const loginData = {
+        email: 'admin@example.com',
+        password: 'admin123'
+      };
+      
+      try {
+        const response = await fetch(`${backendUrl}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(loginData)
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          authToken = data.token;
+          updateResult('authResult',
+            `✅ Login successful!\n` +
+            `Token: ${authToken ? 'Received' : 'Not provided'}\n` +
+            `User: ${data.user?.username || 'Unknown'}\n` +
+            `Role: ${data.user?.role || 'Unknown'}\n` +
+            `Response: ${JSON.stringify(data, null, 2)}`,
+            'success'
+          );
+        } else {
+          updateResult('authResult',
+            `⚠️ Login failed!\n` +
+            `Status: ${response.status}\n` +
+            `Error: ${JSON.stringify(data, null, 2)}\n\n` +
+            `Try creating a test user first or check credentials`,
+            'warning'
+          );
+        }
+      } catch (error) {
+        updateResult('authResult',
+          `❌ Login error: ${error.message}`,
+          'error'
+        );
+      }
+    }
+    
+    // Test token verification
+    async function testAuthToken() {
+      if (!authToken) {
+        updateResult('authResult',
+          `⚠️ No token available. Please login first.`,
+          'warning'
+        );
+        return;
+      }
+      
+      try {
+        const response = await fetch(`${backendUrl}/api/auth/verify`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        const data = await response.json();
+        
+        updateResult('authResult',
+          `🔐 Token Verification:\n` +
+          `Status: ${response.status}\n` +
+          `Valid: ${response.ok ? 'Yes' : 'No'}\n` +
+          `Response: ${JSON.stringify(data, null, 2)}`,
+          response.ok ? 'success' : 'error'
+        );
+      } catch (error) {
+        updateResult('authResult',
+          `❌ Token verification error: ${error.message}`,
+          'error'
+        );
+      }
+    }
+    
+    // Test create project
+    async function testCreateProject() {
+      const projectData = {
+        name: `Test Project ${Date.now()}`,
+        description: 'This is a test project created by the API tester',
+        type: 'scrum'
+      };
+      
+      const headers = { 'Content-Type': 'application/json' };
+      if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`;
+      }
+      
+      try {
+        const response = await fetch(`${backendUrl}/api/projects`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(projectData)
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          testProjectId = data.id;
+          updateResult('projectsResult',
+            `✅ Project created successfully!\n` +
+            `ID: ${data.id}\n` +
+            `Name: ${data.name}\n` +
+            `Type: ${data.type}\n` +
+            `Response: ${JSON.stringify(data, null, 2)}`,
+            'success'
+          );
+        } else {
+          updateResult('projectsResult',
+            `⚠️ Project creation failed!\n` +
+            `Status: ${response.status}\n` +
+            `Error: ${JSON.stringify(data, null, 2)}`,
+            'warning'
+          );
+        }
+      } catch (error) {
+        updateResult('projectsResult',
+          `❌ Project creation error: ${error.message}`,
+          'error'
+        );
+      }
+    }
+    
+    // Test get all projects
+    async function testGetProjects() {
+      const headers = { 'Content-Type': 'application/json' };
+      if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`;
+      }
+      
+      try {
+        const response = await fetch(`${backendUrl}/api/projects`, {
+          method: 'GET',
+          headers
+        });
+        
+        const data = await response.json();
+        
+        updateResult('projectsResult',
+          `📋 Projects Retrieved:\n` +
+          `Status: ${response.status}\n` +
+          `Count: ${Array.isArray(data) ? data.length : 'Unknown'}\n` +
+          `Response: ${JSON.stringify(data, null, 2)}`,
+          response.ok ? 'success' : 'error'
+        );
+      } catch (error) {
+        updateResult('projectsResult',
+          `❌ Get projects error: ${error.message}`,
+          'error'
+        );
+      }
+    }
+    
+    // Test create task
+    async function testCreateTask() {
+      const taskData = {
+        title: `Test Task ${Date.now()}`,
+        description: 'This is a test task created by the API tester',
+        status: 'todo',
+        projectId: testProjectId || 1,
+        assigneeId: 1
+      };
+      
+      const headers = { 'Content-Type': 'application/json' };
+      if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`;
+      }
+      
+      try {
+        const response = await fetch(`${backendUrl}/api/tasks`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(taskData)
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          testTaskId = data.id;
+          updateResult('tasksResult',
+            `✅ Task created successfully!\n` +
+            `ID: ${data.id}\n` +
+            `Title: ${data.title}\n` +
+            `Status: ${data.status}\n` +
+            `Response: ${JSON.stringify(data, null, 2)}`,
+            'success'
+          );
+        } else {
+          updateResult('tasksResult',
+            `⚠️ Task creation failed!\n` +
+            `Status: ${response.status}\n` +
+            `Error: ${JSON.stringify(data, null, 2)}`,
+            'warning'
+          );
+        }
+      } catch (error) {
+        updateResult('tasksResult',
+          `❌ Task creation error: ${error.message}`,
+          'error'
+        );
+      }
+    }
+    
+    // Test get all tasks
+    async function testGetTasks() {
+      const headers = { 'Content-Type': 'application/json' };
+      if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`;
+      }
+      
+      try {
+        const response = await fetch(`${backendUrl}/api/tasks`, {
+          method: 'GET',
+          headers
+        });
+        
+        const data = await response.json();
+        
+        updateResult('tasksResult',
+          `📝 Tasks Retrieved:\n` +
+          `Status: ${response.status}\n` +
+          `Count: ${Array.isArray(data) ? data.length : 'Unknown'}\n` +
+          `Response: ${JSON.stringify(data, null, 2)}`,
+          response.ok ? 'success' : 'error'
+        );
+      } catch (error) {
+        updateResult('tasksResult',
+          `❌ Get tasks error: ${error.message}`,
+          'error'
+        );
+      }
+    }
+    
+    // Test response time
+    async function testResponseTime() {
+      const tests = [];
+      const iterations = 5;
+      
+      updateResult('performanceResult', `🚀 Running response time tests (${iterations} iterations)...`, 'warning');
+      
+      for (let i = 0; i < iterations; i++) {
+        const startTime = Date.now();
+        try {
+          await fetch(`${backendUrl}/api/health`);
+          const responseTime = Date.now() - startTime;
+          tests.push(responseTime);
+        } catch (error) {
+          tests.push(-1); // Error indicator
+        }
+      }
+      
+      const validTests = tests.filter(t => t > 0);
+      const avgTime = validTests.reduce((a, b) => a + b, 0) / validTests.length;
+      const minTime = Math.min(...validTests);
+      const maxTime = Math.max(...validTests);
+      
+      updateResult('performanceResult',
+        `📊 Response Time Analysis:\n` +
+        `Tests completed: ${validTests.length}/${iterations}\n` +
+        `Average: ${avgTime.toFixed(2)}ms\n` +
+        `Minimum: ${minTime}ms\n` +
+        `Maximum: ${maxTime}ms\n` +
+        `All times: [${tests.join(', ')}]ms\n\n` +
+        `Performance Rating: ${avgTime < 100 ? '🟢 Excellent' : avgTime < 500 ? '🟡 Good' : '🔴 Needs Improvement'}`,
+        validTests.length === iterations ? 'success' : 'warning'
+      );
+    }
+    
+    // Test multiple concurrent requests
+    async function testMultipleRequests() {
+      const concurrentRequests = 10;
+      updateResult('performanceResult', `🔄 Testing ${concurrentRequests} concurrent requests...`, 'warning');
+      
+      const startTime = Date.now();
+      const promises = Array(concurrentRequests).fill().map(() => 
+        fetch(`${backendUrl}/api/health`).then(r => r.ok).catch(() => false)
+      );
+      
+      try {
+        const results = await Promise.all(promises);
+        const totalTime = Date.now() - startTime;
+        const successCount = results.filter(Boolean).length;
+        
+        updateResult('performanceResult',
+          `🔄 Concurrent Requests Test:\n` +
+          `Total requests: ${concurrentRequests}\n` +
+          `Successful: ${successCount}\n` +
+          `Failed: ${concurrentRequests - successCount}\n` +
+          `Total time: ${totalTime}ms\n` +
+          `Average per request: ${(totalTime / concurrentRequests).toFixed(2)}ms\n` +
+          `Success rate: ${(successCount / concurrentRequests * 100).toFixed(1)}%`,
+          successCount === concurrentRequests ? 'success' : 'warning'
+        );
+      } catch (error) {
+        updateResult('performanceResult',
+          `❌ Concurrent requests test failed: ${error.message}`,
+          'error'
+        );
+      }
+    }
+    
+    // Initialize on page load
+    window.addEventListener('load', () => {
+      // Auto-test connection on load
+      setTimeout(testConnection, 1000);
+    });
+  </script>
+</body>
+</html>
