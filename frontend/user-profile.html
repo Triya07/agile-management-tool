@@ -914,7 +914,9 @@
         jobTitle: user.jobTitle || "",
         department: user.department || "",
         bio: user.bio || "",
-        skills: Array.isArray(user.skills) ? user.skills : []
+        skills: Array.isArray(user.skills) ? user.skills : [],
+        avatar: user.avatar || "",
+        startDate: user.startDate || null
       };
 
       localStorage.setItem("user", JSON.stringify(normalizedUser));
@@ -991,16 +993,34 @@
       const value = input.value.trim();
       if (!value) return;
 
-      const normalized = value.replace(/\s+/g, " ");
-      const exists = currentSkills.some(skill => skill.toLowerCase() === normalized.toLowerCase());
-      if (!exists) {
-        currentSkills.push(normalized);
+      const entries = value
+        .split(",")
+        .map((skill) => skill.trim().replace(/\s+/g, " "))
+        .filter(Boolean);
+
+      let didAddSkill = false;
+      entries.forEach((entry) => {
+        const exists = currentSkills.some(skill => skill.toLowerCase() === entry.toLowerCase());
+        if (!exists) {
+          currentSkills.push(entry);
+          didAddSkill = true;
+        }
+      });
+
+      if (didAddSkill) {
         currentSkills.sort((a, b) => a.localeCompare(b));
         renderSkills();
       }
 
       input.value = "";
       input.focus();
+    }
+
+    function flushPendingSkillInput() {
+      const input = document.getElementById("skillsInput");
+      if (input && input.value.trim()) {
+        addSkill();
+      }
     }
 
     function statusClass(status) {
@@ -1181,6 +1201,8 @@
         return;
       }
 
+      flushPendingSkillInput();
+
       const name = document.getElementById("nameInput").value.trim();
       const email = document.getElementById("emailInput").value.trim();
 
@@ -1193,9 +1215,10 @@
       const originalText = button.textContent;
       button.disabled = true;
       button.textContent = "Saving...";
+      const expectedSkills = [...currentSkills];
 
       try {
-        const response = await updateUserProfile(
+        await updateUserProfile(
           name,
           email,
           document.getElementById("phoneInput").value.trim(),
@@ -1207,10 +1230,22 @@
           currentUser.avatar || ""
         );
 
-        currentUser = response.user;
+        const refreshedProfile = await getUserProfile();
+        currentUser = refreshedProfile.user;
+
+        const normalizedExpectedSkills = [...expectedSkills].sort((a, b) => a.localeCompare(b));
+        const normalizedSavedSkills = Array.isArray(currentUser.skills)
+          ? [...currentUser.skills].sort((a, b) => a.localeCompare(b))
+          : [];
+
+        if (JSON.stringify(normalizedExpectedSkills) !== JSON.stringify(normalizedSavedSkills)) {
+          throw new Error("Profile save did not persist the latest skills. Please try again.");
+        }
+
         syncSessionUser(currentUser);
         renderProfileHeader();
         populateForm();
+
         showAlert("Profile updated successfully.", "success");
       } catch (error) {
         console.error("Failed to update profile:", error);

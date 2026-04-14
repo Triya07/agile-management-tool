@@ -6,27 +6,27 @@
   <title>Reports | Agile Management Tool</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    body { 
-      background: linear-gradient(135deg, #f0fdfa 0%, #e6fffa 50%, #ccfdf7 100%); 
-      font-family: 'Segoe UI', Arial, sans-serif; 
-      color: #083344; 
+    body {
+      background: linear-gradient(135deg, #f0fdfa 0%, #e6fffa 50%, #ccfdf7 100%);
+      font-family: 'Segoe UI', Arial, sans-serif;
+      color: #083344;
     }
-    .main-container { 
-      display: flex; 
-      min-height: 100vh; 
+    .main-container {
+      display: flex;
+      min-height: 100vh;
       background: linear-gradient(135deg, #f0fdfa 0%, #e6fffa 100%);
     }
-    #main-content { 
-      flex: 1; 
-      padding: 32px 40px; 
+    #main-content {
+      flex: 1;
+      padding: 32px 40px;
       background: transparent;
     }
-    .report-section { 
-      background: rgba(255, 255, 255, 0.8); 
-      border-radius: 15px; 
-      box-shadow: 0 4px 20px rgba(8, 51, 68, 0.08); 
-      padding: 28px; 
-      margin-bottom: 24px; 
+    .report-section {
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 15px;
+      box-shadow: 0 4px 20px rgba(8, 51, 68, 0.08);
+      padding: 28px;
+      margin-bottom: 24px;
       border: 1px solid rgba(6, 182, 212, 0.1);
     }
     .report-section h2 {
@@ -37,32 +37,17 @@
       font-weight: 700;
       font-size: 2.2rem;
     }
-    .chart-container { 
-      min-height: 220px;
-      background: linear-gradient(135deg, rgba(6, 182, 212, 0.05), rgba(34, 197, 94, 0.02)); 
-      border-radius: 12px; 
-      margin: 20px 0; 
-      border: 1px solid rgba(6, 182, 212, 0.1);
-      padding: 18px;
-    }
-    .chart-container h3 {
-      color: #0e7490;
-    }
-    .chart-container p {
-      color: #0e7490;
-      opacity: 0.7;
-    }
-    .stats-grid { 
-      display: grid; 
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
-      gap: 20px; 
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
       margin-bottom: 24px;
     }
-    .stat-card { 
-      background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(34, 197, 94, 0.05)); 
-      padding: 24px; 
-      border-radius: 12px; 
-      text-align: center; 
+    .stat-card {
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(34, 197, 94, 0.05));
+      padding: 24px;
+      border-radius: 12px;
+      text-align: center;
       border: 1px solid rgba(6, 182, 212, 0.2);
       transition: transform 0.3s, box-shadow 0.3s;
     }
@@ -82,20 +67,6 @@
       background-clip: text !important;
       font-weight: 700 !important;
     }
-    .chart-title {
-      margin: 0 0 12px 0;
-      color: #0e7490;
-      font-size: 1.1rem;
-      font-weight: 700;
-    }
-    pre.chart-text {
-      margin: 0;
-      font-family: Consolas, monospace;
-      font-size: 0.82rem;
-      color: #0b5f71;
-      white-space: pre-wrap;
-      line-height: 1.35;
-    }
     .project-picker {
       margin: 0 0 14px 0;
       display: flex;
@@ -108,6 +79,96 @@
       border-radius: 8px;
       border: 1px solid rgba(6, 182, 212, 0.25);
       min-width: 240px;
+    }
+    .insight-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(180px, 1fr));
+      gap: 14px;
+      margin: 6px 0 24px;
+    }
+    .insight-card {
+      background: rgba(255, 255, 255, 0.78);
+      border: 1px solid rgba(6, 182, 212, 0.14);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .insight-label {
+      color: #0e7490;
+      font-size: 0.88rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .insight-value {
+      color: #083344;
+      font-size: 1.3rem;
+      font-weight: 800;
+    }
+    .insight-note {
+      margin-top: 6px;
+      color: rgba(8, 51, 68, 0.76);
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .chart-card {
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.05), rgba(34, 197, 94, 0.02));
+      border-radius: 12px;
+      border: 1px solid rgba(6, 182, 212, 0.1);
+      padding: 18px;
+      min-height: 320px;
+    }
+    .chart-title {
+      margin: 0 0 12px 0;
+      color: #0e7490;
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+    .chart-svg {
+      width: 100%;
+      height: 220px;
+      display: block;
+    }
+    .chart-empty {
+      min-height: 220px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(14, 116, 144, 0.72);
+      text-align: center;
+      font-weight: 600;
+      padding: 12px;
+    }
+    .chart-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 14px;
+      margin-top: 14px;
+    }
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #0e7490;
+      font-size: 0.92rem;
+      font-weight: 600;
+    }
+    .legend-swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+    @media (max-width: 980px) {
+      .chart-grid,
+      .insight-strip {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -138,7 +199,7 @@
           <label for="projectSelect"><strong>Project</strong></label>
           <select id="projectSelect"></select>
         </div>
-        
+
         <div class="stats-grid">
           <div class="stat-card">
             <h3>Total Tasks</h3>
@@ -165,56 +226,247 @@
             <div style="font-size:2rem;color:#0ea5e9;" id="backlogItems">0</div>
           </div>
         </div>
-        
-        <div class="chart-container">
-          <div style="width:100%;">
-            <h3 class="chart-title">Sprint Burndown (Latest/Active Sprint)</h3>
-            <pre class="chart-text" id="burndownChart">No sprint data available.</pre>
+
+        <div class="insight-strip">
+          <div class="insight-card">
+            <div class="insight-label">Velocity Source</div>
+            <div class="insight-value" id="velocitySource">Auto-calculated</div>
+            <div class="insight-note">Velocity is generated from sprint task completion data. Managers do not enter it manually.</div>
+          </div>
+          <div class="insight-card">
+            <div class="insight-label">Latest Completed Sprint</div>
+            <div class="insight-value" id="latestVelocity">0 pts</div>
+            <div class="insight-note" id="latestVelocityNote">No completed sprint history yet.</div>
+          </div>
+          <div class="insight-card">
+            <div class="insight-label">Active Sprint Forecast</div>
+            <div class="insight-value" id="projectedVelocity">0 pts</div>
+            <div class="insight-note">Forecasted automatically from the active sprint's current completed points.</div>
           </div>
         </div>
 
-        <div class="chart-container">
-          <div style="width:100%;">
+        <div class="chart-grid">
+          <div class="chart-card">
+            <h3 class="chart-title">Task Status Distribution</h3>
+            <div id="statusPieChart" class="chart-empty">Loading chart...</div>
+            <div id="statusPieLegend" class="chart-legend"></div>
+          </div>
+
+          <div class="chart-card">
+            <h3 class="chart-title">Sprint Burndown (Latest/Active Sprint)</h3>
+            <div id="burndownChart" class="chart-empty">Loading chart...</div>
+          </div>
+
+          <div class="chart-card">
             <h3 class="chart-title">Velocity Trend (Completed Sprints)</h3>
-            <pre class="chart-text" id="velocityChart">No completed sprint history yet.</pre>
+            <div id="velocityChart" class="chart-empty">Loading chart...</div>
+          </div>
+
+          <div class="chart-card">
+            <h3 class="chart-title">Sprint Commitment vs Completion</h3>
+            <div id="sprintPerformanceChart" class="chart-empty">Loading chart...</div>
           </div>
         </div>
       </div>
     </main>
   </div>
- 
+
   <script src="api.js"></script>
   <script>
-     // AUTH GUARD — paste at top of every protected page
-(function() {
-  const token = localStorage.getItem('token');
-  const user  = JSON.parse(localStorage.getItem('user') || 'null');
-  if (!token || !user) {
-    window.location.href = 'login.html';
-    return;
-  }
-
-  // Role-based protection
-  // On manager-only pages (dashboard.html, team.html, reports.html):
-  if (user.role !== 'manager') window.location.href = 'dashboard-team.html';
-
-  // On worker-only pages (dashboard-team.html, my-tasks.html):
-  // if (user.role !== 'worker') window.location.href = 'dashboard.html';
-})();
-  
-    function renderBarChart(data, labelKey, valueKey, unit = '') {
-      if (!Array.isArray(data) || data.length === 0) {
-        return 'No data available.';
+    (function() {
+      const token = localStorage.getItem('token');
+      const user = JSON.parse(localStorage.getItem('user') || 'null');
+      if (!token || !user) {
+        window.location.href = 'login.html';
+        return;
       }
 
-      const maxValue = Math.max(...data.map(item => Number(item[valueKey] || 0)), 1);
-      return data.map(item => {
-        const label = String(item[labelKey]).slice(0, 16).padEnd(16, ' ');
-        const value = Number(item[valueKey] || 0);
-        const barSize = Math.round((value / maxValue) * 24);
-        const bar = '█'.repeat(barSize || 1);
-        return `${label} | ${bar} ${value}${unit}`;
-      }).join('\n');
+      if (user.role !== 'manager') window.location.href = 'dashboard-team.html';
+    })();
+
+    const CHART_COLORS = ['#0891b2', '#14b8a6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#0ea5e9'];
+
+    function setEmptyState(elementId, message) {
+      document.getElementById(elementId).innerHTML = `<div class="chart-empty">${message}</div>`;
+    }
+
+    function createLegend(containerId, items) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = items.map((item) => `
+        <span class="legend-item">
+          <span class="legend-swatch" style="background:${item.color};"></span>
+          ${item.label}: ${item.value}
+        </span>
+      `).join('');
+    }
+
+    function renderPieChart(elementId, legendId, data) {
+      const entries = data.filter((item) => Number(item.value) > 0);
+      if (!entries.length) {
+        setEmptyState(elementId, 'No task status data available for this project.');
+        document.getElementById(legendId).innerHTML = '';
+        return;
+      }
+
+      const total = entries.reduce((sum, item) => sum + Number(item.value || 0), 0);
+      let cumulative = 0;
+      const radius = 78;
+      const centerX = 110;
+      const centerY = 110;
+
+      const slices = entries.map((item, index) => {
+        const value = Number(item.value || 0);
+        const sliceAngle = (value / total) * Math.PI * 2;
+        const startAngle = cumulative;
+        const endAngle = cumulative + sliceAngle;
+        cumulative = endAngle;
+
+        const x1 = centerX + radius * Math.cos(startAngle - Math.PI / 2);
+        const y1 = centerY + radius * Math.sin(startAngle - Math.PI / 2);
+        const x2 = centerX + radius * Math.cos(endAngle - Math.PI / 2);
+        const y2 = centerY + radius * Math.sin(endAngle - Math.PI / 2);
+        const largeArcFlag = sliceAngle > Math.PI ? 1 : 0;
+        const color = CHART_COLORS[index % CHART_COLORS.length];
+
+        return `<path d="M ${centerX} ${centerY} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2} Z" fill="${color}"></path>`;
+      }).join('');
+
+      document.getElementById(elementId).innerHTML = `
+        <svg viewBox="0 0 220 220" class="chart-svg" aria-label="Task status pie chart">
+          ${slices}
+          <circle cx="${centerX}" cy="${centerY}" r="42" fill="rgba(255,255,255,0.96)"></circle>
+          <text x="${centerX}" y="${centerY - 4}" text-anchor="middle" font-size="22" font-weight="800" fill="#083344">${total}</text>
+          <text x="${centerX}" y="${centerY + 18}" text-anchor="middle" font-size="11" font-weight="700" fill="#0e7490">Tasks</text>
+        </svg>
+      `;
+
+      createLegend(legendId, entries.map((item, index) => ({
+        label: item.label,
+        value: item.value,
+        color: CHART_COLORS[index % CHART_COLORS.length]
+      })));
+    }
+
+    function renderLineChart(elementId, data, options) {
+      const xKey = options.xKey;
+      const yKey = options.yKey;
+      const yLabel = options.yLabel;
+
+      if (!Array.isArray(data) || data.length === 0) {
+        setEmptyState(elementId, `No ${yLabel.toLowerCase()} data available yet.`);
+        return;
+      }
+
+      const width = 620;
+      const height = 220;
+      const padding = { top: 20, right: 24, bottom: 42, left: 48 };
+      const plotWidth = width - padding.left - padding.right;
+      const plotHeight = height - padding.top - padding.bottom;
+      const maxValue = Math.max(...data.map((item) => Number(item[yKey] || 0)), 1);
+
+      const points = data.map((item, index) => {
+        const x = padding.left + (data.length === 1 ? plotWidth / 2 : (index * plotWidth) / (data.length - 1));
+        const y = padding.top + plotHeight - ((Number(item[yKey] || 0) / maxValue) * plotHeight);
+        return { x, y, label: item[xKey], value: Number(item[yKey] || 0) };
+      });
+
+      const polyline = points.map((point) => `${point.x},${point.y}`).join(' ');
+      const yTicks = 4;
+      const gridLines = Array.from({ length: yTicks + 1 }, (_, index) => {
+        const value = Math.round((maxValue / yTicks) * (yTicks - index));
+        const y = padding.top + (plotHeight / yTicks) * index;
+        return `
+          <line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="rgba(8,51,68,0.12)" />
+          <text x="${padding.left - 10}" y="${y + 4}" text-anchor="end" font-size="10" fill="#0e7490">${value}</text>
+        `;
+      }).join('');
+
+      const labels = points.map((point) => `
+        <text x="${point.x}" y="${height - 14}" text-anchor="middle" font-size="10" fill="#0e7490">${String(point.label).slice(0, 12)}</text>
+      `).join('');
+
+      const dots = points.map((point) => `
+        <circle cx="${point.x}" cy="${point.y}" r="4" fill="#0891b2"></circle>
+        <text x="${point.x}" y="${point.y - 10}" text-anchor="middle" font-size="10" font-weight="700" fill="#083344">${point.value}</text>
+      `).join('');
+
+      document.getElementById(elementId).innerHTML = `
+        <svg viewBox="0 0 ${width} ${height}" class="chart-svg" aria-label="${yLabel} line chart">
+          ${gridLines}
+          <line x1="${padding.left}" y1="${height - padding.bottom}" x2="${width - padding.right}" y2="${height - padding.bottom}" stroke="rgba(8,51,68,0.18)" />
+          <line x1="${padding.left}" y1="${padding.top}" x2="${padding.left}" y2="${height - padding.bottom}" stroke="rgba(8,51,68,0.18)" />
+          <polyline fill="none" stroke="#14b8a6" stroke-width="3" points="${polyline}"></polyline>
+          ${dots}
+          ${labels}
+        </svg>
+      `;
+    }
+
+    function renderGroupedBarChart(elementId, data) {
+      if (!Array.isArray(data) || data.length === 0) {
+        setEmptyState(elementId, 'No sprint comparison data available yet.');
+        return;
+      }
+
+      const width = 620;
+      const height = 220;
+      const padding = { top: 20, right: 24, bottom: 42, left: 48 };
+      const plotWidth = width - padding.left - padding.right;
+      const plotHeight = height - padding.top - padding.bottom;
+      const maxValue = Math.max(...data.flatMap((item) => [Number(item.committed || 0), Number(item.completed || 0)]), 1);
+      const groupWidth = plotWidth / data.length;
+      const barWidth = Math.min(28, (groupWidth - 12) / 2);
+
+      const yTicks = 4;
+      const gridLines = Array.from({ length: yTicks + 1 }, (_, index) => {
+        const value = Math.round((maxValue / yTicks) * (yTicks - index));
+        const y = padding.top + (plotHeight / yTicks) * index;
+        return `
+          <line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="rgba(8,51,68,0.12)" />
+          <text x="${padding.left - 10}" y="${y + 4}" text-anchor="end" font-size="10" fill="#0e7490">${value}</text>
+        `;
+      }).join('');
+
+      const bars = data.map((item, index) => {
+        const baseX = padding.left + (index * groupWidth) + (groupWidth / 2) - barWidth;
+        const committedHeight = (Number(item.committed || 0) / maxValue) * plotHeight;
+        const completedHeight = (Number(item.completed || 0) / maxValue) * plotHeight;
+        const committedY = padding.top + plotHeight - committedHeight;
+        const completedY = padding.top + plotHeight - completedHeight;
+
+        return `
+          <rect x="${baseX}" y="${committedY}" width="${barWidth}" height="${committedHeight}" rx="6" fill="#93c5fd"></rect>
+          <rect x="${baseX + barWidth + 6}" y="${completedY}" width="${barWidth}" height="${completedHeight}" rx="6" fill="#22c55e"></rect>
+          <text x="${baseX + barWidth}" y="${height - 14}" text-anchor="middle" font-size="10" fill="#0e7490">${String(item.label).slice(0, 11)}</text>
+        `;
+      }).join('');
+
+      document.getElementById(elementId).innerHTML = `
+        <svg viewBox="0 0 ${width} ${height}" class="chart-svg" aria-label="Sprint commitment versus completion chart">
+          ${gridLines}
+          <line x1="${padding.left}" y1="${height - padding.bottom}" x2="${width - padding.right}" y2="${height - padding.bottom}" stroke="rgba(8,51,68,0.18)" />
+          <line x1="${padding.left}" y1="${padding.top}" x2="${padding.left}" y2="${height - padding.bottom}" stroke="rgba(8,51,68,0.18)" />
+          ${bars}
+        </svg>
+        <div class="chart-legend">
+          <span class="legend-item"><span class="legend-swatch" style="background:#93c5fd;"></span>Committed points</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#22c55e;"></span>Completed points</span>
+        </div>
+      `;
+    }
+
+    function updateVelocityInsights(metrics) {
+      document.getElementById('teamVelocity').textContent = `${metrics.velocity.averageVelocity} pts`;
+      document.getElementById('velocitySource').textContent = `${metrics.velocity.completedSprintCount || 0} completed sprint${metrics.velocity.completedSprintCount === 1 ? '' : 's'}`;
+      document.getElementById('projectedVelocity').textContent = `${metrics.velocity.projectedVelocity || 0} pts`;
+
+      if (metrics.velocity.latestCompletedSprintName) {
+        document.getElementById('latestVelocity').textContent = `${metrics.velocity.latestCompletedSprintVelocity} pts`;
+        document.getElementById('latestVelocityNote').textContent = metrics.velocity.latestCompletedSprintName;
+      } else {
+        document.getElementById('latestVelocity').textContent = '0 pts';
+        document.getElementById('latestVelocityNote').textContent = 'No completed sprint history yet.';
+      }
     }
 
     async function updateStats(projectId) {
@@ -224,38 +476,43 @@
         document.getElementById('totalTasks').textContent = metrics.overview.totalTasks;
         document.getElementById('completedTasks').textContent = metrics.overview.completedTasks;
         document.getElementById('inProgressTasks').textContent = metrics.overview.inProgressTasks;
-        document.getElementById('teamVelocity').textContent = `${metrics.velocity.averageVelocity} pts`;
         document.getElementById('carryOver').textContent = `${metrics.latestSprint ? metrics.latestSprint.carryOverPoints : 0} pts`;
         document.getElementById('backlogItems').textContent = metrics.backlog.totalItems;
 
+        updateVelocityInsights(metrics);
+
+        renderPieChart('statusPieChart', 'statusPieLegend', [
+          { label: 'To Do', value: metrics.overview.statusBreakdown.todo || 0 },
+          { label: 'In Progress', value: metrics.overview.statusBreakdown.inprogress || 0 },
+          { label: 'Review', value: metrics.overview.statusBreakdown.review || 0 },
+          { label: 'Blocked', value: metrics.overview.statusBreakdown.blocked || 0 },
+          { label: 'Done', value: metrics.overview.statusBreakdown.done || 0 }
+        ]);
+
         const sprintForBurndown = metrics.activeSprint || metrics.latestSprint;
         const burndownData = sprintForBurndown ? sprintForBurndown.burndown : [];
-        const burndownLines = Array.isArray(burndownData)
-          ? burndownData.map(day => ({ date: day.date.slice(5), remaining: day.remainingPoints }))
-          : [];
+        renderLineChart('burndownChart', (burndownData || []).map((day) => ({
+          label: day.date.slice(5),
+          value: day.remainingPoints
+        })), { xKey: 'label', yKey: 'value', yLabel: 'Remaining points' });
 
-        document.getElementById('burndownChart').textContent = renderBarChart(
-          burndownLines,
-          'date',
-          'remaining',
-          ' pts'
-        );
+        renderLineChart('velocityChart', (metrics.velocity.history || []).slice(-8).map((item) => ({
+          label: item.sprintName,
+          value: item.completedPoints
+        })), { xKey: 'label', yKey: 'value', yLabel: 'Velocity' });
 
-        const velocityData = (metrics.velocity.history || []).slice(-8).map(item => ({
-          sprint: item.sprintName,
-          velocity: item.completedPoints
-        }));
-
-        document.getElementById('velocityChart').textContent = renderBarChart(
-          velocityData,
-          'sprint',
-          'velocity',
-          ' pts'
-        );
+        renderGroupedBarChart('sprintPerformanceChart', (metrics.sprints || []).slice(-6).map((sprint) => ({
+          label: sprint.sprintName,
+          committed: sprint.committedPoints,
+          completed: sprint.completedPoints
+        })));
       } catch (error) {
         console.error('Error loading task stats:', error);
-        document.getElementById('burndownChart').textContent = 'Failed to load burndown data.';
-        document.getElementById('velocityChart').textContent = 'Failed to load velocity data.';
+        setEmptyState('statusPieChart', 'Failed to load report data.');
+        document.getElementById('statusPieLegend').innerHTML = '';
+        setEmptyState('burndownChart', 'Failed to load burndown data.');
+        setEmptyState('velocityChart', 'Failed to load velocity data.');
+        setEmptyState('sprintPerformanceChart', 'Failed to load sprint performance data.');
       }
     }
 
@@ -276,17 +533,16 @@
       projectSelect.addEventListener('change', () => updateStats(projectSelect.value));
       return projectSelect.value;
     }
-    
+
     function navigateTo(page) {
       window.location.href = page;
     }
-    
+
     function logout() {
       localStorage.clear();
       window.location.href = 'index.html';
     }
-    
-    // Call updateStats async on page load
+
     document.addEventListener('DOMContentLoaded', async () => {
       const initialProjectId = await loadProjectSelector();
       if (initialProjectId) {

@@ -572,6 +572,7 @@
         
         if (response.ok) {
           // Save user data
+          localStorage.setItem('API_BASE_URL', resolveApiBaseUrl());
           localStorage.setItem('token', result.token);
           localStorage.setItem('user', JSON.stringify(result.user));
           localStorage.setItem('currentUser', result.user.name);

@@ -81,19 +81,6 @@
 
         <div class="pref-row">
           <div>
-            <div style="font-weight:700;">Language</div>
-            <div class="muted">Select your preferred language</div>
-          </div>
-          <div>
-            <select id="langSelect">
-              <option value="en">English</option>
-              <option value="es">Español</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="pref-row">
-          <div>
             <div style="font-weight:700;">Email notifications</div>
             <div class="muted">Receive email updates for assignments and mentions</div>
           </div>
@@ -136,13 +123,8 @@
     window.location.href = 'login.html';
     return;
   }
-
-  // Role-based protection
-  // On manager-only pages (dashboard.html, team.html, reports.html):
-  if (user.role !== 'manager') window.location.href = 'dashboard-team.html';
-
-  // On worker-only pages (dashboard-team.html, my-tasks.html):
-  // if (user.role !== 'worker') window.location.href = 'dashboard.html';
+  
+  // Settings is available to any authenticated user.
 })();
 
     function showAlert(msg, type='success'){
@@ -163,11 +145,9 @@
 
       // Load preferences from localStorage
       const theme = localStorage.getItem('theme') || 'light';
-      const lang = localStorage.getItem('lang') || 'en';
       const notifyEmail = localStorage.getItem('notifyEmail') === 'true';
       const notifyPush = localStorage.getItem('notifyPush') === 'true';
       document.getElementById('themeSelect').value = theme;
-      document.getElementById('langSelect').value = lang;
       document.getElementById('notifyEmail').checked = notifyEmail;
       document.getElementById('notifyPush').checked = notifyPush;
       applyTheme(theme);
@@ -190,7 +170,6 @@
     document.getElementById('themeSelect').addEventListener('change',(e)=>{
       const v = e.target.value; localStorage.setItem('theme',v); applyTheme(v); showAlert('Theme updated');
     });
-    document.getElementById('langSelect').addEventListener('change',(e)=>{ localStorage.setItem('lang', e.target.value); showAlert('Language updated'); });
     document.getElementById('notifyEmail').addEventListener('change',(e)=>{ localStorage.setItem('notifyEmail', e.target.checked); showAlert('Notification preference saved'); });
     document.getElementById('notifyPush').addEventListener('change',(e)=>{ localStorage.setItem('notifyPush', e.target.checked); showAlert('Notification preference saved'); });
 
@@ -260,3 +239,4 @@
   </script>
 </body>
 </html>
+

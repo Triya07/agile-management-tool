@@ -226,6 +226,14 @@ async function apiCall(endpoint, options = {}) {
         throw new Error((data && data.message) || `API error (${response.status})`);
       }
 
+      try {
+        if (localStorage.getItem("API_BASE_URL") !== apiBase) {
+          localStorage.setItem("API_BASE_URL", apiBase);
+        }
+      } catch (_) {
+        // Ignore localStorage write issues and keep the successful response.
+      }
+
       return data;
     } catch (error) {
       lastError = error;

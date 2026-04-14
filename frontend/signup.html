@@ -383,6 +383,7 @@
         
         if (response.ok) {
           // Save user data
+          localStorage.setItem('API_BASE_URL', resolveApiBaseUrl());
           localStorage.setItem('token', result.token);
           localStorage.setItem('user', JSON.stringify(result.user));
           localStorage.setItem('currentUser', result.user.name);
@@ -390,13 +391,10 @@
           
           showNotification('Account created successfully! Redirecting...', 'success');
           
-          // Redirect based on role
+          // Redirect to the appropriate dashboard after successful signup
           setTimeout(() => {
-            if (result.user.role === 'manager') {
-              window.location.href = 'projects.html';
-            } else {
-              window.location.href = 'dashboard-team.html';
-            }
+            const role = (result.user.role || '').toLowerCase();
+            window.location.href = role === 'manager' ? 'dashboard.html' : 'dashboard-team.html';
           }, 1500);
         } else {
           showNotification(result.message || 'Signup failed', 'error');
