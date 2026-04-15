@@ -2,7 +2,10 @@
 
 // Theme Initialization
 (function() {
-  const theme = localStorage.getItem('theme') || 'light';
+  const storedTheme = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const theme = storedTheme || (prefersDark ? 'dark' : 'light');
+
   if (theme === 'dark') {
     document.documentElement.style.background = '#0f172a';
     if (document.body) {
@@ -678,9 +681,9 @@ function shouldLoadAIAssistant() {
   const token = getToken();
   if (!token) return false;
 
-  const blockedPages = ["login.html", "signup.html", "index.html"];
+  const allowedPages = ["kanban-board.html", "sprint.html"];
   const currentPage = (window.location.pathname.split("/").pop() || "").toLowerCase();
-  return !blockedPages.includes(currentPage);
+  return allowedPages.includes(currentPage);
 }
 
 function createAIAssistantWidget() {
@@ -719,6 +722,7 @@ function createAIAssistantWidget() {
   const quickEl = document.getElementById("ai-assistant-quick");
 
   const history = [];
+  appendMessage("system", "AI assistant initialized. Ask about your project, sprint, or task status.");
   let isSending = false;
 
   function appendMessage(role, content) {
@@ -809,16 +813,26 @@ function createAIAssistantWidget() {
 }
 
 if (typeof document !== "undefined") {
-  document.addEventListener("DOMContentLoaded", async () => {
+  function initializeAIAssistant() {
     if (!shouldLoadAIAssistant()) return;
 
+    let shouldCreate = true;
     try {
-      const status = await getAIStatus();
-      if (status && status.enabled) {
-        createAIAssistantWidget();
-      }
+      getAIStatus().catch((error) => {
+        console.warn("AI assistant status check failed:", error && error.message ? error.message : error);
+      });
     } catch (error) {
-      console.warn("Gemini assistant unavailable:", error && error.message ? error.message : error);
+      console.warn("AI assistant status check failed:", error && error.message ? error.message : error);
     }
-  });
+
+    if (shouldCreate) {
+      createAIAssistantWidget();
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initializeAIAssistant);
+  } else {
+    setTimeout(initializeAIAssistant, 100);
+  }
 }

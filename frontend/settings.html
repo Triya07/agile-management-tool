@@ -144,7 +144,7 @@
       }catch(e){ console.error(e); showAlert('Unable to load profile','error'); }
 
       // Load preferences from localStorage
-      const theme = localStorage.getItem('theme') || 'light';
+      const theme = localStorage.getItem('theme') || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
       const notifyEmail = localStorage.getItem('notifyEmail') === 'true';
       const notifyPush = localStorage.getItem('notifyPush') === 'true';
       document.getElementById('themeSelect').value = theme;

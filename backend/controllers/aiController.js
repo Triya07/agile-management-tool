@@ -6,8 +6,19 @@ const User = require("../models/User");
 
 let geminiClient = null;
 
+function hasRealGeminiKey() {
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) return false;
+  const normalized = key.trim().toLowerCase();
+  if (!normalized) return false;
+  if (normalized.includes("your_gemini_api_key") || normalized.includes("change_this") || normalized.includes("placeholder")) {
+    return false;
+  }
+  return true;
+}
+
 function isGeminiConfigured() {
-  return Boolean(process.env.GEMINI_API_KEY);
+  return hasRealGeminiKey();
 }
 
 function getGeminiClient() {
@@ -206,24 +217,329 @@ function extractReply(response) {
   return text;
 }
 
+function formatItems(items, max = 3) {
+  if (!Array.isArray(items) || items.length === 0) return "none";
+  return items.slice(0, max).map((item) => `- ${item.title || item.name || item}`).join("\n");
+}
+
+function generateLocalFallbackReply(messages, contextSnapshot) {
+  const userMessage = Array.isArray(messages) && messages.length
+    ? messages[messages.length - 1].content.toLowerCase()
+    : "";
+
+  const projectName = contextSnapshot.activeProject?.name || null;
+  const stats = contextSnapshot.taskStats || { total: 0, todo: 0, inprogress: 0, blocked: 0, review: 0, done: 0 };
+  const tasks = Array.isArray(contextSnapshot.recentTasks) ? contextSnapshot.recentTasks : [];
+  const sprint = contextSnapshot.activeSprint;
+  const allProjects = Array.isArray(contextSnapshot.accessibleProjects) ? contextSnapshot.accessibleProjects : [];
+
+  const blockedTasks = tasks.filter((t) => t.status === "blocked");
+  const todoTasks = tasks.filter((t) => t.status === "todo");
+  const inProgressTasks = tasks.filter((t) => t.status === "inprogress");
+  const doneTasks = tasks.filter((t) => t.status === "done");
+
+  const lines = [];
+
+  // Summarize sprint progress
+  if (
+    userMessage.includes("sprint") &&
+    (userMessage.includes("progress") || userMessage.includes("status") || userMessage.includes("summary"))
+  ) {
+    if (!projectName && allProjects.length > 0) {
+      lines.push(`📊 No project selected. Available projects:`);
+      allProjects.forEach((p) => {
+        lines.push(`  • ${p.name} (${p.type})`);
+      });
+      lines.push(`\nTry asking about a specific project.`);
+      return lines.join("\n");
+    }
+
+    if (sprint) {
+      lines.push(`📊 Sprint Progress: "${sprint.name}"`);
+      lines.push(`Status: ${sprint.status}`);
+      lines.push(`Period: ${sprint.startDate} to ${sprint.endDate}`);
+      if (sprint.goal) lines.push(`Goal: ${sprint.goal}`);
+      lines.push("");
+      lines.push(`Task breakdown:`);
+      lines.push(`  • Todo: ${stats.todo}`);
+      lines.push(`  • In Progress: ${stats.inprogress}`);
+      lines.push(`  • Blocked: ${stats.blocked}`);
+      lines.push(`  • Done: ${stats.done}`);
+      lines.push(`  • Completion: ${stats.total > 0 ? Math.round((stats.done / stats.total) * 100) : 0}%`);
+    } else if (projectName) {
+      lines.push(`📊 No active sprint in "${projectName}"`);
+      if (contextSnapshot.activeProjectSprints && contextSnapshot.activeProjectSprints.length > 0) {
+        lines.push(`\nAvailable sprints:`);
+        contextSnapshot.activeProjectSprints.slice(0, 5).forEach((s) => {
+          lines.push(`  • ${s.name} (${s.status})`);
+        });
+      } else {
+        lines.push(`\nNo sprints found. You may need to create one.`);
+      }
+      
+      if (stats.total > 0) {
+        lines.push(`\nBacklog tasks: ${stats.total}`);
+        lines.push(`  • Todo: ${stats.todo}`);
+        lines.push(`  • In Progress: ${stats.inprogress}`);
+        lines.push(`  • Blocked: ${stats.blocked}`);
+      }
+    } else {
+      lines.push("No project selected. Please select a project first.");
+    }
+    return lines.join("\n");
+  }
+
+  // Show blocked tasks
+  if (userMessage.includes("blocked") || userMessage.includes("stuck") || userMessage.includes("blocker")) {
+    if (blockedTasks.length > 0) {
+      lines.push(`🚫 Blocked Tasks (${blockedTasks.length}):`);
+      blockedTasks.forEach((t) => {
+        lines.push(`  • ${t.title}`);
+        if (t.blockedReason) lines.push(`    Reason: ${t.blockedReason}`);
+        if (t.assignedTo) lines.push(`    Assigned to: ${t.assignedTo}`);
+      });
+    } else {
+      lines.push("✅ No blocked tasks! Great work!");
+    }
+    return lines.join("\n");
+  }
+
+  // Summarize tasks / my work / what I'm doing
+  if (
+    userMessage.includes("task") ||
+    userMessage.includes("what am i working on") ||
+    userMessage.includes("what should") ||
+    userMessage.includes("my work") ||
+    userMessage.includes("assignment") ||
+    (userMessage.includes("summarize") && !userMessage.includes("sprint")) ||
+    (userMessage.includes("show") && !userMessage.includes("sprint"))
+  ) {
+    lines.push(`📋 Your Tasks`);
+    if (projectName) lines.push(`Project: ${projectName}`);
+    lines.push("");
+    
+    if (stats.total === 0) {
+      lines.push("No tasks assigned or created yet.");
+      return lines.join("\n");
+    }
+
+    lines.push(`Total: ${stats.total} tasks`);
+    lines.push(`  • Todo: ${stats.todo}`);
+    lines.push(`  • In Progress: ${stats.inprogress}`);
+    lines.push(`  • Blocked: ${stats.blocked}`);
+    lines.push(`  • Done: ${stats.done}`);
+    lines.push("");
+
+    if (inProgressTasks.length > 0) {
+      lines.push(`Currently Working On (${inProgressTasks.length}):`);
+      inProgressTasks.slice(0, 5).forEach((t) => {
+        lines.push(`  • ${t.title}${t.priority ? ` [${t.priority}]` : ""}`);
+      });
+      lines.push("");
+    }
+
+    if (todoTasks.length > 0) {
+      lines.push(`To Do (${todoTasks.length}):`);
+      todoTasks.slice(0, 5).forEach((t) => {
+        lines.push(`  • ${t.title}${t.priority ? ` [${t.priority}]` : ""}`);
+      });
+      lines.push("");
+    }
+
+    if (blockedTasks.length > 0) {
+      lines.push(`Issues (${blockedTasks.length}):`);
+      blockedTasks.slice(0, 3).forEach((t) => {
+        lines.push(`  ⚠️ ${t.title}${t.blockedReason ? ` - ${t.blockedReason}` : ""}`);
+      });
+    }
+
+    return lines.join("\n");
+  }
+
+  // Suggest priorities / recommendations
+  if (
+    userMessage.includes("priorit") ||
+    userMessage.includes("next") ||
+    userMessage.includes("recommend") ||
+    userMessage.includes("what should i do") ||
+    userMessage.includes("suggest")
+  ) {
+    lines.push(`🎯 Recommended Priorities:`);
+    lines.push("");
+
+    if (blockedTasks.length > 0) {
+      lines.push("1️⃣ URGENT - Unblock these tasks:");
+      blockedTasks.slice(0, 3).forEach((t) => {
+        lines.push(`   • ${t.title}${t.blockedReason ? ` (${t.blockedReason})` : ""}`);
+      });
+      lines.push("");
+    }
+
+    if (todoTasks.length > 0) {
+      lines.push("2️⃣ Start these tasks:");
+      todoTasks.slice(0, 3).forEach((t) => {
+        lines.push(`   • ${t.title}${t.priority ? ` [${t.priority}]` : ""}`);
+      });
+      lines.push("");
+    }
+
+    if (inProgressTasks.length > 0) {
+      lines.push("3️⃣ Finish these tasks:");
+      inProgressTasks.slice(0, 3).forEach((t) => {
+        lines.push(`   • ${t.title}${t.assignedTo ? ` (${t.assignedTo})` : ""}`);
+      });
+    }
+
+    if (blockedTasks.length === 0 && todoTasks.length === 0 && inProgressTasks.length === 0) {
+      lines.push("All tasks are complete! Great job! 🎉");
+    }
+    return lines.join("\n");
+  }
+
+  // Project status
+  if (userMessage.includes("project") || userMessage.includes("status")) {
+    if (projectName) {
+      lines.push(`📌 Project: ${projectName}`);
+      if (contextSnapshot.activeProject) {
+        lines.push(`Type: ${contextSnapshot.activeProject.type || "unknown"}`);
+        lines.push(`Team size: ${contextSnapshot.activeProject.memberCount || 0}`);
+      }
+    } else {
+      lines.push("No active project. Available projects:");
+      allProjects.slice(0, 5).forEach((p) => {
+        lines.push(`  • ${p.name} (${p.type})`);
+      });
+      lines.push("");
+      lines.push("Select a project to view its details.");
+      return lines.join("\n");
+    }
+
+    if (sprint) {
+      lines.push(`\nActive Sprint: ${sprint.name}`);
+      lines.push(`Status: ${sprint.status}`);
+    } else {
+      lines.push("\nNo active sprint.");
+    }
+
+    lines.push(`\nTask Statistics:`);
+    lines.push(`  • Total: ${stats.total}`);
+    lines.push(`  • Done: ${stats.done} (${stats.total > 0 ? Math.round((stats.done / stats.total) * 100) : 0}%)`);
+    lines.push(`  • In Progress: ${stats.inprogress}`);
+    lines.push(`  • Blocked: ${stats.blocked}`);
+    return lines.join("\n");
+  }
+
+  // Team performance / velocity
+  if (userMessage.includes("team") || userMessage.includes("velocity") || userMessage.includes("progress")) {
+    lines.push(`👥 Team Progress`);
+    if (projectName) lines.push(`Project: ${projectName}`);
+    lines.push("");
+    lines.push(`Completion Rate: ${stats.total > 0 ? Math.round((stats.done / stats.total) * 100) : 0}%`);
+    lines.push(`Tasks Completed: ${stats.done} / ${stats.total}`);
+    lines.push(`Currently Working: ${stats.inprogress} tasks`);
+    lines.push(`Blockers: ${stats.blocked} tasks`);
+
+    if (stats.total > 0) {
+      const completionRate = Math.round((stats.done / stats.total) * 100);
+      if (completionRate > 80) {
+        lines.push("\n✨ Excellent progress! Keep it up!");
+      } else if (completionRate > 50) {
+        lines.push("\n📈 Good pace. Focus on unblocking any stuck tasks.");
+      } else {
+        lines.push("\n⏱️ There's still work to do. Prioritize blocked tasks.");
+      }
+    }
+    return lines.join("\n");
+  }
+
+  // Default intelligent response - handle ANY question
+  if (!projectName && allProjects.length > 0) {
+    lines.push(`Hi! 👋 I'm your FlowBoard AI Assistant.`);
+    lines.push(`\nI can help with your agile projects. You have ${allProjects.length} project(s):`);
+    allProjects.forEach((p) => {
+      lines.push(`  • ${p.name} (${p.type})`);
+    });
+    lines.push(`\nTry mentioning a project name in your question, or I can help with:`);
+    lines.push(`  • Sprint progress and goals`);
+    lines.push(`  • Blocked tasks and issues`);
+    lines.push(`  • Your priority tasks `);
+    lines.push(`  • Team performance`);
+    return lines.join("\n");
+  }
+
+  lines.push(`📊 Project Summary`);
+  if (projectName) {
+    lines.push(`Project: ${projectName}`);
+  }
+  lines.push("");
+  
+  if (stats.total === 0) {
+    lines.push("No tasks in this project yet. Try creating some!");
+  } else {
+    lines.push(`Tasks: ${stats.total} total`);
+    lines.push(`  ✅ Done: ${stats.done}`);
+    lines.push(`  🔄 In Progress: ${stats.inprogress}`);
+    lines.push(`  📝 Todo: ${stats.todo}`);
+    lines.push(`  🚫 Blocked: ${stats.blocked}`);
+    lines.push(`  👀 Review: ${stats.review}`);
+    
+    const completionRate = stats.total > 0 ? Math.round((stats.done / stats.total) * 100) : 0;
+    lines.push(`\n📈 Progress: ${completionRate}%`);
+  }
+
+  if (sprint) {
+    lines.push(`\n📌 Active Sprint: ${sprint.name}`);
+  } else if (contextSnapshot.activeProjectSprints && contextSnapshot.activeProjectSprints.length > 0) {
+    lines.push(`\n📌 Available sprints: ${contextSnapshot.activeProjectSprints.slice(0, 3).map((s) => s.name).join(", ")}`);
+  }
+
+  lines.push("");
+  lines.push("I can help with:");
+  lines.push("  📅 Sprint progress");
+  lines.push("  🚫 Blocked tasks");
+  lines.push("  ⭐ Priorities");
+  lines.push("  👥 Team status");
+
+  return lines.join("\n");
+}
+
+
 exports.getAIStatus = async (req, res) => {
+  const configured = isGeminiConfigured();
   res.json({
-    enabled: isGeminiConfigured(),
-    provider: isGeminiConfigured() ? "gemini" : null,
-    model: isGeminiConfigured() ? (process.env.GEMINI_MODEL || "gemini-2.5-flash-lite") : null
+    enabled: true,
+    provider: configured ? "gemini" : "local-fallback",
+    model: configured ? (process.env.GEMINI_MODEL || "gemini-2.5-flash-lite") : "fallback"
   });
 };
 
 exports.chatWithAI = async (req, res) => {
+  let contextSnapshot = {};
   try {
+    const { messages, context } = req.body || {};
+
+    let resolvedContext = { ...context };
+    if (!resolvedContext.projectId && messages?.length) {
+      const lastMsg = messages[messages.length - 1].content.toLowerCase();
+      const allProjects = await loadAccessibleProjects(req.user.id);
+
+      const mentioned = allProjects.find((p) =>
+        lastMsg.includes(p.name.toLowerCase())
+      );
+      if (mentioned) resolvedContext.projectId = mentioned._id.toString();
+    }
+
+    contextSnapshot = await buildContextSnapshot(req.user.id, resolvedContext);
+
     if (!isGeminiConfigured()) {
-      return res.status(503).json({
-        message: "Gemini chatbot is not configured. Add GEMINI_API_KEY to the backend .env file."
+      const reply = generateLocalFallbackReply(messages, contextSnapshot);
+      return res.json({
+        reply,
+        provider: "local-fallback",
+        model: "fallback"
       });
     }
 
-    const { messages, context } = req.body || {};
-    const contextSnapshot = await buildContextSnapshot(req.user.id, context || {});
     const prompt = buildPrompt(messages, contextSnapshot);
     const model = process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
     const client = getGeminiClient();
@@ -241,19 +557,14 @@ exports.chatWithAI = async (req, res) => {
       model
     });
   } catch (error) {
-    const status = error.status || error.code || 500;
-    let message = "Gemini chat request failed";
+    const { messages } = req.body || {};
+    const fallbackReply = generateLocalFallbackReply(messages, contextSnapshot);
 
-    if (error.message && error.message.includes("GEMINI_API_KEY")) {
-      message = "Gemini API key is missing or invalid.";
-    } else if (status === 429) {
-      message = "Gemini rate limit reached. Please try again in a moment.";
-    } else if (status === 400) {
-      message = "Gemini rejected the request. Please try a shorter message.";
-    } else if (error.message) {
-      message = error.message;
-    }
-
-    res.status(typeof status === "number" ? status : 500).json({ message });
+    res.json({
+      reply: fallbackReply,
+      provider: "local-fallback",
+      model: "fallback",
+      error: error.message
+    });
   }
 };

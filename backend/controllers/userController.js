@@ -5,7 +5,7 @@ const Task = require("../models/Task");
 const mongoose = require("mongoose");
 
 function normalizeSkills(skills) {
-  const rawSkills = Array.isArray(skills) ? skills : [skills];
+  const rawSkills = Array.isArray(skills) ? skills : (skills ? [skills] : []);
   const seen = new Set();
 
   return rawSkills
@@ -18,7 +18,8 @@ function normalizeSkills(skills) {
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
-    });
+    })
+    .sort((a, b) => a.localeCompare(b));
 }
 
 // Get current user profile

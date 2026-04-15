@@ -461,7 +461,6 @@
         // Update UI
         updateProfileUI();
         loadProjects();
-        loadTasks();
         loadActivity();
       } catch (error) {
         showAlert("Error loading profile: " + error.message, "error");
@@ -541,44 +540,6 @@
       } catch (error) {
         console.error("Error loading projects:", error);
         document.getElementById("projectsList").innerHTML = `<div class="error">Error loading projects</div>`;
-      }
-    }
-
-    async function loadTasks() {
-      try {
-        if (!dashboardData || !dashboardData.assignedTasks) {
-          document.getElementById("tasksList").innerHTML = '<div class="loading">No tasks assigned</div>';
-          return;
-        }
-
-        const tasks = dashboardData.assignedTasks || [];
-        
-        let html = '';
-        if (tasks.length === 0) {
-          html = '<div class="loading">No tasks assigned to you</div>';
-        } else {
-          html = '<ul class="activity-list">';
-          tasks.forEach(task => {
-            const statusColor = task.status === 'done' ? '#10b981' : task.status === 'inprogress' ? '#f59e0b' : '#6b7280';
-            html += `
-              <li class="activity-item">
-                <div>
-                  <div class="activity-title">${task.title}</div>
-                  <div class="activity-meta">
-                    <strong>${task.projectId?.name || 'N/A'}</strong> • 
-                    Status: <span style="color: ${statusColor}; font-weight: 600;">${task.status.toUpperCase()}</span>
-                  </div>
-                </div>
-              </li>
-            `;
-          });
-          html += '</ul>';
-        }
-
-        document.getElementById("tasksList").innerHTML = html;
-      } catch (error) {
-        console.error("Error loading tasks:", error);
-        document.getElementById("tasksList").innerHTML = `<div class="error">Error loading tasks</div>`;
       }
     }
 
@@ -841,13 +802,6 @@
           </div>
 
           <div class="panel">
-            <h3 class="section-title">My Tasks</h3>
-            <div id="tasksList" class="list">
-              <div class="loading-state">Loading tasks...</div>
-            </div>
-          </div>
-
-          <div class="panel">
             <h3 class="section-title">Recent Activity</h3>
             <div id="activityList" class="list">
               <div class="loading-state">Loading activity...</div>
@@ -865,7 +819,6 @@
     let projectsData = [];
     let activityData = null;
     let currentSkills = [];
-    let tasksLoadError = false;
     let projectsLoadError = false;
     let activityLoadError = false;
 
@@ -1065,31 +1018,6 @@
       `}).join("");
     }
 
-    function renderTasks() {
-      const container = document.getElementById("tasksList");
-      const tasks = dashboardData && Array.isArray(dashboardData.assignedTasks) ? dashboardData.assignedTasks : [];
-
-      if (tasksLoadError) {
-        container.innerHTML = '<div class="empty-state">Tasks could not be loaded right now.</div>';
-        return;
-      }
-
-      if (!tasks.length) {
-        container.innerHTML = '<div class="empty-state">No tasks assigned to this account.</div>';
-        return;
-      }
-
-      container.innerHTML = tasks.map(task => `
-        <div class="list-item">
-          <div class="list-item-head">
-            <p class="list-item-title">${task.title}</p>
-            <span class="status-badge ${statusClass(task.status)}">${task.status || "todo"}</span>
-          </div>
-          <p class="list-item-meta">${task.projectId?.name || "Unknown project"}${task.sprint?.sprintName ? ` | ${task.sprint.sprintName}` : ""}</p>
-        </div>
-      `).join("");
-    }
-
     function renderActivity() {
       const container = document.getElementById("activityList");
       const chunks = [];
@@ -1190,7 +1118,6 @@
 
       renderStats();
       renderProjects();
-      renderTasks();
       renderActivity();
     }
 
@@ -1215,7 +1142,6 @@
       const originalText = button.textContent;
       button.disabled = true;
       button.textContent = "Saving...";
-      const expectedSkills = [...currentSkills];
 
       try {
         await updateUserProfile(
@@ -1232,15 +1158,6 @@
 
         const refreshedProfile = await getUserProfile();
         currentUser = refreshedProfile.user;
-
-        const normalizedExpectedSkills = [...expectedSkills].sort((a, b) => a.localeCompare(b));
-        const normalizedSavedSkills = Array.isArray(currentUser.skills)
-          ? [...currentUser.skills].sort((a, b) => a.localeCompare(b))
-          : [];
-
-        if (JSON.stringify(normalizedExpectedSkills) !== JSON.stringify(normalizedSavedSkills)) {
-          throw new Error("Profile save did not persist the latest skills. Please try again.");
-        }
 
         syncSessionUser(currentUser);
         renderProfileHeader();
