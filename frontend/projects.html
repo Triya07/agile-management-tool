@@ -57,6 +57,55 @@
       background: linear-gradient(135deg, #76C893, #52B69A);
       color: white;
     }
+
+    /* Keep search icon, input and create button aligned on one row */
+    .topbar-actions-vertical {
+      align-items: flex-end !important;
+      gap: 0 !important;
+    }
+
+    .search-and-task {
+      display: flex !important;
+      align-items: center !important;
+      gap: 12px !important;
+      flex-wrap: nowrap !important;
+    }
+
+    .search-bar {
+      display: flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      min-width: 0 !important;
+      max-width: none !important;
+    }
+
+    .search-bar input {
+      width: 240px !important;
+      min-width: 240px !important;
+      padding-right: 16px !important;
+    }
+
+    .search-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      white-space: nowrap;
+      transform: translateY(1px);
+      font-size: 1rem;
+    }
+
+    @media (max-width: 900px) {
+      .search-and-task {
+        flex-wrap: wrap !important;
+        justify-content: flex-end;
+      }
+
+      .search-bar input {
+        width: 220px !important;
+        min-width: 220px !important;
+      }
+    }
     
     /* Projects page scrollbar styling */
     .projects-grid::-webkit-scrollbar {
@@ -106,9 +155,6 @@
       <div class="topbar-ui">
         <h2 class="kanban-title">Projects</h2>
         <div class="topbar-actions-vertical">
-          <button class="user-avatar-btn" title="User Profile">
-            <img src="img/user.png" alt="User" class="user-avatar">
-          </button>
           <div class="search-and-task">
             <div class="search-bar">
               <input type="text" id="searchInput" placeholder="Search projects...">
@@ -168,6 +214,13 @@
         <div class="form-group" style="margin-bottom: 20px;">
           <label style="display: block; font-weight: 600; color: #34A0A4; margin-bottom: 8px; font-size: 0.95rem;">Description</label>
           <textarea id="projectDescription" rows="3" placeholder="Enter project description..." style="width: 100%; padding: 12px 16px; border: 2px solid rgba(118, 200, 147, 0.3); border-radius: 8px; font-size: 1rem; background: rgba(118, 200, 147, 0.05); box-sizing: border-box; resize: vertical; font-family: inherit; transition: all 0.3s;"></textarea>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label style="display: block; font-weight: 600; color: #34A0A4; margin-bottom: 8px; font-size: 0.95rem;">Add Team Members (Optional)</label>
+          <select id="projectMembers" multiple size="6" style="width: 100%; padding: 12px 16px; border: 2px solid rgba(118, 200, 147, 0.3); border-radius: 8px; font-size: 0.95rem; background: rgba(118, 200, 147, 0.05); box-sizing: border-box; font-family: inherit; transition: all 0.3s;">
+          </select>
+          <small style="display:block; margin-top: 6px; color:#5b7380;">Hold Ctrl (or Cmd) to select multiple members.</small>
         </div>
 
         <div style="background: linear-gradient(135deg, rgba(118, 200, 147, 0.1), rgba(82, 182, 154, 0.05)); border-radius: 12px; padding: 20px; margin-bottom: 24px; border: 1px solid rgba(118, 200, 147, 0.2);">
@@ -315,58 +368,6 @@
     document.addEventListener('DOMContentLoaded', function() {
       // Remove the complex navigation object and use simple onclick handlers
       
-      // User avatar button functionality
-      const userAvatarBtn = document.querySelector('.user-avatar-btn');
-      if (userAvatarBtn) {
-        userAvatarBtn.addEventListener('click', () => {
-          const dropdown = document.createElement('div');
-          dropdown.style.cssText = `
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-            padding: 8px 0;
-            min-width: 180px;
-            z-index: 1000;
-            border: 1px solid rgba(118, 200, 147, 0.2);
-          `;
-          
-          dropdown.innerHTML = `
-            <div style="padding: 12px 16px; border-bottom: 1px solid #eee; font-weight: 600; color: #34A0A4;">Account</div>
-            <a href="user-profile.html" style="display: block; padding: 12px 16px; color: #333; text-decoration: none; transition: background 0.2s;">👤 Profile</a>
-            <a href="settings.html" style="display: block; padding: 12px 16px; color: #333; text-decoration: none; transition: background 0.2s;">⚙️ Settings</a>
-            <div style="border-top: 1px solid #eee; margin-top: 4px; padding-top: 4px;">
-              <button onclick="logout()" style="display: block; width: 100%; padding: 12px 16px; color: #dc3545; background: none; border: none; text-align: left; cursor: pointer; transition: background 0.2s;">🚪 Logout</button>
-            </div>
-          `;
-          
-          userAvatarBtn.style.position = 'relative';
-          userAvatarBtn.appendChild(dropdown);
-          
-          // Add hover effects
-          dropdown.querySelectorAll('a, button').forEach(item => {
-            item.addEventListener('mouseenter', () => {
-              item.style.background = '#f8f9fa';
-            });
-            item.addEventListener('mouseleave', () => {
-              item.style.background = 'transparent';
-            });
-          });
-          
-          // Remove dropdown when clicking outside
-          setTimeout(() => {
-            document.addEventListener('click', function removeDropdown(e) {
-              if (!userAvatarBtn.contains(e.target)) {
-                dropdown.remove();
-                document.removeEventListener('click', removeDropdown);
-              }
-            });
-          }, 100);
-        });
-      }
-      
       // Search functionality
       const searchInput = document.getElementById('searchInput');
       if (searchInput) {
@@ -406,12 +407,46 @@
     const closeCreateModal = document.getElementById('closeCreateModal');
     const cancelCreate = document.getElementById('cancelCreate');
     const createProjectForm = document.getElementById('createProjectForm');
+    const projectMembersSelect = document.getElementById('projectMembers');
+
+    async function loadMemberOptions() {
+      if (!projectMembersSelect) return;
+
+      projectMembersSelect.innerHTML = '<option value="">Loading members...</option>';
+      try {
+        const members = await getMemberDirectory();
+        const list = Array.isArray(members) ? members : [];
+        const currentUser = JSON.parse(localStorage.getItem('user') || 'null');
+        const currentUserId = String(currentUser?.id || currentUser?._id || '');
+
+        const validMembers = list
+          .filter((member) => member && member._id && String(member._id) !== currentUserId)
+          .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+
+        if (!validMembers.length) {
+          projectMembersSelect.innerHTML = '<option value="">No team members available yet</option>';
+          return;
+        }
+
+        projectMembersSelect.innerHTML = '';
+        validMembers.forEach((member) => {
+          const option = document.createElement('option');
+          option.value = member._id;
+          option.textContent = `${member.name || 'Unknown'}${member.email ? ` (${member.email})` : ''}`;
+          projectMembersSelect.appendChild(option);
+        });
+      } catch (error) {
+        console.error('Failed to load members for project creation:', error);
+        projectMembersSelect.innerHTML = '<option value="">Could not load members</option>';
+      }
+    }
 
     // Open modal
     openCreateBtns.forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', async (e) => {
         e.preventDefault();
         createProjectModal.style.display = 'flex';
+        await loadMemberOptions();
       });
     });
 
@@ -455,10 +490,13 @@
       const name = document.getElementById('projectName').value;
       const type = document.querySelector('input[name="projectType"]:checked').value;
       const description = document.getElementById('projectDescription').value;
+      const selectedMemberIds = Array.from(projectMembersSelect?.selectedOptions || [])
+        .map((option) => option.value)
+        .filter(Boolean);
 
       try {
         // Call API to create project
-        const response = await createProject(name, description, type);
+        const response = await createProject(name, description, type, selectedMemberIds);
         showNotification(`✅ Project "${name}" created successfully!`, 'success');
         closeModal();
         await loadProjects();

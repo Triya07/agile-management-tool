@@ -10,18 +10,39 @@ exports.createProject = async (req, res) => {
       return res.status(403).json({ message: "Only managers can create projects" });
     }
 
-    const { name, description, type } = req.body;
+    const { name, description, type, memberIds } = req.body;
     const validatedName = requireNonEmptyString(name, "Project name");
     if (validatedName.error) {
       return res.status(400).json({ message: validatedName.error });
     }
+
+    const creatorId = String(req.user.id);
+    const requestedMemberIds = Array.isArray(memberIds)
+      ? [...new Set(memberIds.map((id) => String(id || "").trim()).filter(Boolean))]
+      : [];
+
+    const invalidMemberId = requestedMemberIds.find((id) => !mongoose.Types.ObjectId.isValid(id));
+    if (invalidMemberId) {
+      return res.status(400).json({ message: "Invalid member id provided" });
+    }
+
+    let validMemberIds = [];
+    if (requestedMemberIds.length > 0) {
+      const users = await User.find({
+        _id: { $in: requestedMemberIds },
+        isDeleted: { $ne: true }
+      }).select("_id");
+      validMemberIds = users.map((user) => String(user._id));
+    }
+
+    const members = [...new Set([creatorId, ...validMemberIds])];
 
     const project = await Project.create({
       name: validatedName.value,
       description,
       type: type || "scrum",
       createdBy: req.user.id,
-      members: [req.user.id]
+      members
     });
 
     res.status(201).json({
