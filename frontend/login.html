@@ -430,13 +430,6 @@
       }
     }
     
-<<<<<<< HEAD
-    // Backend configuration
-    const BACKEND_URL = 'http://localhost:5000';
-    
-    // Enhanced login form handling with backend integration
-    document.querySelector('.login-form').onsubmit = async function(e) {
-=======
     // Create Orbital Rings
     function createOrbitalSystem() {
       const container = document.getElementById('orbitalContainer');
@@ -547,15 +540,10 @@
 
     // Simple login form handling with backend
     document.querySelector('.login-form').addEventListener('submit', async function(e) {
->>>>>>> fc4449ceef40ea6c408086f0363617c748e0f4a4
       e.preventDefault();
       
       const email = this.querySelector('input[type="email"]').value.trim();
       const password = this.querySelector('input[type="password"]').value;
-<<<<<<< HEAD
-      const rememberMe = this.querySelector('input[type="checkbox"]')?.checked || false;
-=======
->>>>>>> fc4449ceef40ea6c408086f0363617c748e0f4a4
       
       // Basic validation
       if (!email || !password) {
@@ -563,101 +551,9 @@
         return;
       }
       
-<<<<<<< HEAD
-      // Show loading state
-      const submitBtn = this.querySelector('.login-btn');
-      const originalText = submitBtn.textContent;
-      submitBtn.textContent = 'Signing in...';
-      submitBtn.disabled = true;
-      
-      try {
-        // Try backend login first
-        const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ email, password })
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          
-          // Store auth data
-          localStorage.setItem('authToken', data.token);
-          localStorage.setItem('userRole', data.user.role);
-          localStorage.setItem('currentUser', data.user.username);
-          localStorage.setItem('userEmail', data.user.email);
-          localStorage.setItem('isLoggedIn', 'true');
-          
-          if (rememberMe) {
-            localStorage.setItem('rememberMe', 'true');
-            localStorage.setItem('savedUser', data.user.username);
-            localStorage.setItem('savedUserRole', data.user.role);
-          }
-          
-          showNotification('Login successful! Redirecting...', 'success');
-          
-          // Redirect based on role
-          setTimeout(() => {
-            if (data.user.role === 'manager') {
-              window.location.href = 'projects.html';
-            } else {
-              window.location.href = 'dashboard-team.html';
-            }
-          }, 1000);
-          
-        } else {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Login failed');
-        }
-        
-      } catch (error) {
-        console.log('Backend login failed, trying demo mode:', error.message);
-        
-        // Fallback to demo mode
-        const demoUsers = {
-          'admin@example.com': { password: 'admin123', role: 'manager', username: 'Admin' },
-          'worker@example.com': { password: 'worker123', role: 'worker', username: 'Worker' },
-          'test@example.com': { password: 'test123', role: 'worker', username: 'TestUser' }
-        };
-        
-        const user = demoUsers[email];
-        if (user && user.password === password) {
-          // Demo login successful
-          localStorage.setItem('userRole', user.role);
-          localStorage.setItem('currentUser', user.username);
-          localStorage.setItem('userEmail', email);
-          localStorage.setItem('isLoggedIn', 'true');
-          localStorage.setItem('demoMode', 'true');
-          
-          if (rememberMe) {
-            localStorage.setItem('rememberMe', 'true');
-            localStorage.setItem('savedUser', user.username);
-            localStorage.setItem('savedUserRole', user.role);
-          }
-          
-          showNotification('Demo login successful! Redirecting...', 'success');
-          
-          setTimeout(() => {
-            if (user.role === 'manager') {
-              window.location.href = 'projects.html';
-            } else {
-              window.location.href = 'dashboard-team.html';
-            }
-          }, 1000);
-        } else {
-          showNotification('Invalid credentials. Try demo accounts:\nadmin@example.com / admin123\nworker@example.com / worker123', 'error');
-        }
-      } finally {
-        // Reset button
-        submitBtn.textContent = originalText;
-        submitBtn.disabled = false;
-=======
       if (!email.includes('@')) {
         showNotification('Please enter a valid email address', 'error');
         return;
->>>>>>> fc4449ceef40ea6c408086f0363617c748e0f4a4
       }
       
       try {
