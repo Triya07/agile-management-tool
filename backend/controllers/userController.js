@@ -4,6 +4,23 @@ const Sprint = require("../models/Sprint");
 const Task = require("../models/Task");
 const mongoose = require("mongoose");
 
+function normalizeSkills(skills) {
+  const rawSkills = Array.isArray(skills) ? skills : [skills];
+  const seen = new Set();
+
+  return rawSkills
+    .flatMap((skill) => String(skill || "").split(","))
+    .map((skill) => String(skill || "").trim().replace(/\s+/g, " "))
+    .filter((skill) => {
+      if (!skill) return false;
+
+      const key = skill.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+}
+
 // Get current user profile
 exports.getUserProfile = async (req, res) => {
   try {
@@ -179,23 +196,24 @@ exports.updateUserProfile = async (req, res) => {
       }
     }
 
-    // Build update object
-    const updateData = {};
-    if (name !== undefined) updateData.name = name;
-    if (email !== undefined) updateData.email = email;
-    if (phone !== undefined) updateData.phone = phone;
-    if (jobTitle !== undefined) updateData.jobTitle = jobTitle;
-    if (department !== undefined) updateData.department = department;
-    if (bio !== undefined) updateData.bio = bio;
-    if (skills !== undefined) updateData.skills = skills;
-    if (startDate !== undefined) updateData.startDate = startDate;
-    if (avatar !== undefined) updateData.avatar = avatar;
+    const userToUpdate = await User.findById(userId);
+    if (!userToUpdate) return res.status(404).json({ message: "User not found" });
 
-    const user = await User.findByIdAndUpdate(
-      userId,
-      updateData,
-      { new: true, runValidators: true }
-    ).select("-password");
+    if (name !== undefined) userToUpdate.name = name;
+    if (email !== undefined) userToUpdate.email = email;
+    if (phone !== undefined) userToUpdate.phone = phone;
+    if (jobTitle !== undefined) userToUpdate.jobTitle = jobTitle;
+    if (department !== undefined) userToUpdate.department = department;
+    if (bio !== undefined) userToUpdate.bio = bio;
+    if (skills !== undefined) {
+      userToUpdate.skills = normalizeSkills(skills);
+    }
+    if (startDate !== undefined) userToUpdate.startDate = startDate;
+    if (avatar !== undefined) userToUpdate.avatar = avatar;
+
+    await userToUpdate.save();
+    
+    const user = await User.findById(userId).select("-password");
 
     res.json({
       message: "Profile updated successfully",

@@ -680,30 +680,8 @@
     </div>
   </footer>
   
-  <!-- Session management logic -->
+  <!-- Landing page session logic -->
   <script>
-    const token = localStorage.getItem('token');
-    const user = JSON.parse(localStorage.getItem('user') || 'null');
-
-    if (token && user && user.role) {
-      localStorage.setItem('currentUser', user.name || 'User');
-      localStorage.setItem('userEmail', user.email || '');
-      
-      const dashboardUrl = String(user.role).toLowerCase() === 'manager' ? 'dashboard.html' : 'dashboard-team.html';
-      
-      // Update CTA buttons for logged-in state instead of force-redirecting!
-      const btnLogin = document.querySelector('.btn-login');
-      const btnSignup = document.querySelector('.btn-signup');
-      
-      if (btnLogin) {
-        btnLogin.textContent = 'Go to Dashboard';
-        btnLogin.href = dashboardUrl;
-      }
-      if (btnSignup) {
-        btnSignup.style.display = 'none'; // hide sign up if already logged in
-      }
-    }
-    
     // Create Wave Particle System
     function createWaveSystem() {
       const container = document.getElementById('waveContainer');

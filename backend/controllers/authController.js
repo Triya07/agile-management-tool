@@ -46,7 +46,14 @@ exports.register = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
+        skills: user.skills || [],
+        jobTitle: user.jobTitle || "",
+        department: user.department || "",
+        phone: user.phone || "",
+        bio: user.bio || "",
+        avatar: user.avatar || "",
+        startDate: user.startDate || null
       }
     });
   } catch (err) {
@@ -82,7 +89,14 @@ exports.login = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
+        skills: user.skills || [],
+        jobTitle: user.jobTitle || "",
+        department: user.department || "",
+        phone: user.phone || "",
+        bio: user.bio || "",
+        avatar: user.avatar || "",
+        startDate: user.startDate || null
       }
     });
   } catch (err) {

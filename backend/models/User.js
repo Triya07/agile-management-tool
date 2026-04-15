@@ -33,9 +33,10 @@ const userSchema = new mongoose.Schema({
   bio: {
     type: String
   },
-  skills: [{
-    type: String
-  }],
+  skills: {
+    type: [String],
+    default: []
+  },
   
   // Employment info
   employeeId: {
