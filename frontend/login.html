@@ -538,7 +538,7 @@
       return `${origin}/api`;
     }
 
-    // Simple login form handling with backend
+    // Login form handling with backend
     document.querySelector('.login-form').addEventListener('submit', async function(e) {
       e.preventDefault();
       
@@ -555,6 +555,14 @@
         showNotification('Please enter a valid email address', 'error');
         return;
       }
+<<<<<<< HEAD
+
+      const submitBtn = this.querySelector('.login-btn');
+      const originalText = submitBtn.textContent;
+      submitBtn.textContent = 'Signing in...';
+      submitBtn.disabled = true;
+=======
+>>>>>>> 04680914cc67f0e100167ae10578ca6eacc3e248
       
       try {
         const response = await fetch(`${resolveApiBaseUrl()}/auth/login`, {
@@ -571,12 +579,19 @@
         const result = await response.json();
         
         if (response.ok) {
+<<<<<<< HEAD
+          // Save user data in both modern and legacy keys.
+=======
           // Save user data
           localStorage.setItem('API_BASE_URL', resolveApiBaseUrl());
+>>>>>>> 04680914cc67f0e100167ae10578ca6eacc3e248
           localStorage.setItem('token', result.token);
+          localStorage.setItem('authToken', result.token);
           localStorage.setItem('user', JSON.stringify(result.user));
           localStorage.setItem('currentUser', result.user.name);
           localStorage.setItem('userEmail', result.user.email);
+          localStorage.setItem('userRole', result.user.role);
+          localStorage.setItem('isLoggedIn', 'true');
 
           showNotification('Login successful! Redirecting...', 'success');
           
@@ -593,6 +608,9 @@
       } catch (err) {
         console.error('Login error:', err);
         showNotification('Connection error. Please check backend availability and try again.', 'error');
+      } finally {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
       }
     });
   </script>

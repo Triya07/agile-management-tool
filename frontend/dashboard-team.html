@@ -91,6 +91,46 @@
       border-left: 4px solid #76C893;
     }
     .task-title { font-weight: 500; }
+    .task-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: 10px;
+      flex-wrap: wrap;
+    }
+    .project-name {
+      font-size: 0.85rem;
+      color: #0f766e;
+      background: rgba(167, 243, 208, 0.5);
+      border: 1px solid rgba(15, 118, 110, 0.2);
+      border-radius: 999px;
+      padding: 2px 9px;
+      font-weight: 600;
+    }
+    .project-type-badge {
+      font-size: 0.78rem;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      border-radius: 999px;
+      padding: 2px 9px;
+      font-weight: 700;
+      border: 1px solid transparent;
+    }
+    .project-type-badge.scrum {
+      color: #0c4a6e;
+      background: #e0f2fe;
+      border-color: #7dd3fc;
+    }
+    .project-type-badge.kanban {
+      color: #14532d;
+      background: #dcfce7;
+      border-color: #86efac;
+    }
+    .project-type-badge.unknown {
+      color: #334155;
+      background: #e2e8f0;
+      border-color: #cbd5e1;
+    }
     .status-badge { border-radius: 6px; padding: 2px 10px; font-size: 0.95rem; margin-right: 10px; font-weight: 600; }
     .status-todo { 
       background: linear-gradient(135deg, #D9ED92, #B5E48C); 
@@ -108,6 +148,76 @@
       border: 1px solid rgba(52, 160, 164, 0.5);
     }
     .due-today { background: #fee2e2; color: #b91c1c; border-radius: 6px; padding: 2px 8px; font-size: 0.95rem; margin-left: 10px; }
+    .task-controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 18px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.55);
+      border: 1px solid rgba(118, 200, 147, 0.2);
+    }
+    .task-controls button,
+    .task-controls select {
+      border: 1px solid #b7e4c7;
+      background: #f8fff8;
+      color: #0f766e;
+      border-radius: 8px;
+      padding: 7px 10px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    .task-controls button.active {
+      color: #ffffff;
+      background: linear-gradient(135deg, #52b69a, #34a0a4);
+      border-color: rgba(52, 160, 164, 0.8);
+    }
+    .task-controls-label,
+    .task-controls-sort-label {
+      font-weight: 700;
+      color: #0f766e;
+    }
+    .task-controls-sort-label {
+      margin-left: 6px;
+    }
+    .sprint-controls {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: 8px;
+      flex-wrap: wrap;
+    }
+    .sprint-controls-label {
+      font-weight: 700;
+      color: #0f766e;
+    }
+    .sprint-controls select {
+      min-width: 260px;
+      max-width: 340px;
+    }
+    .open-sprint-btn {
+      border: 1px solid rgba(52, 160, 164, 0.5);
+      color: #ffffff;
+      background: linear-gradient(135deg, #52b69a, #34a0a4);
+    }
+    .open-sprint-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      filter: grayscale(0.2);
+    }
+    .empty-state {
+      margin-top: 18px;
+      color: #0f766e;
+      font-weight: 600;
+      text-align: center;
+      background: rgba(236, 253, 245, 0.7);
+      border: 1px dashed rgba(16, 185, 129, 0.4);
+      border-radius: 10px;
+      padding: 14px;
+    }
     /* Modal */
     #taskModal { display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.18);z-index:1000;align-items:center;justify-content:center; }
     #taskModal .modal-content { background:#fff;padding:28px 24px 20px 24px;border-radius:10px;box-shadow:0 2px 16px rgba(0,0,0,0.12);width:340px;max-width:90vw;position:relative; }
@@ -160,6 +270,7 @@
         <button class="sidebar-btn active">Dashboard</button>
         <button class="sidebar-btn" onclick="navigateTo('my-tasks.html')">My Tasks</button>
         <button class="sidebar-btn" onclick="navigateTo('sprint-overview.html')">Sprint Overview</button>
+        <button class="sidebar-btn" onclick="openSelectedSprintBoard()">Sprint Board</button>
         <button class="sidebar-btn" onclick="navigateTo('scrum-updates.html')">Scrum Updates</button>
         <button class="sidebar-btn" onclick="navigateTo('user-profile.html')">Profile</button>
         <button class="sidebar-btn" onclick="navigateTo('settings.html')">Settings</button>
@@ -190,6 +301,23 @@
           </div>
         </div>
 
+        <div class="task-controls">
+          <span class="task-controls-label">Project Type:</span>
+          <button type="button" class="type-filter-btn active" data-type="all">All</button>
+          <button type="button" class="type-filter-btn" data-type="kanban">Kanban</button>
+          <button type="button" class="type-filter-btn" data-type="scrum">Scrum</button>
+          <label for="taskSortSelect" class="task-controls-sort-label">Sort:</label>
+          <select id="taskSortSelect">
+            <option value="projectType">Project Type</option>
+            <option value="createdDesc">Newest First</option>
+            <option value="createdAsc">Oldest First</option>
+          </select>
+          <div class="sprint-controls">
+            <label for="sprintSelect" class="sprint-controls-label">Sprint:</label>
+            <select id="sprintSelect"></select>
+            <button type="button" id="openSprintBoardBtn" class="open-sprint-btn">Open Sprint Board</button>
+          </div>
+        </div>
         <div id="tasksByStatus"></div>
       </div>
     </main>
@@ -247,6 +375,11 @@
     const authUser = getCurrentUser();
     const displayName = authUser?.name || localStorage.getItem("currentUser") || "Team Member";
     document.querySelector('.dashboard-title').textContent = `Welcome back, ${displayName}!`;
+    let allUserTasks = [];
+    let projectsById = {};
+    let availableSprints = [];
+    let activeTypeFilter = "all";
+    let activeSortMode = "projectType";
 
     // Load tasks for this specific user
     async function loadUserTasks() {
@@ -255,6 +388,36 @@
         return Array.isArray(tasks) ? tasks : (tasks.data || []);
       } catch (error) {
         console.error('Error loading tasks:', error);
+        return [];
+      }
+    }
+
+    async function loadUserProjects() {
+      try {
+        const response = await getUserProjects();
+        const projects = Array.isArray(response) ? response : (response?.projects || []);
+        const map = {};
+        projects.forEach((project) => {
+          const projectId = String(project?._id || project?.id || "");
+          if (!projectId) return;
+          map[projectId] = {
+            name: project?.name || "Project",
+            type: normalizeProjectType(project?.type)
+          };
+        });
+        return map;
+      } catch (error) {
+        console.error('Error loading projects:', error);
+        return {};
+      }
+    }
+
+    async function loadDashboardSprints() {
+      try {
+        const response = await getUserDashboard();
+        return Array.isArray(response?.sprints) ? response.sprints : [];
+      } catch (error) {
+        console.error('Error loading dashboard sprints:', error);
         return [];
       }
     }
@@ -277,6 +440,154 @@
       };
     }
 
+    function normalizeProjectType(typeValue) {
+      const normalized = String(typeValue || "").trim().toLowerCase();
+      if (normalized === "kanban") return "kanban";
+      if (normalized === "scrum") return "scrum";
+      return "unknown";
+    }
+
+    function getProjectIdFromValue(value) {
+      if (!value) return "";
+      if (typeof value === "object") return String(value._id || value.id || "");
+      return String(value || "");
+    }
+
+    function normalizeSprintOption(rawSprint, fallbackProjectId = "", fallbackProjectName = "") {
+      const sprintId = String(rawSprint?._id || rawSprint?.id || "");
+      if (!sprintId) return null;
+
+      const projectRef = rawSprint?.projectId;
+      const projectId = getProjectIdFromValue(projectRef) || fallbackProjectId;
+      if (!projectId) return null;
+
+      const projectName = (typeof projectRef === "object" ? projectRef?.name : "") || projectsById[projectId]?.name || fallbackProjectName || "Project";
+      const projectType = normalizeProjectType((typeof projectRef === "object" ? projectRef?.type : "") || projectsById[projectId]?.type);
+      if (projectType !== "scrum") return null;
+
+      return {
+        sprintId,
+        sprintName: rawSprint?.sprintName || rawSprint?.name || "Sprint",
+        projectId,
+        projectName,
+        projectType
+      };
+    }
+
+    function buildAvailableSprints(tasks, dashboardSprints) {
+      const bySprintId = {};
+
+      (dashboardSprints || []).forEach((sprint) => {
+        const normalized = normalizeSprintOption(sprint);
+        if (!normalized) return;
+        bySprintId[normalized.sprintId] = normalized;
+      });
+
+      (tasks || []).forEach((task) => {
+        const taskSprint = task?.sprint;
+        if (!taskSprint) return;
+        const fallbackProjectId = getProjectIdFromValue(task?.projectId);
+        const fallbackProjectName = typeof task?.projectId === "object" ? task?.projectId?.name : "";
+        const normalized = normalizeSprintOption(taskSprint, fallbackProjectId, fallbackProjectName);
+        if (!normalized) return;
+        bySprintId[normalized.sprintId] = normalized;
+      });
+
+      return Object.values(bySprintId).sort((a, b) => a.sprintName.localeCompare(b.sprintName));
+    }
+
+    function renderSprintSelector() {
+      const sprintSelect = document.getElementById('sprintSelect');
+      const openBtn = document.getElementById('openSprintBoardBtn');
+      if (!sprintSelect || !openBtn) return;
+
+      sprintSelect.innerHTML = '';
+
+      if (!availableSprints.length) {
+        sprintSelect.innerHTML = '<option value="">No Scrum sprint available</option>';
+        sprintSelect.disabled = true;
+        openBtn.disabled = true;
+        return;
+      }
+
+      const savedSprintId = localStorage.getItem('currentSprintId') || localStorage.getItem('activeSprint');
+      availableSprints.forEach((sprint) => {
+        const option = document.createElement('option');
+        option.value = sprint.sprintId;
+        option.textContent = `${sprint.sprintName} (${sprint.projectName})`;
+        sprintSelect.appendChild(option);
+      });
+
+      const selected = availableSprints.find((s) => s.sprintId === savedSprintId) || availableSprints[0];
+      sprintSelect.value = selected.sprintId;
+      sprintSelect.disabled = false;
+      openBtn.disabled = false;
+      setActiveContext({ projectId: selected.projectId, sprintId: selected.sprintId, projectType: 'scrum' });
+    }
+
+    function getSelectedSprint() {
+      const sprintSelect = document.getElementById('sprintSelect');
+      if (!sprintSelect) return null;
+      const selectedId = sprintSelect.value;
+      if (!selectedId) return null;
+      return availableSprints.find((sprint) => sprint.sprintId === selectedId) || null;
+    }
+
+    function openSelectedSprintBoard() {
+      const selectedSprint = getSelectedSprint();
+      if (!selectedSprint) {
+        showNotification('Please select a Scrum sprint first.', 'error');
+        return;
+      }
+
+      setActiveContext({
+        projectId: selectedSprint.projectId,
+        sprintId: selectedSprint.sprintId,
+        projectType: 'scrum'
+      });
+
+      window.location.href = `sprint.html?projectId=${encodeURIComponent(selectedSprint.projectId)}&sprintId=${encodeURIComponent(selectedSprint.sprintId)}`;
+    }
+
+    function getProjectInfo(task) {
+      const projectRef = task?.projectId;
+      const projectId = typeof projectRef === "object" ? String(projectRef._id || projectRef.id || "") : String(projectRef || "");
+      const fromMap = projectsById[projectId] || null;
+      const fromTaskType = normalizeProjectType(typeof projectRef === "object" ? projectRef.type : "");
+      return {
+        name: fromMap?.name || (typeof projectRef === "object" ? projectRef?.name : "") || "Project",
+        type: fromMap?.type || fromTaskType || "unknown"
+      };
+    }
+
+    function sortTasks(tasks) {
+      const sorted = [...tasks];
+      if (activeSortMode === "createdAsc") {
+        sorted.sort((a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0));
+        return sorted;
+      }
+      if (activeSortMode === "createdDesc") {
+        sorted.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+        return sorted;
+      }
+
+      const order = { scrum: 0, kanban: 1, unknown: 2 };
+      sorted.sort((a, b) => {
+        const aInfo = getProjectInfo(a);
+        const bInfo = getProjectInfo(b);
+        if (order[aInfo.type] !== order[bInfo.type]) {
+          return order[aInfo.type] - order[bInfo.type];
+        }
+        return (aInfo.name || "").localeCompare(bInfo.name || "");
+      });
+      return sorted;
+    }
+
+    function getFilteredTasks(tasks) {
+      if (activeTypeFilter === "all") return tasks;
+      return tasks.filter((task) => getProjectInfo(task).type === activeTypeFilter);
+    }
+
     function isDueToday(task) {
       if (!task.dueDate) return false;
       const today = new Date().toISOString().slice(0,10);
@@ -284,13 +595,16 @@
     }
 
     async function renderTasks() {
-      const tasks = await loadUserTasks();
-      const grouped = groupTasksByStatus(tasks);
+      const filteredTasks = getFilteredTasks(allUserTasks);
+      const grouped = groupTasksByStatus(sortTasks(filteredTasks));
       const container = document.getElementById("tasksByStatus");
       container.innerHTML = "";
 
+      let renderedTaskCount = 0;
+
       ["todo", "inprogress", "done"].forEach(status => {
         if (grouped[status].length === 0) return;
+        renderedTaskCount += grouped[status].length;
         const groupDiv = document.createElement("div");
         groupDiv.className = "task-group";
         
@@ -307,12 +621,18 @@
         grouped[status].forEach(task => {
           const taskId = getTaskId(task);
           if (!taskId) return;
+          const projectInfo = getProjectInfo(task);
+          const projectTypeLabel = projectInfo.type === "unknown" ? "Unknown" : projectInfo.type;
           const card = document.createElement("div");
           card.className = "task-card";
           card.innerHTML = `
             <span>
               <span class="status-badge status-${status}">${statusTitle}</span>
               <span class="task-title">${task.title}</span>
+              <span class="task-meta">
+                <span class="project-name">${projectInfo.name}</span>
+                <span class="project-type-badge ${projectInfo.type}">${projectTypeLabel}</span>
+              </span>
               ${isDueToday(task) ? '<span class="due-today">Due Today</span>' : ""}
             </span>
             <div>
@@ -330,6 +650,10 @@
         
         container.appendChild(groupDiv);
       });
+
+      if (renderedTaskCount === 0) {
+        container.innerHTML = '<div class="empty-state">No tasks found for this project type filter.</div>';
+      }
     }
     
     // Quick status update function
@@ -351,8 +675,9 @@
         try {
           await updateTaskStatus(taskId, nextStatus);
           showNotification(`Task moved to ${statusNames[nextStatus]}!`, 'success');
+          allUserTasks = await loadUserTasks();
           await renderTasks();
-          await updateSummaryCards();
+          await updateSummaryCards(allUserTasks);
         } catch (error) {
           console.error('Failed to update task status:', error);
           showNotification(error.message || 'Failed to update task status.', 'error');
@@ -439,9 +764,44 @@
     
     // Initialize page on load
     document.addEventListener('DOMContentLoaded', async () => {
-      const tasks = await loadUserTasks();
+      const dashboardSprints = await loadDashboardSprints();
+      [allUserTasks, projectsById] = await Promise.all([loadUserTasks(), loadUserProjects()]);
+      availableSprints = buildAvailableSprints(allUserTasks, dashboardSprints);
+      renderSprintSelector();
+
+      document.querySelectorAll('.type-filter-btn').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          activeTypeFilter = btn.dataset.type || 'all';
+          document.querySelectorAll('.type-filter-btn').forEach((node) => node.classList.remove('active'));
+          btn.classList.add('active');
+          await renderTasks();
+        });
+      });
+
+      const taskSortSelect = document.getElementById('taskSortSelect');
+      if (taskSortSelect) {
+        taskSortSelect.addEventListener('change', async (event) => {
+          activeSortMode = event.target.value || 'projectType';
+          await renderTasks();
+        });
+      }
+
+      const sprintSelect = document.getElementById('sprintSelect');
+      if (sprintSelect) {
+        sprintSelect.addEventListener('change', () => {
+          const selected = getSelectedSprint();
+          if (!selected) return;
+          setActiveContext({ projectId: selected.projectId, sprintId: selected.sprintId, projectType: 'scrum' });
+        });
+      }
+
+      const openSprintBoardBtn = document.getElementById('openSprintBoardBtn');
+      if (openSprintBoardBtn) {
+        openSprintBoardBtn.addEventListener('click', openSelectedSprintBoard);
+      }
+
       await renderTasks();
-      await updateSummaryCards(tasks);
+      await updateSummaryCards(allUserTasks);
     });
 
   </script>

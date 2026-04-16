@@ -164,10 +164,162 @@ function applySidebarContentOffset() {
   }
 }
 
+function getUserInitials(user) {
+  const base = (user && user.name) || localStorage.getItem("currentUser") || (user && user.email) || "User";
+  const clean = String(base).trim();
+  if (!clean) return "U";
+
+  const parts = clean.split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) {
+    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  }
+
+  return clean.slice(0, 2).toUpperCase();
+}
+
+function rectanglesOverlap(a, b) {
+  return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+}
+
+function adjustGlobalUserAvatarPosition(button) {
+  if (!button) return;
+
+  const rootStyles = getComputedStyle(document.documentElement);
+  const cssTop = parseInt(rootStyles.getPropertyValue("--global-avatar-top"), 10);
+  const cssRight = parseInt(rootStyles.getPropertyValue("--global-avatar-right"), 10);
+
+  let top = Number.isFinite(cssTop) ? cssTop : (window.innerWidth <= 640 ? 12 : 16);
+  let right = Number.isFinite(cssRight) ? cssRight : (window.innerWidth <= 640 ? 12 : 20);
+  const maxTop = Math.max(16, Math.floor(window.innerHeight * 0.45));
+
+  button.style.top = `${top}px`;
+  button.style.right = `${right}px`;
+
+  const interactiveNodes = Array.from(document.querySelectorAll("button, a, input, select, textarea, [role='button'], .btn"));
+  let checks = 0;
+
+  while (checks < 8) {
+    const avatarRect = button.getBoundingClientRect();
+    const hasCollision = interactiveNodes.some((node) => {
+      if (!node || node === button || button.contains(node) || node.contains(button)) return false;
+      const nodeRect = node.getBoundingClientRect();
+      if (nodeRect.width === 0 || nodeRect.height === 0) return false;
+
+      const style = getComputedStyle(node);
+      if (style.display === "none" || style.visibility === "hidden" || style.opacity === "0") {
+        return false;
+      }
+
+      return rectanglesOverlap(avatarRect, nodeRect);
+    });
+
+    if (!hasCollision || top >= maxTop) break;
+
+    top += 56;
+    button.style.top = `${top}px`;
+    checks += 1;
+  }
+}
+
+function injectGlobalUserAvatar() {
+  const currentPage = (window.location.pathname.split("/").pop() || "").toLowerCase();
+  if (currentPage === "login.html" || currentPage === "signup.html" || currentPage === "index.html" || currentPage === "user-profile.html") {
+    return;
+  }
+
+  if (!getToken()) return;
+
+  // Remove legacy per-page avatar buttons so only one consistent control remains.
+  document.querySelectorAll(".user-avatar-btn").forEach((node) => node.remove());
+
+  const existing = document.getElementById("global-user-avatar-btn");
+  const user = getCurrentUser();
+  const initials = getUserInitials(user);
+  const fullName = (user && user.name) || localStorage.getItem("currentUser") || "User";
+
+  if (existing) {
+    existing.textContent = initials;
+    existing.setAttribute("title", `${fullName} - Open profile`);
+    adjustGlobalUserAvatarPosition(existing);
+    return;
+  }
+
+  if (!document.getElementById("global-user-avatar-style")) {
+    const style = document.createElement("style");
+    style.id = "global-user-avatar-style";
+    style.textContent = `
+      #global-user-avatar-btn {
+        position: fixed;
+        top: 16px;
+        right: 20px;
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        background: linear-gradient(135deg, #34A0A4, #168AAD);
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.95rem;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        cursor: pointer;
+        z-index: 1200;
+        box-shadow: 0 8px 24px rgba(22, 138, 173, 0.35);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      #global-user-avatar-btn:hover {
+        transform: translateY(-1px) scale(1.03);
+        box-shadow: 0 10px 28px rgba(22, 138, 173, 0.45);
+      }
+
+      #global-user-avatar-btn:focus-visible {
+        outline: 3px solid rgba(52, 160, 164, 0.35);
+        outline-offset: 2px;
+      }
+
+      @media (max-width: 640px) {
+        #global-user-avatar-btn {
+          top: 12px;
+          right: 12px;
+          width: 42px;
+          height: 42px;
+          font-size: 0.88rem;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  const button = document.createElement("button");
+  button.id = "global-user-avatar-btn";
+  button.type = "button";
+  button.textContent = initials;
+  button.setAttribute("aria-label", "Open profile");
+  button.setAttribute("title", `${fullName} - Open profile`);
+  button.addEventListener("click", () => {
+    window.location.href = "user-profile.html";
+  });
+
+  document.body.appendChild(button);
+  adjustGlobalUserAvatarPosition(button);
+
+  if (!window.__globalAvatarResizeBound) {
+    window.addEventListener("resize", () => {
+      const avatar = document.getElementById("global-user-avatar-btn");
+      adjustGlobalUserAvatarPosition(avatar);
+    });
+    window.__globalAvatarResizeBound = true;
+  }
+}
+
 if (typeof document !== "undefined") {
   document.addEventListener("DOMContentLoaded", () => {
     applyRoleBasedSidebarNav();
     applySidebarContentOffset();
+    injectGlobalUserAvatar();
   });
 }
 
@@ -263,10 +415,10 @@ async function getProject(projectId) {
   return apiCall(`/projects/${projectId}`);
 }
 
-async function createProject(name, description, type = "scrum") {
+async function createProject(name, description, type = "scrum", memberIds = []) {
   return apiCall("/projects", {
     method: "POST",
-    body: JSON.stringify({ name, description, type })
+    body: JSON.stringify({ name, description, type, memberIds })
   });
 }
 

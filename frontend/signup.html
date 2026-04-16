@@ -261,7 +261,11 @@
     <span class="login-link" onclick="window.location.href='login.html'">Already have an account? Login</span>
   </div>
   <script>
+<<<<<<< HEAD
+    // Notification system
+=======
     // Notification system - MUST be defined first
+>>>>>>> 04680914cc67f0e100167ae10578ca6eacc3e248
     function showNotification(message, type = 'info') {
       const notification = document.createElement('div');
       const colors = {
@@ -365,6 +369,11 @@
         return;
       }
       
+      const submitBtn = this.querySelector('.signup-btn');
+      const originalText = submitBtn.textContent;
+      submitBtn.textContent = 'Creating Account...';
+      submitBtn.disabled = true;
+
       try {
         const response = await fetch(`${resolveApiBaseUrl()}/auth/signup`, {
           method: 'POST',
@@ -382,19 +391,34 @@
         const result = await response.json();
         
         if (response.ok) {
+<<<<<<< HEAD
+          // Save user data in both modern and legacy keys.
+=======
           // Save user data
           localStorage.setItem('API_BASE_URL', resolveApiBaseUrl());
+>>>>>>> 04680914cc67f0e100167ae10578ca6eacc3e248
           localStorage.setItem('token', result.token);
+          localStorage.setItem('authToken', result.token);
           localStorage.setItem('user', JSON.stringify(result.user));
           localStorage.setItem('currentUser', result.user.name);
           localStorage.setItem('userEmail', result.user.email);
+          localStorage.setItem('userRole', result.user.role);
+          localStorage.setItem('isLoggedIn', 'true');
           
           showNotification('Account created successfully! Redirecting...', 'success');
           
           // Redirect to the appropriate dashboard after successful signup
           setTimeout(() => {
+<<<<<<< HEAD
+            if (result.user.role === 'manager') {
+              window.location.href = 'dashboard.html';
+            } else {
+              window.location.href = 'dashboard-team.html';
+            }
+=======
             const role = (result.user.role || '').toLowerCase();
             window.location.href = role === 'manager' ? 'dashboard.html' : 'dashboard-team.html';
+>>>>>>> 04680914cc67f0e100167ae10578ca6eacc3e248
           }, 1500);
         } else {
           showNotification(result.message || 'Signup failed', 'error');
@@ -402,6 +426,9 @@
       } catch (err) {
         console.error('Signup error:', err);
         showNotification('Connection error. Please check backend availability and try again.', 'error');
+      } finally {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
       }
     });
 

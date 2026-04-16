@@ -88,12 +88,12 @@
         <h2 style="margin-top:0;">Current Sprint Overview</h2>
         
         <div class="sprint-info">
-          <h3>Sprint 1 - Development Phase</h3>
-          <p>Duration: 2 weeks (Jan 15 - Jan 29)</p>
+          <h3 id="currentSprintName">Loading current sprint...</h3>
+          <p id="currentSprintDuration">Duration: --</p>
           <div class="progress-bar">
-            <div class="progress-fill" id="sprintProgress" style="width:65%"></div>
+            <div class="progress-fill" id="sprintProgress" style="width:0%"></div>
           </div>
-          <p style="margin-top:8px;">Progress: 65% complete</p>
+          <p style="margin-top:8px;" id="sprintProgressLabel">Progress: 0% complete</p>
         </div>
         
         <div id="mySprintTasks"></div>
@@ -114,21 +114,135 @@
 
 })();
   
-    const currentUser = localStorage.getItem("currentUser");
-    
-    // Load sprint tasks from API
-    async function loadSprintTasks() {
+    function normalizeArray(value) {
+      if (Array.isArray(value)) return value;
+      if (value && Array.isArray(value.data)) return value.data;
+      if (value && Array.isArray(value.tasks)) return value.tasks;
+      if (value && Array.isArray(value.sprints)) return value.sprints;
+      return [];
+    }
+
+    function toDateLabel(input) {
+      if (!input) return "--";
+      const parsed = new Date(input);
+      if (Number.isNaN(parsed.getTime())) return "--";
+      return parsed.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    }
+
+    function getDurationLabel(startDate, endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+
+      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+        return "--";
+      }
+
+      const diffMs = end.getTime() - start.getTime();
+      const totalDays = Math.max(1, Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1);
+
+      if (totalDays % 7 === 0) {
+        const weeks = totalDays / 7;
+        return `${weeks} week${weeks > 1 ? "s" : ""}`;
+      }
+
+      return `${totalDays} day${totalDays > 1 ? "s" : ""}`;
+    }
+
+    function getCurrentSprint(sprints) {
+      if (!Array.isArray(sprints) || sprints.length === 0) return null;
+
+      const active = sprints.find((s) => s.status === "active");
+      if (active) return active;
+
+      const planning = sprints.find((s) => s.status === "planning");
+      if (planning) return planning;
+
+      const sorted = [...sprints].sort((a, b) => {
+        const aTime = new Date(a.startDate || a.createdAt || 0).getTime();
+        const bTime = new Date(b.startDate || b.createdAt || 0).getTime();
+        return bTime - aTime;
+      });
+
+      return sorted[0] || null;
+    }
+
+    function getSprintId(sprint) {
+      return sprint && (sprint._id || sprint.id);
+    }
+
+    function getTaskSprintId(task) {
+      if (!task || !task.sprint) return null;
+      if (typeof task.sprint === "string") return task.sprint;
+      return task.sprint._id || task.sprint.id || null;
+    }
+
+    function formatStatus(status) {
+      if (status === "inprogress") return "In Progress";
+      if (status === "todo") return "To Do";
+      if (status === "done") return "Done";
+      return String(status || "todo");
+    }
+
+    function getStatusStyle(status) {
+      if (status === "done") {
+        return {
+          bg: "linear-gradient(135deg, #34A0A4, #168AAD)",
+          color: "white",
+          border: "rgba(52, 160, 164, 0.5)"
+        };
+      }
+
+      if (status === "inprogress") {
+        return {
+          bg: "linear-gradient(135deg, #76C893, #52B69A)",
+          color: "white",
+          border: "rgba(82, 182, 154, 0.5)"
+        };
+      }
+
+      return {
+        bg: "linear-gradient(135deg, #D9ED92, #B5E48C)",
+        color: "#1A759F",
+        border: "rgba(181, 228, 140, 0.5)"
+      };
+    }
+
+    async function loadUserTasks() {
       try {
-        const tasks = await getUserTasks();
-        return Array.isArray(tasks) ? tasks : (tasks.data || []);
+        const response = await getUserTasks();
+        return normalizeArray(response);
       } catch (error) {
         console.error('Error loading tasks:', error);
         return [];
       }
     }
-    
-    async function renderMySprintTasks() {
-      const tasks = await loadSprintTasks();
+
+    function renderSprintOverview(sprint, totalTasks, doneTasks) {
+      const sprintName = document.getElementById('currentSprintName');
+      const sprintDuration = document.getElementById('currentSprintDuration');
+      const sprintProgress = document.getElementById('sprintProgress');
+      const sprintProgressLabel = document.getElementById('sprintProgressLabel');
+
+      if (!sprint) {
+        sprintName.textContent = 'No active sprint assigned';
+        sprintDuration.textContent = 'Duration: --';
+        sprintProgress.style.width = '0%';
+        sprintProgressLabel.textContent = 'Progress: 0% complete';
+        return;
+      }
+
+      const progress = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
+      const sprintTitle = sprint.sprintName || sprint.name || 'Current Sprint';
+      const durationText = getDurationLabel(sprint.startDate, sprint.endDate);
+      const dateRangeText = `${toDateLabel(sprint.startDate)} - ${toDateLabel(sprint.endDate)}`;
+
+      sprintName.textContent = sprintTitle;
+      sprintDuration.textContent = `Duration: ${durationText} (${dateRangeText})`;
+      sprintProgress.style.width = `${progress}%`;
+      sprintProgressLabel.textContent = `Progress: ${progress}% complete (${doneTasks}/${totalTasks} tasks done)`;
+    }
+
+    function renderMySprintTasks(tasks) {
       const container = document.getElementById('mySprintTasks');
       
       if (tasks.length === 0) {
@@ -138,15 +252,60 @@
       
       container.innerHTML = `
         <h3 style="color:#34A0A4;margin-bottom:16px;">My Tasks in Current Sprint</h3>
-        ${tasks.map(task => `
+        ${tasks.map(task => {
+          const statusStyle = getStatusStyle(task.status);
+          return `
           <div style="padding:14px 18px;background:linear-gradient(135deg, rgba(118, 200, 147, 0.05), rgba(82, 182, 154, 0.02));margin:10px 0;border-radius:8px;border-left:4px solid #76C893;box-shadow:0 2px 8px rgba(8, 51, 68, 0.06);display:flex;justify-content:space-between;align-items:center;">
             <strong style="color:#083344;">${task.title}</strong>
-            <span style="padding:4px 12px;background:${task.status==='done'?'linear-gradient(135deg, #34A0A4, #168AAD)':task.status==='inprogress'?'linear-gradient(135deg, #76C893, #52B69A)':'linear-gradient(135deg, #D9ED92, #B5E48C)'};color:${task.status==='todo'?'#1A759F':'white'};border-radius:12px;font-size:0.85rem;font-weight:600;border:1px solid ${task.status==='done'?'rgba(52, 160, 164, 0.5)':task.status==='inprogress'?'rgba(82, 182, 154, 0.5)':'rgba(181, 228, 140, 0.5)'};">
-              ${task.status.replace('inprogress', 'In Progress').replace('todo', 'To Do').replace('done', 'Done')}
+            <span style="padding:4px 12px;background:${statusStyle.bg};color:${statusStyle.color};border-radius:12px;font-size:0.85rem;font-weight:600;border:1px solid ${statusStyle.border};">
+              ${formatStatus(task.status)}
             </span>
           </div>
-        `).join('')}
+        `;
+        }).join('')}
       `;
+    }
+
+    async function loadDynamicSprintOverview() {
+      try {
+        const [sprintsResponse, userTasks] = await Promise.all([
+          getAllSprints(),
+          loadUserTasks()
+        ]);
+
+        const sprints = normalizeArray(sprintsResponse);
+        const currentSprint = getCurrentSprint(sprints);
+        const sprintId = getSprintId(currentSprint);
+
+        if (!currentSprint || !sprintId) {
+          renderSprintOverview(null, 0, 0);
+          renderMySprintTasks([]);
+          return;
+        }
+
+        let totalTasks = 0;
+        let doneTasks = 0;
+
+        try {
+          const summary = await getSprintSummary(sprintId);
+          totalTasks = Number(summary && summary.totalTasks) || 0;
+          doneTasks = Number(summary && summary.tasksByStatus && summary.tasksByStatus.done) || 0;
+        } catch (error) {
+          // Fallback to user tasks only if summary call fails.
+          const sprintTasksFromUserList = userTasks.filter((task) => getTaskSprintId(task) === sprintId);
+          totalTasks = sprintTasksFromUserList.length;
+          doneTasks = sprintTasksFromUserList.filter((task) => task.status === 'done').length;
+        }
+
+        const myCurrentSprintTasks = userTasks.filter((task) => getTaskSprintId(task) === sprintId);
+
+        renderSprintOverview(currentSprint, totalTasks, doneTasks);
+        renderMySprintTasks(myCurrentSprintTasks);
+      } catch (error) {
+        console.error('Error loading sprint overview:', error);
+        renderSprintOverview(null, 0, 0);
+        renderMySprintTasks([]);
+      }
     }
     
     function navigateTo(page) {
@@ -159,7 +318,7 @@
     
     // Initialize on page load
     document.addEventListener('DOMContentLoaded', () => {
-      renderMySprintTasks();
+      loadDynamicSprintOverview();
     });
 
     // Sidebar resizing behavior

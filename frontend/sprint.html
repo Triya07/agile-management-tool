@@ -248,7 +248,7 @@
           </div>
           <div>
             <strong style="color: #34A0A4;">Team:</strong> 
-            <span style="color: #083344;">5 Members</span>
+            <span style="color: #083344;" id="teamCount">0 Members</span>
           </div>
         </div>
         <div class="sprint-progress">
@@ -583,6 +583,32 @@
       }
     }
 
+    function updateAssignedTeamCount(tasks) {
+      const teamCountEl = document.getElementById('teamCount');
+      if (!teamCountEl) return;
+      const assignedMemberIds = new Set();
+
+      (Array.isArray(tasks) ? tasks : []).forEach((task) => {
+        if (Array.isArray(task?.assignedUsers) && task.assignedUsers.length > 0) {
+          task.assignedUsers.forEach((member) => {
+            const memberId = member && member._id ? String(member._id) : String(member || '');
+            if (memberId) assignedMemberIds.add(memberId);
+          });
+          return;
+        }
+
+        if (task?.assignedTo) {
+          const assigneeId = task.assignedTo && task.assignedTo._id
+            ? String(task.assignedTo._id)
+            : String(task.assignedTo || '');
+          if (assigneeId) assignedMemberIds.add(assigneeId);
+        }
+      });
+
+      const count = assignedMemberIds.size;
+      teamCountEl.textContent = `${count} Assigned Member${count === 1 ? '' : 's'}`;
+    }
+
     document.getElementById('scrumProjectSelect')?.addEventListener('change', async (event) => {
       const selectedProjectId = event.target.value;
       currentProjectId = selectedProjectId || null;
@@ -659,6 +685,7 @@ async function submitCreateSprint() {
       if (!currentProjectId) {
         document.getElementById('sprintName').textContent  = 'No scrum project selected';
         document.getElementById('sprintDates').textContent = 'Select a project from the dropdown above';
+        document.getElementById('teamCount').textContent = '0 Members';
         document.getElementById('sprintBoard').style.display = 'none';
         return;
       }
@@ -707,9 +734,12 @@ async function submitCreateSprint() {
     async function loadTasks() {
       try {
         const tasks = await getSprintTasks(currentSprintId, currentProjectId);
-        renderTasks(tasks || []);
+        const sprintTasks = Array.isArray(tasks) ? tasks : [];
+        updateAssignedTeamCount(sprintTasks);
+        renderTasks(sprintTasks);
       } catch (err) {
         console.error('Error loading tasks:', err);
+        updateAssignedTeamCount([]);
       }
     }
 

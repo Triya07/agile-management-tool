@@ -78,6 +78,16 @@
       justify-content: center;
     }
     .modal.show { display: flex; }
+
+    /* Override global style.css modal force-open rules for this page */
+    #addUpdateModal {
+      display: none !important;
+    }
+
+    #addUpdateModal.show {
+      display: flex !important;
+    }
+
     .modal-content {
       background: white;
       border-radius: 12px;
